@@ -1,0 +1,15 @@
+fastapi>=0.115,<0.120
+uvicorn[standard]>=0.30,<0.40
+sqlalchemy>=2.0,<2.1
+geoalchemy2>=0.15,<0.18
+psycopg2-binary>=2.9,<3.0
+alembic>=1.13,<1.15
+pydantic>=2.7,<3.0
+pydantic-settings>=2.4,<3.0
+python-dotenv>=1.0,<2.0
+
+# Phase 3: RAG + agents + optimiser
+chromadb>=0.5,<1.0
+langgraph>=0.2,<0.7
+anthropic>=0.40,<1.0
+ortools>=9.10,<10.0
