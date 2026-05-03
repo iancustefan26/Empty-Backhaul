@@ -1,8 +1,17 @@
 """Persistent Chroma client wrapper.
 
-The Chroma store lives on disk at `CHROMA_PERSIST_DIR` (default: backend/chroma_db).
-We use Chroma's default embedding function (ONNX all-MiniLM-L6-v2, ~80 MB on first
-download) so the system has zero outbound API dependencies for the vector layer.
+Two collections:
+
+- `compliance_rules` — the 17 hand-written, English rule summaries. Embedded
+  with Chroma's default `all-MiniLM-L6-v2` (~80 MB ONNX). Stable citation
+  index for the Analyst.
+
+- `compliance_corpus` — the chunked primary sources from
+  `backend/legal_documents/` (EU PDFs in English, ANSVSA orders in Romanian).
+  Embedded with `paraphrase-multilingual-MiniLM-L12-v2` (~250 MB on first
+  download) so English Analyst queries can retrieve Romanian passages.
+
+Both stores live on disk at `CHROMA_PERSIST_DIR` (default: backend/chroma_db).
 """
 from __future__ import annotations
 
@@ -16,6 +25,9 @@ from chromadb.utils import embedding_functions
 from app.core.config import get_settings
 
 COLLECTION_NAME = "compliance_rules"
+CORPUS_COLLECTION_NAME = "compliance_corpus"
+
+MULTILINGUAL_MODEL = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 
 
 def get_client() -> ClientAPI:
@@ -28,11 +40,32 @@ def get_embedding_function():
     return embedding_functions.DefaultEmbeddingFunction()
 
 
+def get_multilingual_embedding_function():
+    """Sentence-transformers multilingual embedder.
+
+    Lazy-instantiates the model the first time it's called; subsequent calls
+    in the same process re-use it. The first call also triggers a one-time
+    ~250 MB download into the HuggingFace cache.
+    """
+    return embedding_functions.SentenceTransformerEmbeddingFunction(
+        model_name=MULTILINGUAL_MODEL,
+    )
+
+
 def get_or_create_collection(client: ClientAPI | None = None) -> Collection:
     client = client or get_client()
     return client.get_or_create_collection(
         name=COLLECTION_NAME,
         embedding_function=get_embedding_function(),
+        metadata={"hnsw:space": "cosine"},
+    )
+
+
+def get_or_create_corpus_collection(client: ClientAPI | None = None) -> Collection:
+    client = client or get_client()
+    return client.get_or_create_collection(
+        name=CORPUS_COLLECTION_NAME,
+        embedding_function=get_multilingual_embedding_function(),
         metadata={"hnsw:space": "cosine"},
     )
 
@@ -44,3 +77,12 @@ def reset_collection(client: ClientAPI | None = None) -> Collection:
     except Exception:
         pass
     return get_or_create_collection(client)
+
+
+def reset_corpus_collection(client: ClientAPI | None = None) -> Collection:
+    client = client or get_client()
+    try:
+        client.delete_collection(CORPUS_COLLECTION_NAME)
+    except Exception:
+        pass
+    return get_or_create_corpus_collection(client)

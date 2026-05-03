@@ -106,6 +106,14 @@ export interface LoadSnapshot {
   status: string;
 }
 
+export interface ExcerptCitation {
+  source_id: string;
+  citation: string;
+  language: string;
+  snippet: string;
+  distance: number;
+}
+
 export interface ComplianceVerdict {
   load_id: number;
   is_compliant: boolean;
@@ -114,6 +122,8 @@ export interface ComplianceVerdict {
   warnings: string[];
   reasoning: string;
   cited_rule_ids: string[];
+  cited_excerpts?: ExcerptCitation[];
+  sanity_overrides?: string[];
 }
 
 export interface ScoreRow {
@@ -149,13 +159,16 @@ export interface SentryLog {
 }
 
 export interface AnalystLog {
-  mode: "mock" | "claude";
+  mode: "mock" | "claude" | "gemini";
   model: string | null;
   evaluated_loads: number;
   compliant_count: number;
   rag_hits: number;
+  corpus_hits?: number;
   llm_calls: number;
+  cache_hits?: number;
   parse_errors: number;
+  sanity_overrides_count?: number;
   elapsed_ms: number;
   completed_at: string;
 }

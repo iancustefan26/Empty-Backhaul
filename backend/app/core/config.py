@@ -1,5 +1,6 @@
 from functools import lru_cache
 from pathlib import Path
+from typing import Literal
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -23,6 +24,12 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", validation_alias="LOG_LEVEL")
 
     anthropic_api_key: str = Field(default="", validation_alias="ANTHROPIC_API_KEY")
+    gemini_api_key: str = Field(default="", validation_alias="GEMINI_API_KEY")
+    llm_provider: Literal["auto", "gemini", "anthropic", "mock"] = Field(
+        default="auto", validation_alias="LLM_PROVIDER"
+    )
+    llm_cache_enabled: bool = Field(default=True, validation_alias="LLM_CACHE")
+
     chroma_persist_dir: str = Field(
         default=str(BACKEND_DIR / "chroma_db"),
         validation_alias="CHROMA_PERSIST_DIR",

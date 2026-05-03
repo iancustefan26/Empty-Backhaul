@@ -27,7 +27,7 @@ source .venv/bin/activate
 pip install -r requirements.txt
 
 cp .env.example .env
-# edit .env: paste your Supabase Postgres connection string
+# edit .env: paste your Supabase Postgres connection string and (optionally) a Gemini key
 
 # 1. create PostGIS + tables in Supabase
 alembic upgrade head
@@ -39,13 +39,33 @@ python -m scripts.seed_data --dry-run     # validate fixtures without DB
 # 3. ingest the compliance rule corpus into Chroma (~80 MB ONNX model on first run)
 python -m scripts.ingest_rules --reset
 
+# 3b. ingest the primary-source legal corpus (EU PDFs + ANSVSA Romanian texts)
+#     ~250 MB multilingual sentence-transformer model downloads on first run.
+python -m scripts.ingest_corpus --reset
+
 # 4. run the agentic match for a specific truck
 python -m scripts.run_match_demo --plate B-202-CBO --mock-llm     # deterministic Analyst, no API key needed
-python -m scripts.run_match_demo --plate B-202-CBO                # uses Anthropic Claude (requires ANTHROPIC_API_KEY)
+python -m scripts.run_match_demo --plate B-202-CBO                # uses LLM_PROVIDER (auto: prefers Gemini)
 
 # 5. run the API
 uvicorn app.main:app --reload
 ```
+
+### Analyst LLM provider & cost
+
+The Analyst can run against three backends, selected via `LLM_PROVIDER`
+(`auto` | `gemini` | `anthropic` | `mock`):
+
+| Provider | Env var | Cost | Notes |
+|---|---|---|---|
+| Gemini (default in `auto`) | `GEMINI_API_KEY` | Free tier covers ~1M tokens/day | Fast, cheap, recommended for development. Get a key at https://aistudio.google.com/apikey. |
+| Anthropic Claude | `ANTHROPIC_API_KEY` | Paid (Haiku ≈ $0.80/M input) | Same API contract; good for cross-checking. |
+| Mock (deterministic) | — | Free | No LLM at all. Exercised by `--mock-llm` and tests; lets you demo the full pipeline offline. |
+
+Token-budget guards baked in: each LLM call is capped at 512 output tokens,
+and responses are cached on disk under `backend/.llm_cache/` (keyed by a
+SHA256 of the full prompt). Re-running the same `(truck, load)` demo is
+free after the first run. Disable with `LLM_CACHE=0`.
 
 `GET http://localhost:8000/health` should return `{"status": "ok"}`.
 
@@ -87,6 +107,67 @@ cross-contamination, Romanian ANSVSA wash certificates, EU GDP pharma rules,
 EU 561/2006 driver hours, temperature-band capability matching, the
 load-declared forbidden-prior-cargo list, fish-odour cross-contamination, and
 CMR documentation requirements.
+
+#### Two-tier RAG: curated rules + primary-source corpus
+
+The Analyst queries **two** Chroma collections per `(truck, load)` pair:
+
+1. **`compliance_rules`** — the 17 hand-written, English rule summaries above.
+   Embedded with `all-MiniLM-L6-v2` (English-only). The LLM cites these by
+   stable `rule_id` (e.g. `haccp.raw-meat-to-non-meat-requires-ansvsa-wash`).
+
+2. **`compliance_corpus`** — verbatim chunks (~900 chars each, 682 total) of
+   the primary sources in [`backend/legal_documents/`](backend/legal_documents/):
+   EU regulations 178/2002 and 852/2004, the EU HACCP guidance notice, and
+   the four Romanian ANSVSA orders. Embedded with the multilingual model
+   `paraphrase-multilingual-MiniLM-L12-v2` so English queries can retrieve
+   the Romanian ANSVSA passages. The LLM quotes 1-2 sentences from any
+   relevant excerpt into the verdict's `cited_excerpts` field, which the
+   reasoning feed renders inline under each verdict row.
+
+This hybrid keeps citations stable (the curated `rule_id` index never moves)
+while grounding every verdict in the actual legal text — useful for thesis
+defence and for the demo. Run `python -m scripts.ingest_corpus --reset` to
+(re-)build the corpus collection.
+
+#### Deterministic post-LLM sanity layer
+
+The Analyst's hard rules (temperature capability, pharma logger, chemicals
+quarantine, forbidden_prior_cargo with ANSVSA wash override) live in
+[`app/agents/sanity_check.py`](backend/app/agents/sanity_check.py) as pure
+predicates. After every LLM verdict, the same predicates re-run; if they
+disagree on `is_compliant` or `blockers`, the deterministic answer wins and
+the corrected verdict carries a `sanity_overrides` list naming which rule
+was enforced (e.g. `wash-override-missed`,
+`chemicals-quarantine-missed`). The LLM still owns reasoning prose, warnings,
+and citation picks.
+
+The reasoning feed shows an amber `auto-corrected` pill on any verdict the
+sanity layer touched. The Analyst card header reports the total
+`sanity_overrides_count` for the run.
+
+#### Eval harness + tests
+
+A small ground-truth dataset
+([`tests/ground_truth.yaml`](backend/tests/ground_truth.yaml)) pins 31
+hand-labelled (truck, load) → expected_compliance pairs covering the README's
+worked-demo scenarios + the QA edge cases. Two ways to run it:
+
+```bash
+python -m scripts.run_eval                          # mock provider, ~3 minutes, free
+python -m scripts.run_eval --provider gemini        # live, ~$0 on free tier
+python -m scripts.run_eval --json > eval.json       # machine-readable
+```
+
+Current accuracy: **100% on both mock and live Gemini** (Gemini's mistakes
+get caught by the sanity layer).
+
+Pytest gates the predicates with 23 unit tests plus a smoke gate that
+asserts the eval stays at ≥95%:
+
+```bash
+cd backend && pytest tests/ -v
+```
 
 Worked demo (mock Analyst, no API key):
 

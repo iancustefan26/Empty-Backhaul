@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+
 import { MatchState } from "../types";
 
 interface Props {
@@ -148,7 +150,24 @@ function AnalystCard({ state }: { state: MatchState }) {
         )}{" "}
         · evaluated {log.evaluated_loads} · compliant{" "}
         <span className="text-emerald-300">{log.compliant_count}</span> ·{" "}
-        {log.rag_hits} rule-hits · {log.elapsed_ms} ms
+        {log.rag_hits} rule-hits
+        {typeof log.corpus_hits === "number" && (
+          <> · {log.corpus_hits} corpus-hits</>
+        )}
+        {typeof log.cache_hits === "number" && log.cache_hits > 0 && (
+          <> · {log.cache_hits} cached</>
+        )}
+        {typeof log.sanity_overrides_count === "number" &&
+          log.sanity_overrides_count > 0 && (
+            <>
+              {" "}
+              ·{" "}
+              <span className="text-amber-300">
+                {log.sanity_overrides_count} sanity-corrected
+              </span>
+            </>
+          )}{" "}
+        · {log.elapsed_ms} ms
       </div>
       <div className="mt-3 max-h-72 overflow-auto rounded border border-slate-700">
         <table className="min-w-full text-xs">
@@ -168,34 +187,76 @@ function AnalystCard({ state }: { state: MatchState }) {
                 v.blockers[0] ??
                 v.warnings[0] ??
                 (v.reasoning.length > 90 ? v.reasoning.slice(0, 90) + "…" : v.reasoning);
+              const excerpts = v.cited_excerpts ?? [];
               return (
-                <tr
-                  key={v.load_id}
-                  className={
-                    "border-t border-slate-800 " +
-                    (v.is_compliant ? "" : "text-slate-400")
-                  }
-                >
-                  <td className="px-2 py-1 font-mono">{ld?.id}</td>
-                  <td className="px-2 py-1">
-                    <code>{ld?.cargo_type}</code>
-                  </td>
-                  <td className="px-2 py-1">
-                    {ld?.pickup_city} → {ld?.delivery_city}
-                  </td>
-                  <td className="px-2 py-1 text-center">
-                    {v.is_compliant ? (
-                      <span className="rounded bg-emerald-700/40 px-1.5 py-0.5 text-emerald-200">
-                        ✓ ok
-                      </span>
-                    ) : (
-                      <span className="rounded bg-red-900/40 px-1.5 py-0.5 text-red-300">
-                        ✗ block
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-2 py-1 text-slate-300">{reason}</td>
-                </tr>
+                <Fragment key={v.load_id}>
+                  <tr
+                    className={
+                      "border-t border-slate-800 " +
+                      (v.is_compliant ? "" : "text-slate-400")
+                    }
+                  >
+                    <td className="px-2 py-1 font-mono">{ld?.id}</td>
+                    <td className="px-2 py-1">
+                      <code>{ld?.cargo_type}</code>
+                    </td>
+                    <td className="px-2 py-1">
+                      {ld?.pickup_city} → {ld?.delivery_city}
+                    </td>
+                    <td className="px-2 py-1 text-center">
+                      {v.is_compliant ? (
+                        <span className="rounded bg-emerald-700/40 px-1.5 py-0.5 text-emerald-200">
+                          ✓ ok
+                        </span>
+                      ) : (
+                        <span className="rounded bg-red-900/40 px-1.5 py-0.5 text-red-300">
+                          ✗ block
+                        </span>
+                      )}
+                      {v.sanity_overrides && v.sanity_overrides.length > 0 && (
+                        <span
+                          className="ml-1 rounded border border-amber-700 bg-amber-950/40 px-1.5 py-0.5 text-[10px] text-amber-300"
+                          title={`Deterministic sanity layer corrected the LLM verdict. Rules enforced: ${v.sanity_overrides.join(
+                            ", ",
+                          )}`}
+                        >
+                          auto-corrected
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-2 py-1 text-slate-300">{reason}</td>
+                  </tr>
+                  {excerpts.length > 0 && (
+                    <tr className="border-t border-slate-900/60 bg-slate-900/40">
+                      <td className="px-2 py-1" />
+                      <td colSpan={4} className="px-2 py-1">
+                        <details>
+                          <summary className="cursor-pointer text-[11px] uppercase tracking-wide text-analyst/80 hover:text-analyst">
+                            Sources ({excerpts.length})
+                          </summary>
+                          <ul className="mt-1 space-y-1.5">
+                            {excerpts.map((e, i) => (
+                              <li
+                                key={`${v.load_id}-${e.source_id}-${i}`}
+                                className="border-l-2 border-analyst/40 pl-2"
+                              >
+                                <div className="text-[11px] text-slate-400">
+                                  <span className="text-analyst">{e.citation}</span>
+                                  <span className="ml-1 opacity-60">
+                                    [{e.language}] · cosine {e.distance.toFixed(2)}
+                                  </span>
+                                </div>
+                                <div className="text-xs italic text-slate-300">
+                                  “{e.snippet}”
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </details>
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
               );
             })}
           </tbody>

@@ -42,6 +42,14 @@ class LoadSnapshot(TypedDict):
     status: str
 
 
+class ExcerptCitation(TypedDict):
+    source_id: str         # matches the chunk's source manifest entry
+    citation: str          # human-readable label (e.g., "ANSVSA Ordin 57/2010")
+    language: str          # ISO-639-1
+    snippet: str           # 1-2 sentences quoted by the LLM (or chunk head as fallback)
+    distance: float        # cosine distance from the retrieval query
+
+
 class ComplianceVerdict(TypedDict):
     load_id: int
     is_compliant: bool
@@ -50,6 +58,8 @@ class ComplianceVerdict(TypedDict):
     warnings: list[str]
     reasoning: str
     cited_rule_ids: list[str]
+    cited_excerpts: list[ExcerptCitation]
+    sanity_overrides: list[str]   # rule keys the deterministic layer corrected; empty if LLM agreed
 
 
 class StrategistDecision(TypedDict):
