@@ -146,6 +146,29 @@ The reasoning feed shows an amber `auto-corrected` pill on any verdict the
 sanity layer touched. The Analyst card header reports the total
 `sanity_overrides_count` for the run.
 
+#### Evaluation: 5-variant ablation study
+
+The thesis evaluation lives at
+[`backend/docs/evaluation.md`](backend/docs/evaluation.md). Headline result on a
+75-case ground-truth dataset:
+
+| Variant | Accuracy | Notes |
+|---|---:|---|
+| V1 vanilla LLM (pre-PR2 prompt, no sanity) | **89.3%** | 8 misses, all in `forbidden_prior_cargo` and `wash_override` rules |
+| V2 LLM + prompt hardening | **100.0%** | worked examples eliminate every miss |
+| V3 LLM + sanity layer | **100.0%** | sanity layer fires on exactly the 8 V1 misses |
+| V4 full pipeline (V2 + V3) | **100.0%** | sanity layer silent (defence in depth) |
+
+Re-run the full experiment in ~4 minutes (free on Gemini's daily quota):
+
+```bash
+cd backend && bash docs/reproduce.sh
+```
+
+Outputs land in `backend/docs/`: `evaluation.md` (writeup), `results.csv`
+(per-variant numbers), `figures/*.png` (six thesis-ready charts),
+`ablation.json` (raw bundle).
+
 #### Eval harness + tests
 
 A small ground-truth dataset

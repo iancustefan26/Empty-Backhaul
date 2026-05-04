@@ -54,7 +54,13 @@
       "Read(//opt/homebrew/bin/**)",
       "Read(//opt/homebrew/Cellar/**)",
       "Bash(find / -name \"gh\" -type f -perm +111)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git push *)",
+      "Bash(brew install *)",
+      "Bash(gh --version)",
+      "Bash(gh auth *)",
+      "Bash(git fetch *)"
     ]
   }
 }
