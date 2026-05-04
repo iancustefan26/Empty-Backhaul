@@ -12,4 +12,13 @@ python-dotenv>=1.0,<2.0
 chromadb>=0.5,<1.0
 langgraph>=0.2,<0.7
 anthropic>=0.40,<1.0
+google-genai>=0.3,<2.0
 ortools>=9.10,<10.0
+
+# Phase 3+: real legal-document corpus + multilingual retrieval
+pypdf>=4.0,<7.0
+sentence-transformers>=2.7,<6.0
+
+# Eval harness + tests
+pyyaml>=6.0,<7.0
+pytest>=8.0,<9.0
