@@ -22,3 +22,4 @@ sentence-transformers>=2.7,<6.0
 # Eval harness + tests
 pyyaml>=6.0,<7.0
 pytest>=8.0,<9.0
+matplotlib>=3.8,<4.0

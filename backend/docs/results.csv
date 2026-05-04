@@ -1,0 +1,6 @@
+variant,label,accuracy_pct,precision_pct,recall_pct,f1,TP,TN,FP,FN,llm_calls,cache_hits,input_tokens,output_tokens,estimated_cost_usd,total_wall_ms,sanity_corrections
+V0,Mock-only (deterministic baseline),100.00,100.00,100.00,1.0000,46,29,0,0,0,0,0,0,0.000000,0,0
+V1,"Vanilla LLM (pre-PR2 prompt, no sanity)",89.33,100.00,82.61,0.9048,38,29,0,8,65,10,101912,10172,0.056004,113338,0
+V2,LLM + prompt hardening,100.00,100.00,100.00,1.0000,46,29,0,0,65,10,191417,15209,0.095448,132116,0
+V3,LLM + sanity layer,100.00,100.00,100.00,1.0000,46,29,0,0,0,75,0,0,0.000000,0,8
+V4,Full pipeline (prompt + sanity),100.00,100.00,100.00,1.0000,46,29,0,0,0,75,0,0,0.000000,0,0

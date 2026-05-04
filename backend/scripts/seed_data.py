@@ -33,8 +33,10 @@ from app.data.romania_cities import wkt_point
 from app.models import LoadRequest, RouteHistory, Truck, WashCertificate
 
 
-# Anchor demo time so fixtures are deterministic across runs.
-NOW = datetime(2026, 4, 30, 8, 0, tzinfo=timezone.utc)
+# Anchor demo time relative to today so fixtures stay valid across re-seeds.
+# Override with --base-date YYYY-MM-DD if you want a deterministic anchor (e.g. for
+# reproducing an evaluation run).
+NOW = datetime.now(timezone.utc).replace(hour=8, minute=0, second=0, microsecond=0)
 TOMORROW_06 = (NOW + timedelta(days=1)).replace(hour=6, minute=0, second=0, microsecond=0)
 
 
@@ -109,10 +111,12 @@ def truck_fixtures() -> list[dict[str, Any]]:
             has_pharma_logger=False, remaining_driving_hours=6.5, status="empty",
         ),
         dict(
-            plate_number="OR-010-CBO", carrier_name="Crisana Logistic",
+            plate_number="OR-010-CBO", carrier_name="Crisana Logistic",  # noqa: E501
+            # status was 'returning' originally; flipped to 'empty' so the
+            # chemicals-quarantine HACCP path is reachable in evals/demos.
             current_city="Sibiu", home_base_city="Oradea",
             temp_capability="ambient", last_cargo="chemicals",
-            has_pharma_logger=False, remaining_driving_hours=4.0, status="returning",
+            has_pharma_logger=False, remaining_driving_hours=4.0, status="empty",
         ),
     ]
 
@@ -341,9 +345,9 @@ def wash_cert_fixtures() -> list[dict[str, Any]]:
         # in Arad yesterday -> Analyst can clear it for dairy / produce loads.
         dict(
             plate_number="OR-404-CBO",
-            certificate_number="ANSVSA-TM-2026-04-29-0142",
+            certificate_number=f"ANSVSA-TM-{NOW:%Y-%m-%d}-0142",
             issued_at=NOW - timedelta(hours=18),
-            valid_until=NOW + timedelta(days=3),
+            valid_until=NOW + timedelta(days=30),  # stays valid across re-runs
             wash_type="ansvsa_official",
             prior_cargo="raw_meat",
             issuing_facility="Statie spalare Arad — autorizatie ANSVSA TM-014",
@@ -354,9 +358,9 @@ def wash_cert_fixtures() -> list[dict[str, Any]]:
         # off-limits per HACCP — kept as a partial / flavour cert for realism.
         dict(
             plate_number="OR-010-CBO",
-            certificate_number="WASH-VEST-2026-04-29-0007",
+            certificate_number=f"WASH-VEST-{NOW:%Y-%m-%d}-0007",
             issued_at=NOW - timedelta(hours=10),
-            valid_until=NOW + timedelta(days=2),
+            valid_until=NOW + timedelta(days=30),
             wash_type="deep",
             prior_cargo="chemicals",
             issuing_facility="Crisana Wash Station Oradea",
