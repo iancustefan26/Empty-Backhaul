@@ -1,8 +1,17 @@
 import "leaflet/dist/leaflet.css";
+import { Fragment } from "react";
 import { MapContainer, Marker, Polyline, Popup, TileLayer } from "react-leaflet";
 
-import { LoadFeature, TruckFeature } from "../types";
+import { FleetPlanStats, LoadFeature, TruckFeature } from "../types";
 import { loadIcon, truckIcon } from "./icons";
+
+// Distinct colour-blind-friendly palette cycled per assigned truck so the
+// polylines on the fleet map don't blur into one another.
+const FLEET_COLOURS = [
+  "#22d3ee", "#a78bfa", "#f59e0b", "#34d399", "#f472b6",
+  "#60a5fa", "#fb7185", "#facc15", "#4ade80", "#c084fc",
+  "#fda4af", "#fbbf24", "#84cc16", "#38bdf8", "#fb923c",
+];
 
 interface Props {
   trucks: TruckFeature[];
@@ -10,6 +19,7 @@ interface Props {
   selectedTruckId: number | null;
   chosenLoadId: number | null;
   onSelectTruck: (id: number) => void;
+  fleetPlan?: FleetPlanStats | null;
 }
 
 export function Map({
@@ -18,9 +28,16 @@ export function Map({
   selectedTruckId,
   chosenLoadId,
   onSelectTruck,
+  fleetPlan,
 }: Props) {
   const chosenLoad = loads.find((l) => l.id === chosenLoadId);
   const selectedTruck = trucks.find((t) => t.id === selectedTruckId);
+  const truckById: Record<number, TruckFeature> = Object.fromEntries(
+    trucks.map((t) => [t.id, t]),
+  );
+  const loadById: Record<number, LoadFeature> = Object.fromEntries(
+    loads.map((l) => [l.id, l]),
+  );
 
   return (
     <MapContainer
@@ -97,7 +114,51 @@ export function Map({
         );
       })}
 
-      {chosenLoad &&
+      {fleetPlan &&
+        fleetPlan.assignments
+          .filter((a) => a.load_id !== null)
+          .map((a, i) => {
+            const truck = truckById[a.truck_id];
+            const load = a.load_id !== null ? loadById[a.load_id] : null;
+            if (!truck?.geometry || !load?.geometry) return null;
+            const colour = FLEET_COLOURS[i % FLEET_COLOURS.length];
+            const truckLatLng: [number, number] = [
+              truck.geometry.coordinates[1],
+              truck.geometry.coordinates[0],
+            ];
+            const pickupLatLng: [number, number] = [
+              load.geometry.coordinates[1],
+              load.geometry.coordinates[0],
+            ];
+            const deliveryLatLng: [number, number] = [
+              load.properties.delivery_lat,
+              load.properties.delivery_lon,
+            ];
+            return (
+              <Fragment key={`fleet-${a.truck_id}-${a.load_id}`}>
+                {/* empty leg: dashed */}
+                {a.empty_km > 0.5 && (
+                  <Polyline
+                    positions={[truckLatLng, pickupLatLng]}
+                    pathOptions={{
+                      color: colour,
+                      weight: 2.5,
+                      dashArray: "4 6",
+                      opacity: 0.7,
+                    }}
+                  />
+                )}
+                {/* loaded leg: solid */}
+                <Polyline
+                  positions={[pickupLatLng, deliveryLatLng]}
+                  pathOptions={{ color: colour, weight: 4, opacity: 0.9 }}
+                />
+              </Fragment>
+            );
+          })}
+
+      {!fleetPlan &&
+        chosenLoad &&
         chosenLoad.geometry &&
         selectedTruck &&
         selectedTruck.geometry && (

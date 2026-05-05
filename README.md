@@ -146,6 +146,24 @@ The reasoning feed shows an amber `auto-corrected` pill on any verdict the
 sanity layer touched. The Analyst card header reports the total
 `sanity_overrides_count` for the run.
 
+#### Fleet-level optimiser (multi-truck assignment)
+
+The Strategist generalises from single-truck pick-one to fleet-wide
+assignment via OR-Tools CP-SAT with K-best alternatives.
+[`backend/docs/fleet_optimizer.md`](backend/docs/fleet_optimizer.md) is the
+thesis chapter; the engine ships behind:
+
+```bash
+cd backend && python -m scripts.run_fleet_demo                # 3 alternatives
+curl -X POST 'http://127.0.0.1:8000/api/match/fleet?top_k=3'  # API
+# or in the dashboard, switch to the "Fleet" tab and click "Run fleet match"
+```
+
+Per plan the system reports total margin, deadhead ratio, fleet utilisation,
+customer/broker load mix, and an SLA-risk indicator (unserved customer
+load IDs). The seed pool was expanded from 20 to 35 loads (20 customer,
+15 broker) so a 10-15 truck fleet has meaningful optimisation surface.
+
 #### Evaluation: 5-variant ablation study
 
 The thesis evaluation lives at

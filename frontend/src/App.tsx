@@ -1,15 +1,21 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 
-import { fetchLoads, fetchTrucks, runMatch } from "./api";
+import { fetchLoads, fetchTrucks, runFleetMatch, runMatch } from "./api";
+import { FleetView } from "./components/FleetView";
 import { Map } from "./components/Map";
 import { ReasoningFeed } from "./components/ReasoningFeed";
-import { MatchState } from "./types";
+import { FleetMatchResponse, MatchState } from "./types";
+
+type Mode = "single" | "fleet";
 
 export function App() {
   const trucksQ = useQuery({ queryKey: ["trucks"], queryFn: fetchTrucks });
   const loadsQ = useQuery({ queryKey: ["loads"], queryFn: fetchLoads });
 
+  const [mode, setMode] = useState<Mode>("single");
+
+  // Single-truck state
   const [selectedTruckId, setSelectedTruckId] = useState<number | null>(null);
   const [matchState, setMatchState] = useState<MatchState | null>(null);
   const [useMockLlm, setUseMockLlm] = useState(true);
@@ -20,7 +26,22 @@ export function App() {
     onSuccess: (data) => setMatchState(data),
   });
 
+  // Fleet state
+  const [fleetData, setFleetData] = useState<FleetMatchResponse | null>(null);
+  const [fleetRank, setFleetRank] = useState<number>(1);
+  const [includeBroker, setIncludeBroker] = useState(true);
+
+  const fleetM = useMutation({
+    mutationFn: () =>
+      runFleetMatch({ topK: 3, includeBroker, mockLlm: true }),
+    onSuccess: (data) => {
+      setFleetData(data);
+      setFleetRank(1);
+    },
+  });
+
   const onSelectTruck = (id: number) => {
+    if (mode !== "single") return;
     setSelectedTruckId(id);
     setMatchState(null);
     matchM.mutate({ id, mock: useMockLlm });
@@ -29,6 +50,10 @@ export function App() {
   const trucks = trucksQ.data?.features ?? [];
   const loads = loadsQ.data?.features ?? [];
   const chosenLoadId = matchState?.decision?.chosen_load_id ?? null;
+  const fleetPlan =
+    mode === "fleet" && fleetData
+      ? fleetData.optimiser.alternatives.find((p) => p.rank === fleetRank) ?? null
+      : null;
 
   return (
     <div className="flex h-screen w-screen flex-col">
@@ -46,18 +71,41 @@ export function App() {
           </div>
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-300">
+          <ModeTabs mode={mode} onChange={setMode} />
           <span>
             {trucks.length} trucks · {loads.length} loads
           </span>
-          <label className="flex items-center gap-1">
-            <input
-              type="checkbox"
-              checked={useMockLlm}
-              onChange={(e) => setUseMockLlm(e.target.checked)}
-              className="accent-cyan-400"
-            />
-            mock LLM
-          </label>
+          {mode === "single" && (
+            <label className="flex items-center gap-1">
+              <input
+                type="checkbox"
+                checked={useMockLlm}
+                onChange={(e) => setUseMockLlm(e.target.checked)}
+                className="accent-cyan-400"
+              />
+              mock LLM
+            </label>
+          )}
+          {mode === "fleet" && (
+            <>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={includeBroker}
+                  onChange={(e) => setIncludeBroker(e.target.checked)}
+                  className="accent-cyan-400"
+                />
+                include broker
+              </label>
+              <button
+                className="rounded border border-cyan-700 bg-cyan-900/40 px-2 py-1 text-cyan-100 hover:bg-cyan-800/60 disabled:opacity-50"
+                disabled={fleetM.isPending}
+                onClick={() => fleetM.mutate()}
+              >
+                {fleetM.isPending ? "Optimising…" : "Run fleet match"}
+              </button>
+            </>
+          )}
         </div>
       </header>
 
@@ -72,17 +120,55 @@ export function App() {
             selectedTruckId={selectedTruckId}
             chosenLoadId={chosenLoadId}
             onSelectTruck={onSelectTruck}
+            fleetPlan={fleetPlan}
           />
           <Legend />
         </section>
         <aside className="col-span-5 overflow-y-auto border-l border-slate-700 bg-slate-900">
-          <ReasoningFeed
-            state={matchState}
-            loading={matchM.isPending}
-            error={matchM.isError ? (matchM.error as Error).message : null}
-          />
+          {mode === "single" ? (
+            <ReasoningFeed
+              state={matchState}
+              loading={matchM.isPending}
+              error={matchM.isError ? (matchM.error as Error).message : null}
+            />
+          ) : (
+            <FleetView
+              data={fleetData}
+              loading={fleetM.isPending}
+              error={fleetM.isError ? (fleetM.error as Error).message : null}
+              selectedRank={fleetRank}
+              onSelectRank={setFleetRank}
+            />
+          )}
         </aside>
       </main>
+    </div>
+  );
+}
+
+function ModeTabs({
+  mode,
+  onChange,
+}: {
+  mode: Mode;
+  onChange: (m: Mode) => void;
+}) {
+  return (
+    <div className="flex overflow-hidden rounded border border-slate-700">
+      {(["single", "fleet"] as Mode[]).map((m) => (
+        <button
+          key={m}
+          onClick={() => onChange(m)}
+          className={
+            "px-2 py-1 text-xs " +
+            (mode === m
+              ? "bg-cyan-900/60 text-cyan-100"
+              : "bg-slate-800 text-slate-400 hover:text-slate-200")
+          }
+        >
+          {m === "single" ? "Single truck" : "Fleet"}
+        </button>
+      ))}
     </div>
   );
 }

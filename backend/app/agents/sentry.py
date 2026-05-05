@@ -42,7 +42,7 @@ _LOADS_SQL = text("""
            ST_Y(delivery_location::geometry) AS delivery_lat,
            ST_X(delivery_location::geometry) AS delivery_lon,
            pickup_window_start, pickup_window_end,
-           weight_kg, price_eur, status
+           weight_kg, price_eur, status, source
     FROM load_requests
     WHERE status = 'available' AND pickup_window_end >= :now
     ORDER BY id
@@ -88,6 +88,7 @@ def _row_to_load(row) -> LoadSnapshot:
         weight_kg=float(row.weight_kg),
         price_eur=float(row.price_eur),
         status=row.status,
+        source=getattr(row, "source", None),
     )
 
 

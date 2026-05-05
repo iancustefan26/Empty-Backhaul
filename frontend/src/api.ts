@@ -1,5 +1,6 @@
 import {
   FeatureCollection,
+  FleetMatchResponse,
   LoadFeature,
   MatchState,
   TruckFeature,
@@ -28,3 +29,20 @@ export const runMatch = (truckId: number, useMockLlm: boolean) =>
   getJson<MatchState>(`/api/match/${truckId}?mock_llm=${useMockLlm}`, {
     method: "POST",
   });
+
+export interface FleetMatchOptions {
+  topK?: number;
+  includeBroker?: boolean;
+  mockLlm?: boolean;
+}
+
+export const runFleetMatch = (opts: FleetMatchOptions = {}) => {
+  const params = new URLSearchParams();
+  params.set("top_k", String(opts.topK ?? 3));
+  params.set("include_broker", String(opts.includeBroker ?? true));
+  params.set("mock_llm", String(opts.mockLlm ?? true));
+  return getJson<FleetMatchResponse>(
+    `/api/match/fleet?${params.toString()}`,
+    { method: "POST" },
+  );
+};
