@@ -6,6 +6,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import text
 
+from app.agents.fleet_workflow import MAX_FLEET_SIZE, run_fleet_match
 from app.agents.workflow import run_match_workflow
 from app.core.database import SessionLocal
 from app.documents import build_cmr_document, build_sanitization_document
@@ -47,6 +48,57 @@ def _attach_documents(state: dict[str, Any]) -> dict[str, Any]:
         }
 
     return {**state, "documents": docs}
+
+
+# NOTE: `/match/fleet` MUST be declared before `/match/{truck_id}` —
+# otherwise FastAPI parses `fleet` as a truck_id path param and 422s.
+@router.post(
+    "/match/fleet",
+    summary="Multi-truck assignment — top-K alternative plans for the whole fleet",
+)
+def match_fleet_endpoint(
+    top_k: int = Query(3, ge=1, le=5, description="Number of alternative plans (max 5)."),
+    include_broker: bool = Query(
+        True, description="Include spot-market broker loads in the load pool."
+    ),
+    mock_llm: bool = Query(
+        True,
+        description=(
+            "Skip Gemini for the per-pair Analyst step (default true to keep fleet "
+            "matching fast and free). Set false to enrich verdicts with cited excerpts."
+        ),
+    ),
+    fleet_size: int = Query(
+        MAX_FLEET_SIZE, ge=1, le=MAX_FLEET_SIZE,
+        description=f"Cap the fleet at N empty trucks (default {MAX_FLEET_SIZE}).",
+    ),
+) -> dict:
+    """Run Sentry-fleet → Analyst-fleet → multi-truck CP-SAT and return the
+    top-K alternative assignment plans. Each plan includes the per-truck
+    breakdown and a fleet-level statistics block (total margin, deadhead
+    ratio, customer/broker mix, fleet utilisation).
+    """
+    result = run_fleet_match(
+        top_k=top_k,
+        include_broker=include_broker,
+        use_mock_llm=mock_llm,
+        fleet_size=fleet_size,
+    )
+    if result["error"]:
+        raise HTTPException(status_code=409, detail=result["error"])
+    # The compliance dict has tuple keys, which JSON can't serialise — flatten.
+    flat_compliance = [
+        {"truck_id": t, "load_id": l, **v}
+        for (t, l), v in result["compliance"].items()
+    ]
+    return {
+        "fleet": result["fleet"],
+        "available_loads": result["available_loads"],
+        "sentry_log": result["sentry_log"],
+        "analyst_log": result["analyst_log"],
+        "optimiser": result["optimiser"],
+        "compliance_matrix": flat_compliance,
+    }
 
 
 @router.post(

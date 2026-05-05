@@ -178,6 +178,87 @@ export interface Documents {
   sanitization: Record<string, unknown>;
 }
 
+// ---- Fleet match (multi-truck assignment) ----
+
+export interface TruckAssignment {
+  truck_id: number;
+  truck_plate: string;
+  truck_current_city: string;
+  load_id: number | null;
+  load_pickup_city: string | null;
+  load_delivery_city: string | null;
+  cargo_type: string | null;
+  source: string | null;
+  empty_km: number;
+  loaded_km: number;
+  drive_hours: number;
+  margin_eur: number;
+}
+
+export interface FleetPlanStats {
+  rank: number;
+  objective_value_cents: number;
+  total_margin_eur: number;
+  total_loaded_km: number;
+  total_empty_km: number;
+  total_km: number;
+  deadhead_ratio: number;
+  fleet_utilization_pct: number;
+  customer_loads_served: number;
+  customer_loads_available: number;
+  broker_loads_served: number;
+  broker_loads_available: number;
+  unserved_customer_load_ids: number[];
+  assignments: TruckAssignment[];
+}
+
+export interface FleetOptimiserResult {
+  alternatives: FleetPlanStats[];
+  optimiser_status: string;
+  fleet_size: number;
+  available_loads: number;
+  candidate_pairs: number;
+  elapsed_ms: number;
+  notes: string[];
+}
+
+export interface FleetSentryLog {
+  fleet_size: number;
+  available_load_count: number;
+  customer_loads: number;
+  broker_loads: number;
+  include_broker: boolean;
+  monitored_at: string;
+}
+
+export interface FleetAnalystLog {
+  mode: string;
+  model: string | null;
+  fleet_size: number;
+  load_count: number;
+  pair_count: number;
+  pre_blocked_pairs: number;
+  compliant_pairs: number;
+  rag_hits: number;
+  corpus_hits: number;
+  llm_calls: number;
+  cache_hits: number;
+  parse_errors: number;
+  sanity_corrections: number;
+  elapsed_ms: number;
+  completed_at: string;
+}
+
+export interface FleetMatchResponse {
+  fleet: TruckSnapshot[];
+  available_loads: LoadSnapshot[];
+  sentry_log: FleetSentryLog;
+  analyst_log: FleetAnalystLog;
+  optimiser: FleetOptimiserResult;
+  compliance_matrix: Array<ComplianceVerdict & { truck_id: number; load_id: number }>;
+}
+
+
 export interface MatchState {
   truck_id: number;
   use_mock_llm: boolean;

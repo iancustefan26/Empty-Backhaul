@@ -337,6 +337,165 @@ def load_fixtures() -> list[dict[str, Any]]:
 
 
 # ---------------------------------------------------------------------------
+# 15 spot-market broker loads — anonymised shippers, ~10–20% lower prices
+# than direct customer rates, broader geography. These are what the fleet
+# optimiser scoops up to fill empty backhauls when the customer book has
+# no matching trip.
+# ---------------------------------------------------------------------------
+def broker_load_fixtures() -> list[dict[str, Any]]:
+    base = TOMORROW_06
+
+    def window(hours_offset: int, window_hours: int = 8) -> tuple[datetime, datetime]:
+        start = base + timedelta(hours=hours_offset)
+        return start, start + timedelta(hours=window_hours)
+
+    return [
+        # B1. Ambient_dry Bucuresti -> Cluj-Napoca (return-leg friendly)
+        dict(
+            shipper_name="Spot Freight #B-001",
+            cargo_type="ambient_dry", cargo_description="Carton goods palletised",
+            temp_min_celsius=5.0, temp_max_celsius=25.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="chemicals",
+            pickup_city="Bucuresti", delivery_city="Cluj-Napoca",
+            window=window(4, 12), weight_kg=8000, price_eur=380,
+        ),
+        # B2. Frozen_veg Galati -> Bucuresti (long-distance backhaul)
+        dict(
+            shipper_name="Spot Freight #B-002",
+            cargo_type="frozen_vegetables", cargo_description="IQF mix vegetables",
+            temp_min_celsius=-25.0, temp_max_celsius=-18.0,
+            requires_pharma_logger=False, forbidden_prior_cargo=None,
+            pickup_city="Galati", delivery_city="Bucuresti",
+            window=window(5, 10), weight_kg=11500, price_eur=580,
+        ),
+        # B3. Pharma Bucuresti -> Cluj-Napoca (spot rate, ~10% under contract)
+        dict(
+            shipper_name="Spot Freight #B-003",
+            cargo_type="pharma", cargo_description="OTC pharma overnight",
+            temp_min_celsius=2.0, temp_max_celsius=8.0,
+            requires_pharma_logger=True,
+            forbidden_prior_cargo="chemicals,raw_meat,raw_poultry",
+            pickup_city="Bucuresti", delivery_city="Cluj-Napoca",
+            window=window(3, 6), weight_kg=3800, price_eur=1450,
+        ),
+        # B4. Raw_meat Pitesti -> Bucuresti (small, fills a chilled return)
+        dict(
+            shipper_name="Spot Freight #B-004",
+            cargo_type="raw_meat", cargo_description="Carcase porc spot",
+            temp_min_celsius=0.0, temp_max_celsius=4.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Pitesti", delivery_city="Bucuresti",
+            window=window(6, 6), weight_kg=6200, price_eur=320,
+        ),
+        # B5. Dairy Brasov -> Cluj-Napoca (long chilled trip)
+        dict(
+            shipper_name="Spot Freight #B-005",
+            cargo_type="dairy", cargo_description="Lapte UHT pallets",
+            temp_min_celsius=2.0, temp_max_celsius=7.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Brasov", delivery_city="Cluj-Napoca",
+            window=window(5, 8), weight_kg=7500, price_eur=560,
+        ),
+        # B6. Produce Constanta -> Bucuresti (port-region spot)
+        dict(
+            shipper_name="Spot Freight #B-006",
+            cargo_type="produce", cargo_description="Citrice import port",
+            temp_min_celsius=4.0, temp_max_celsius=10.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Constanta", delivery_city="Bucuresti",
+            window=window(4, 10), weight_kg=8500, price_eur=420,
+        ),
+        # B7. Ambient_dry Suceava -> Bucuresti
+        dict(
+            shipper_name="Spot Freight #B-007",
+            cargo_type="ambient_dry", cargo_description="Furniture flat-pack",
+            temp_min_celsius=5.0, temp_max_celsius=25.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Suceava", delivery_city="Bucuresti",
+            window=window(7, 10), weight_kg=14000, price_eur=640,
+        ),
+        # B8. Frozen_fish Galati -> Cluj-Napoca (cross-country frozen)
+        dict(
+            shipper_name="Spot Freight #B-008",
+            cargo_type="frozen_fish", cargo_description="Hering congelat",
+            temp_min_celsius=-22.0, temp_max_celsius=-18.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Galati", delivery_city="Cluj-Napoca",
+            window=window(8, 10), weight_kg=9500, price_eur=860,
+        ),
+        # B9. Chemicals Constanta -> Craiova (industrial spot)
+        dict(
+            shipper_name="Spot Freight #B-009",
+            cargo_type="chemicals", cargo_description="Acid clorhidric tehnic",
+            temp_min_celsius=5.0, temp_max_celsius=30.0,
+            requires_pharma_logger=False, forbidden_prior_cargo=None,
+            pickup_city="Constanta", delivery_city="Craiova",
+            window=window(6, 12), weight_kg=10000, price_eur=540,
+        ),
+        # B10. Raw_poultry Brasov -> Bucuresti
+        dict(
+            shipper_name="Spot Freight #B-010",
+            cargo_type="raw_poultry", cargo_description="Pui taiati spot",
+            temp_min_celsius=0.0, temp_max_celsius=4.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Brasov", delivery_city="Bucuresti",
+            window=window(5, 7), weight_kg=7000, price_eur=400,
+        ),
+        # B11. Produce Iasi -> Cluj-Napoca (long chilled spot)
+        dict(
+            shipper_name="Spot Freight #B-011",
+            cargo_type="produce", cargo_description="Cartofi sortati",
+            temp_min_celsius=4.0, temp_max_celsius=12.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Iasi", delivery_city="Cluj-Napoca",
+            window=window(6, 10), weight_kg=9000, price_eur=560,
+        ),
+        # B12. Frozen_veg Bacau -> Bucuresti
+        dict(
+            shipper_name="Spot Freight #B-012",
+            cargo_type="frozen_vegetables", cargo_description="Spanac IQF",
+            temp_min_celsius=-25.0, temp_max_celsius=-18.0,
+            requires_pharma_logger=False, forbidden_prior_cargo=None,
+            pickup_city="Bacau", delivery_city="Bucuresti",
+            window=window(5, 9), weight_kg=11000, price_eur=480,
+        ),
+        # B13. Ambient_dry Oradea -> Constanta (cross-country spot)
+        dict(
+            shipper_name="Spot Freight #B-013",
+            cargo_type="ambient_dry", cargo_description="Recyclables baled",
+            temp_min_celsius=5.0, temp_max_celsius=25.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Oradea", delivery_city="Constanta",
+            window=window(4, 14), weight_kg=16000, price_eur=860,
+        ),
+        # B14. Dairy Suceava -> Iasi (short chilled spot)
+        dict(
+            shipper_name="Spot Freight #B-014",
+            cargo_type="dairy", cargo_description="Branzeturi de stana",
+            temp_min_celsius=2.0, temp_max_celsius=7.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Suceava", delivery_city="Iasi",
+            window=window(7, 7), weight_kg=5500, price_eur=290,
+        ),
+        # B15. Pharma small Cluj-Napoca -> Brasov (high-margin pharma backhaul)
+        dict(
+            shipper_name="Spot Freight #B-015",
+            cargo_type="pharma", cargo_description="Vaccin spot urgent",
+            temp_min_celsius=2.0, temp_max_celsius=8.0,
+            requires_pharma_logger=True,
+            forbidden_prior_cargo="chemicals,raw_meat,raw_poultry",
+            pickup_city="Cluj-Napoca", delivery_city="Brasov",
+            window=window(4, 4), weight_kg=1800, price_eur=820,
+        ),
+    ]
+
+
+# ---------------------------------------------------------------------------
 # A handful of wash certificates that unblock specific compliance scenarios.
 # ---------------------------------------------------------------------------
 def wash_cert_fixtures() -> list[dict[str, Any]]:
@@ -378,8 +537,14 @@ def _validate(trucks: list[dict], loads: list[dict], washes: list[dict]) -> None
         raise ValueError("Duplicate truck plates in fixtures")
     if len(trucks) != 10:
         raise ValueError(f"Expected 10 trucks, got {len(trucks)}")
-    if len(loads) != 20:
-        raise ValueError(f"Expected 20 loads, got {len(loads)}")
+    customer_count = sum(1 for ld in loads if ld.get("source", "customer") == "customer")
+    broker_count = sum(1 for ld in loads if ld.get("source") == "broker")
+    if customer_count != 20:
+        raise ValueError(f"Expected 20 customer loads, got {customer_count}")
+    if broker_count != 15:
+        raise ValueError(f"Expected 15 broker loads, got {broker_count}")
+    if len(loads) != 35:
+        raise ValueError(f"Expected 35 loads total, got {len(loads)}")
     for w in washes:
         if w["plate_number"] not in plates:
             raise ValueError(f"Wash cert references unknown truck {w['plate_number']!r}")
@@ -440,6 +605,7 @@ def _insert_loads(session, fixtures: list[dict]) -> None:
             weight_kg=f["weight_kg"],
             price_eur=f["price_eur"],
             status="available",
+            source=f.get("source", "customer"),
         ))
 
 
@@ -462,7 +628,9 @@ def _insert_washes(session, fixtures: list[dict], plate_to_id: dict[str, int]) -
 # ---------------------------------------------------------------------------
 def seed(*, reset: bool, dry_run: bool) -> None:
     trucks = truck_fixtures()
-    loads = load_fixtures()
+    customer_loads = [{**ld, "source": "customer"} for ld in load_fixtures()]
+    broker_loads = [{**ld, "source": "broker"} for ld in broker_load_fixtures()]
+    loads = customer_loads + broker_loads
     washes = wash_cert_fixtures()
     _validate(trucks, loads, washes)
 

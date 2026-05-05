@@ -40,6 +40,7 @@ class LoadSnapshot(TypedDict):
     weight_kg: float
     price_eur: float
     status: str
+    source: str | None     # "customer" | "broker" | None  (PR3+)
 
 
 class ExcerptCitation(TypedDict):

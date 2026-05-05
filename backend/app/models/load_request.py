@@ -47,6 +47,10 @@ class LoadRequest(Base, TimestampMixin):
     # "available" | "matched" | "in_transit" | "completed" | "cancelled"
     status: Mapped[str] = mapped_column(String(16), nullable=False, default="available", index=True)
 
+    # "customer" (direct relationship, contracted) | "broker" (spot-market freight exchange).
+    # Nullable so freshly-ingested loads can be classified later.
+    source: Mapped[str | None] = mapped_column(String(16), index=True)
+
     def __repr__(self) -> str:
         return (
             f"<LoadRequest id={self.id} cargo={self.cargo_type} "
