@@ -1,0 +1,4 @@
+experiment,baseline_eur,treatment_eur,lift_eur,lift_pct,deadhead_baseline_pct,deadhead_treatment_pct,utilisation_baseline_pct,utilisation_treatment_pct
+A — margin lift,1383.24,1790.77,407.53,29.5,50.0,34.67,50.0,40.0
+B — compliance value,-3209.23,1790.77,5000.0,,,,,
+C — broker lift,818.3,1790.77,972.47,118.8,50.0,34.67,30.0,40.0

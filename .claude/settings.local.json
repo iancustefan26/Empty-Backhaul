@@ -60,7 +60,8 @@
       "Bash(brew install *)",
       "Bash(gh --version)",
       "Bash(gh auth *)",
-      "Bash(git fetch *)"
+      "Bash(git fetch *)",
+      "Bash(git checkout *)"
     ]
   }
 }

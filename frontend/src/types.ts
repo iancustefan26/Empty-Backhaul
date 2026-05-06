@@ -39,6 +39,7 @@ export interface LoadProperties {
   weight_kg: number;
   price_eur: number;
   status: string;
+  source?: string | null;
   pickup_window_start: string;
   pickup_window_end: string;
 }
@@ -255,6 +256,78 @@ export interface FleetMatchResponse {
   sentry_log: FleetSentryLog;
   analyst_log: FleetAnalystLog;
   optimiser: FleetOptimiserResult;
+  compliance_matrix: Array<ComplianceVerdict & { truck_id: number; load_id: number }>;
+}
+
+
+// ---- Route planner (depot-based daily plans with multi-leg chains) ----
+
+export type PlanKind = "IDLE" | "SINGLE" | "CHAIN";
+
+export interface RouteLeg {
+  from_city: string;
+  to_city: string;
+  from_lat: number;
+  from_lon: number;
+  to_lat: number;
+  to_lon: number;
+  km: number;
+  kind: "empty" | "loaded";
+  load_id: number | null;
+}
+
+export interface DayPlan {
+  kind: PlanKind;
+  van_id: number;
+  van_plate: string;
+  legs: RouteLeg[];
+  load_ids: number[];
+  total_km: number;
+  empty_km: number;
+  loaded_km: number;
+  drive_hours: number;
+  margin_eur: number;
+  margin_cents: number;
+}
+
+export interface RoutePlanStats {
+  rank: number;
+  objective_value_cents: number;
+  total_fleet_margin_eur: number;
+  total_loaded_km: number;
+  total_empty_km: number;
+  total_km: number;
+  deadhead_ratio: number;
+  fleet_utilization_pct: number;
+  single_trips_count: number;
+  chain_trips_count: number;
+  idle_count: number;
+  customer_loads_served: number;
+  customer_loads_available: number;
+  broker_loads_served: number;
+  broker_loads_available: number;
+  unserved_customer_load_ids: number[];
+  plans: DayPlan[];
+}
+
+export interface RoutePlannerResult {
+  alternatives: RoutePlanStats[];
+  optimiser_status: string;
+  fleet_size: number;
+  available_loads: number;
+  candidate_singles: number;
+  candidate_chains: number;
+  elapsed_ms: number;
+  notes: string[];
+}
+
+export interface RoutePlanResponse {
+  depot: { city: string | null; lat: number | null; lon: number | null };
+  fleet: TruckSnapshot[];
+  available_loads: LoadSnapshot[];
+  sentry_log: FleetSentryLog;
+  analyst_log: FleetAnalystLog;
+  optimiser: RoutePlannerResult;
   compliance_matrix: Array<ComplianceVerdict & { truck_id: number; load_id: number }>;
 }
 

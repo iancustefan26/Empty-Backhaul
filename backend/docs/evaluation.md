@@ -177,14 +177,14 @@ from the prompt**:
 
 | Truck | Load | Category | Vanilla blocker | Reality |
 |---|---|---|---|---|
-| B-909-CBO | L4 raw_meat | forbidden_prior_cargo | "load forbids 'chemicals' priors" | The list is `[chemicals]`; truck's prior is `raw_meat`, NOT in the list. |
-| B-909-CBO | L12 ambient_dry | forbidden_prior_cargo | "raw_meat is forbidden prior" | Same direction error: list is `[chemicals]`. |
-| OR-303-CBO | L12 ambient_dry | forbidden_prior_cargo | "frozen cap not suitable for ambient" | Frozen capability is a superset of ambient — chilling ambient cargo is fine. |
-| OR-404-CBO | L6 dairy | wash_override | "raw_meat is forbidden prior" | Truck holds a valid ANSVSA wash for raw_meat → override applies. |
-| OR-404-CBO | L10 produce | wash_override | "load forbids raw_meat priors" | Same — wash override unblocks for produce. |
-| OR-404-CBO | L11 produce | wash_override | "list includes raw_meat" | Same — wash override unblocks for produce. |
-| B-606-CBO | L5 dairy | clean_path | "pharma prior forbidden" | `dairy.forbidden = [raw_meat, raw_poultry, chemicals]` — pharma is NOT in the list. |
-| B-606-CBO | L10 produce | clean_path | "pharma is forbidden for produce" | Same — pharma is NOT in produce's forbidden list. |
+| CJ-203-CRL | L4 raw_meat | forbidden_prior_cargo | "load forbids 'chemicals' priors" | The list is `[chemicals]`; truck's prior is `raw_meat`, NOT in the list. |
+| CJ-203-CRL | L12 ambient_dry | forbidden_prior_cargo | "raw_meat is forbidden prior" | Same direction error: list is `[chemicals]`. |
+| CJ-401-CRL | L12 ambient_dry | forbidden_prior_cargo | "frozen cap not suitable for ambient" | Frozen capability is a superset of ambient — chilling ambient cargo is fine. |
+| CJ-301-CRL | L6 dairy | wash_override | "raw_meat is forbidden prior" | Truck holds a valid ANSVSA wash for raw_meat → override applies. |
+| CJ-301-CRL | L10 produce | wash_override | "load forbids raw_meat priors" | Same — wash override unblocks for produce. |
+| CJ-301-CRL | L11 produce | wash_override | "list includes raw_meat" | Same — wash override unblocks for produce. |
+| CJ-102-CRL | L5 dairy | clean_path | "pharma prior forbidden" | `dairy.forbidden = [raw_meat, raw_poultry, chemicals]` — pharma is NOT in the list. |
+| CJ-102-CRL | L10 produce | clean_path | "pharma is forbidden for produce" | Same — pharma is NOT in produce's forbidden list. |
 
 All 8 are reasoning errors of the same family: misreading what the
 `forbidden_prior_cargo` list contains, or failing to apply the wash

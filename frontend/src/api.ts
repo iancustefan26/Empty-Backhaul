@@ -3,6 +3,7 @@ import {
   FleetMatchResponse,
   LoadFeature,
   MatchState,
+  RoutePlanResponse,
   TruckFeature,
 } from "./types";
 
@@ -43,6 +44,26 @@ export const runFleetMatch = (opts: FleetMatchOptions = {}) => {
   params.set("mock_llm", String(opts.mockLlm ?? true));
   return getJson<FleetMatchResponse>(
     `/api/match/fleet?${params.toString()}`,
+    { method: "POST" },
+  );
+};
+
+
+export interface RoutePlanOptions {
+  topK?: number;
+  includeBroker?: boolean;
+  enableChains?: boolean;
+  mockLlm?: boolean;
+}
+
+export const runRoutePlan = (opts: RoutePlanOptions = {}) => {
+  const params = new URLSearchParams();
+  params.set("top_k", String(opts.topK ?? 3));
+  params.set("include_broker", String(opts.includeBroker ?? true));
+  params.set("enable_chains", String(opts.enableChains ?? true));
+  params.set("mock_llm", String(opts.mockLlm ?? true));
+  return getJson<RoutePlanResponse>(
+    `/api/route/plan?${params.toString()}`,
     { method: "POST" },
   );
 };

@@ -6,7 +6,10 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import text
 
-from app.agents.fleet_workflow import MAX_FLEET_SIZE, run_fleet_match
+from app.agents.fleet_workflow import (
+    MAX_FLEET_SIZE, analyst_fleet, run_fleet_match, sentry_fleet,
+)
+from app.agents.route_planner import plan_fleet_routes
 from app.agents.workflow import run_match_workflow
 from app.core.database import SessionLocal
 from app.documents import build_cmr_document, build_sanitization_document
@@ -97,6 +100,52 @@ def match_fleet_endpoint(
         "sentry_log": result["sentry_log"],
         "analyst_log": result["analyst_log"],
         "optimiser": result["optimiser"],
+        "compliance_matrix": flat_compliance,
+    }
+
+
+# NOTE: declared before /match/{truck_id} to avoid path-param collision.
+@router.post(
+    "/route/plan",
+    summary="Daily route plan for the depot fleet (with multi-leg chains)",
+)
+def route_plan_endpoint(
+    top_k: int = Query(3, ge=1, le=5),
+    include_broker: bool = Query(True, description="Include spot-market broker loads."),
+    enable_chains: bool = Query(True, description="Allow 2-leg backhaul chains."),
+    mock_llm: bool = Query(True, description="Skip Gemini for compliance reasoning."),
+    fleet_size: int = Query(MAX_FLEET_SIZE, ge=1, le=MAX_FLEET_SIZE),
+) -> dict:
+    """End-to-end fleet route plan for a depot-based carrier.
+
+    Each van's day is scheduled as IDLE / SINGLE round-trip / CHAIN
+    (two loads). Returns the top-K alternative plans + the per-van
+    breakdown + fleet-level KPIs.
+    """
+    sentry_out = sentry_fleet(include_broker=include_broker, fleet_size=fleet_size)
+    if "error" in sentry_out:
+        raise HTTPException(status_code=409, detail=sentry_out["error"])
+    vans = sentry_out["fleet"]
+    loads = sentry_out["available_loads"]
+    compliance, analyst_log = analyst_fleet(vans, loads, use_mock_llm=mock_llm)
+    optimiser = plan_fleet_routes(
+        vans, loads, compliance, top_k=top_k, enable_chains=enable_chains,
+    )
+    flat_compliance = [
+        {"truck_id": t, "load_id": l, **v}
+        for (t, l), v in compliance.items()
+    ]
+    return {
+        "depot": {
+            "city": vans[0]["home_base_city"] if vans else None,
+            "lat": vans[0]["lat"] if vans else None,
+            "lon": vans[0]["lon"] if vans else None,
+        },
+        "fleet": vans,
+        "available_loads": loads,
+        "sentry_log": sentry_out["sentry_log"],
+        "analyst_log": analyst_log,
+        "optimiser": optimiser,
         "compliance_matrix": flat_compliance,
     }
 

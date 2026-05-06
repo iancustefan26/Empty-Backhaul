@@ -1,0 +1,83 @@
+{
+  "experiment": "D \u2014 Fleet-size scaling",
+  "sweep": [
+    3,
+    5,
+    7,
+    10
+  ],
+  "points": [
+    {
+      "fleet_size": 3,
+      "load_pool_size": 35,
+      "total_margin_eur": 1486.74,
+      "margin_per_van_eur": 495.58,
+      "deadhead_ratio": 0.3065,
+      "deadhead_pct": 30.65,
+      "fleet_utilization_pct": 100.0,
+      "single_trips_count": 2,
+      "chain_trips_count": 1,
+      "idle_count": 0,
+      "customer_loads_served": 2,
+      "customer_loads_available": 20,
+      "broker_loads_served": 2,
+      "candidate_singles": 9,
+      "candidate_chains": 5,
+      "elapsed_ms": 19
+    },
+    {
+      "fleet_size": 5,
+      "load_pool_size": 35,
+      "total_margin_eur": 1486.74,
+      "margin_per_van_eur": 297.35,
+      "deadhead_ratio": 0.3065,
+      "deadhead_pct": 30.65,
+      "fleet_utilization_pct": 60.0,
+      "single_trips_count": 2,
+      "chain_trips_count": 1,
+      "idle_count": 2,
+      "customer_loads_served": 2,
+      "customer_loads_available": 20,
+      "broker_loads_served": 2,
+      "candidate_singles": 13,
+      "candidate_chains": 6,
+      "elapsed_ms": 17
+    },
+    {
+      "fleet_size": 7,
+      "load_pool_size": 35,
+      "total_margin_eur": 1790.77,
+      "margin_per_van_eur": 255.82,
+      "deadhead_ratio": 0.3467,
+      "deadhead_pct": 34.67,
+      "fleet_utilization_pct": 57.1,
+      "single_trips_count": 3,
+      "chain_trips_count": 1,
+      "idle_count": 3,
+      "customer_loads_served": 3,
+      "customer_loads_available": 20,
+      "broker_loads_served": 2,
+      "candidate_singles": 21,
+      "candidate_chains": 9,
+      "elapsed_ms": 31
+    },
+    {
+      "fleet_size": 10,
+      "load_pool_size": 35,
+      "total_margin_eur": 1790.77,
+      "margin_per_van_eur": 179.08,
+      "deadhead_ratio": 0.3467,
+      "deadhead_pct": 34.67,
+      "fleet_utilization_pct": 40.0,
+      "single_trips_count": 3,
+      "chain_trips_count": 1,
+      "idle_count": 6,
+      "customer_loads_served": 3,
+      "customer_loads_available": 20,
+      "broker_loads_served": 2,
+      "candidate_singles": 23,
+      "candidate_chains": 9,
+      "elapsed_ms": 23
+    }
+  ]
+}

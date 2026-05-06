@@ -45,78 +45,86 @@ def _pt(city_name: str) -> WKTElement:
 
 
 # ---------------------------------------------------------------------------
-# 10 trucks ending deliveries in CJ / TM / IS / CT / SB, returning to B / OR.
+# 10 vans of a single Cluj-Napoca-based refrigerated transport company.
+# Every van starts and must end the day back at the Cluj-Napoca depot.
+# Capabilities, last_cargo, wash certs are deliberately varied so the
+# compliance + multi-leg-chain optimiser has interesting decisions to make.
 # ---------------------------------------------------------------------------
+DEPOT_CITY = "Cluj-Napoca"
+CARRIER = "Cluj Reefer Logistics"
+
+
 def truck_fixtures() -> list[dict[str, Any]]:
     return [
-        # --- Cluj-Napoca → Bucuresti --------------------------------------
+        # --- Two pharma 2-8°C vans (the company's most premium asset) -----
         dict(
-            plate_number="B-101-CBO", carrier_name="Carpatica Logistics",
-            current_city="Cluj-Napoca", home_base_city="Bucuresti",
+            plate_number="CJ-101-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="pharma_2_8", last_cargo="pharma",
+            has_pharma_logger=True, remaining_driving_hours=9.0, status="empty",
+        ),
+        dict(
+            plate_number="CJ-102-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="pharma_2_8", last_cargo="pharma",
+            has_pharma_logger=True, remaining_driving_hours=9.0, status="empty",
+        ),
+        # --- Three chilled vans (dairy, produce, raw meat split) ----------
+        dict(
+            plate_number="CJ-201-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
             temp_capability="chilled", last_cargo="dairy",
-            has_pharma_logger=False, remaining_driving_hours=8.0, status="empty",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
         dict(
-            plate_number="B-202-CBO", carrier_name="Pharma Express RO",
-            current_city="Cluj-Napoca", home_base_city="Bucuresti",
-            temp_capability="pharma_2_8", last_cargo="pharma",
-            has_pharma_logger=True, remaining_driving_hours=7.5, status="empty",
-        ),
-        # --- Timisoara → Oradea -------------------------------------------
-        dict(
-            plate_number="OR-303-CBO", carrier_name="Banat Frig",
-            current_city="Timisoara", home_base_city="Oradea",
-            temp_capability="frozen", last_cargo="frozen",
-            has_pharma_logger=False, remaining_driving_hours=6.0, status="empty",
-        ),
-        dict(
-            plate_number="OR-404-CBO", carrier_name="Multitemp Vest",
-            current_city="Timisoara", home_base_city="Oradea",
-            temp_capability="multi_temp", last_cargo="raw_meat",
-            has_pharma_logger=False, remaining_driving_hours=5.5, status="empty",
-        ),
-        # --- Iasi → Bucuresti ---------------------------------------------
-        dict(
-            plate_number="B-505-CBO", carrier_name="Moldova Cold Chain",
-            current_city="Iasi", home_base_city="Bucuresti",
+            plate_number="CJ-202-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
             temp_capability="chilled", last_cargo="produce",
-            has_pharma_logger=False, remaining_driving_hours=7.0, status="empty",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
         dict(
-            plate_number="B-606-CBO", carrier_name="Pharma Express RO",
-            current_city="Iasi", home_base_city="Bucuresti",
-            temp_capability="pharma_2_8", last_cargo="pharma",
-            has_pharma_logger=True, remaining_driving_hours=4.5, status="loaded",
+            # last_cargo=raw_meat WITHOUT wash cert -> Analyst will reject
+            # non-meat food-grade loads on this van today.
+            plate_number="CJ-203-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="chilled", last_cargo="raw_meat",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
-        # --- Constanta → Bucuresti ----------------------------------------
+        # --- Two multi-temp vans (most flexible, most expensive to run) ---
         dict(
-            plate_number="B-707-CBO", carrier_name="Pontica Frigo",
-            current_city="Constanta", home_base_city="Bucuresti",
-            temp_capability="frozen", last_cargo="frozen",
-            has_pharma_logger=False, remaining_driving_hours=8.5, status="empty",
+            # raw_meat with valid ANSVSA wash → dairy/produce unblocked.
+            plate_number="CJ-301-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="multi_temp", last_cargo="raw_meat",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
         dict(
-            plate_number="B-808-CBO", carrier_name="Pontica Frigo",
-            current_city="Constanta", home_base_city="Bucuresti",
+            plate_number="CJ-302-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
             temp_capability="multi_temp", last_cargo="clean",
             has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
-        # --- Sibiu → Bucuresti / Oradea -----------------------------------
+        # --- Two frozen vans (long routes to / from Bucharest, ports) -----
         dict(
-            # last_cargo=raw_meat WITHOUT wash cert -> Analyst should reject
-            # any non-meat food-grade load until sanitisation is performed.
-            plate_number="B-909-CBO", carrier_name="Transilvania Reefer",
-            current_city="Sibiu", home_base_city="Bucuresti",
-            temp_capability="chilled", last_cargo="raw_meat",
-            has_pharma_logger=False, remaining_driving_hours=6.5, status="empty",
+            plate_number="CJ-401-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="frozen", last_cargo="frozen",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
         dict(
-            plate_number="OR-010-CBO", carrier_name="Crisana Logistic",  # noqa: E501
-            # status was 'returning' originally; flipped to 'empty' so the
-            # chemicals-quarantine HACCP path is reachable in evals/demos.
-            current_city="Sibiu", home_base_city="Oradea",
+            plate_number="CJ-402-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="frozen", last_cargo="frozen",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
+        ),
+        # --- One ambient/chemicals van (intentionally compliance-blocked) ---
+        dict(
+            # last_cargo=chemicals + ambient-only cap → HACCP locks out all
+            # food-grade work today, leaving only chemicals→chemicals.
+            plate_number="CJ-901-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
             temp_capability="ambient", last_cargo="chemicals",
-            has_pharma_logger=False, remaining_driving_hours=4.0, status="empty",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
     ]
 
@@ -503,27 +511,30 @@ def wash_cert_fixtures() -> list[dict[str, Any]]:
         # Truck #4 (Timisoara, last_cargo=raw_meat) was officially sanitised
         # in Arad yesterday -> Analyst can clear it for dairy / produce loads.
         dict(
-            plate_number="OR-404-CBO",
-            certificate_number=f"ANSVSA-TM-{NOW:%Y-%m-%d}-0142",
+            # CJ-301 was officially sanitised at the Cluj depot wash bay
+            # last evening → Analyst can clear it for dairy/produce loads
+            # via the ANSVSA wash override.
+            plate_number="CJ-301-CRL",
+            certificate_number=f"ANSVSA-CJ-{NOW:%Y-%m-%d}-0142",
             issued_at=NOW - timedelta(hours=18),
             valid_until=NOW + timedelta(days=30),  # stays valid across re-runs
             wash_type="ansvsa_official",
             prior_cargo="raw_meat",
-            issuing_facility="Statie spalare Arad — autorizatie ANSVSA TM-014",
-            location_city="Arad",
+            issuing_facility="Cluj Depot Wash Bay — autorizatie ANSVSA CJ-007",
+            location_city="Cluj-Napoca",
         ),
-        # Truck #10 (Sibiu, last_cargo=chemicals) had a deep wash on the way
-        # back to Oradea, but ambient-only so its food-grade reuse is still
-        # off-limits per HACCP — kept as a partial / flavour cert for realism.
+        # CJ-901 (ambient van, last_cargo=chemicals) had a deep wash on the
+        # return run yesterday but ambient-only so its food-grade reuse is
+        # still off-limits per HACCP — kept as a partial / flavour cert.
         dict(
-            plate_number="OR-010-CBO",
-            certificate_number=f"WASH-VEST-{NOW:%Y-%m-%d}-0007",
+            plate_number="CJ-901-CRL",
+            certificate_number=f"WASH-CJ-{NOW:%Y-%m-%d}-0007",
             issued_at=NOW - timedelta(hours=10),
             valid_until=NOW + timedelta(days=30),
             wash_type="deep",
             prior_cargo="chemicals",
-            issuing_facility="Crisana Wash Station Oradea",
-            location_city="Oradea",
+            issuing_facility="Cluj Depot Wash Bay",
+            location_city="Cluj-Napoca",
         ),
     ]
 

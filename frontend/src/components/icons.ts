@@ -58,3 +58,17 @@ export function loadIcon(cargoType: string, chosen: boolean): L.DivIcon {
     iconAnchor: [13, 13],
   });
 }
+
+/** Big gold star marker for the company depot. */
+export function depotIcon(): L.DivIcon {
+  return L.divIcon({
+    html: `<div style="position:relative;width:48px;height:48px;display:flex;align-items:center;justify-content:center;">
+              <div style="position:absolute;width:48px;height:48px;border-radius:50%;background:rgba(250,204,21,0.25);"></div>
+              <div style="position:relative;font-size:36px;line-height:1;color:#facc15;text-shadow:0 0 6px rgba(0,0,0,0.6);">★</div>
+              <div style="position:absolute;bottom:-16px;left:50%;transform:translateX(-50%);font-size:10px;font-weight:700;color:#facc15;text-shadow:0 0 3px rgba(0,0,0,0.9);background:rgba(15,23,42,0.85);padding:1px 6px;border-radius:3px;border:1px solid #facc15;white-space:nowrap;">DEPOT</div>
+            </div>`,
+    className: "cbo-depot-icon",
+    iconSize: [48, 48],
+    iconAnchor: [24, 24],
+  });
+}

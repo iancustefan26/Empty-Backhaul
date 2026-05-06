@@ -1,92 +1,96 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-import { fetchLoads, fetchTrucks, runFleetMatch, runMatch } from "./api";
-import { FleetView } from "./components/FleetView";
-import { Map } from "./components/Map";
+import { fetchLoads, fetchTrucks, runMatch, runRoutePlan } from "./api";
+import { FLEET_COLOURS, Map } from "./components/Map";
 import { ReasoningFeed } from "./components/ReasoningFeed";
-import { FleetMatchResponse, MatchState } from "./types";
+import { RouteView } from "./components/RouteView";
+import { MatchState, RoutePlanResponse } from "./types";
 
-type Mode = "single" | "fleet";
+type Mode = "route" | "single";
 
 export function App() {
   const trucksQ = useQuery({ queryKey: ["trucks"], queryFn: fetchTrucks });
   const loadsQ = useQuery({ queryKey: ["loads"], queryFn: fetchLoads });
 
-  const [mode, setMode] = useState<Mode>("single");
+  const [mode, setMode] = useState<Mode>("route");
 
-  // Single-truck state
-  const [selectedTruckId, setSelectedTruckId] = useState<number | null>(null);
-  const [matchState, setMatchState] = useState<MatchState | null>(null);
-  const [useMockLlm, setUseMockLlm] = useState(true);
+  // Route-plan state (the main product view)
+  const [routeData, setRouteData] = useState<RoutePlanResponse | null>(null);
+  const [routeRank, setRouteRank] = useState<number>(1);
+  const [includeBroker, setIncludeBroker] = useState(true);
+  const [enableChains, setEnableChains] = useState(true);
 
-  const matchM = useMutation({
-    mutationFn: ({ id, mock }: { id: number; mock: boolean }) =>
-      runMatch(id, mock),
-    onSuccess: (data) => setMatchState(data),
+  const routeM = useMutation({
+    mutationFn: () =>
+      runRoutePlan({
+        topK: 3,
+        includeBroker,
+        enableChains,
+        mockLlm: true,
+      }),
+    onSuccess: (data) => {
+      setRouteData(data);
+      setRouteRank(1);
+    },
   });
 
-  // Fleet state
-  const [fleetData, setFleetData] = useState<FleetMatchResponse | null>(null);
-  const [fleetRank, setFleetRank] = useState<number>(1);
-  const [includeBroker, setIncludeBroker] = useState(true);
-
-  const fleetM = useMutation({
-    mutationFn: () =>
-      runFleetMatch({ topK: 3, includeBroker, mockLlm: true }),
-    onSuccess: (data) => {
-      setFleetData(data);
-      setFleetRank(1);
-    },
+  // Single-truck (legacy) state
+  const [selectedTruckId, setSelectedTruckId] = useState<number | null>(null);
+  const [matchState, setMatchState] = useState<MatchState | null>(null);
+  const matchM = useMutation({
+    mutationFn: ({ id }: { id: number }) => runMatch(id, true),
+    onSuccess: (data) => setMatchState(data),
   });
 
   const onSelectTruck = (id: number) => {
     if (mode !== "single") return;
     setSelectedTruckId(id);
     setMatchState(null);
-    matchM.mutate({ id, mock: useMockLlm });
+    matchM.mutate({ id });
   };
 
   const trucks = trucksQ.data?.features ?? [];
   const loads = loadsQ.data?.features ?? [];
   const chosenLoadId = matchState?.decision?.chosen_load_id ?? null;
-  const fleetPlan =
-    mode === "fleet" && fleetData
-      ? fleetData.optimiser.alternatives.find((p) => p.rank === fleetRank) ?? null
+
+  // Stable color per van id, used both on the map and the side panel.
+  const vanColors = useMemo(() => {
+    const sorted = [...trucks].sort((a, b) => a.id - b.id);
+    const m: Record<number, string> = {};
+    sorted.forEach((t, i) => {
+      m[t.id] = FLEET_COLOURS[i % FLEET_COLOURS.length];
+    });
+    return m;
+  }, [trucks]);
+
+  const routePlan =
+    mode === "route" && routeData
+      ? routeData.optimiser.alternatives.find((p) => p.rank === routeRank) ?? null
       : null;
+
+  const depot = mode === "route" && routeData ? routeData.depot : null;
 
   return (
     <div className="flex h-screen w-screen flex-col">
       <header className="flex items-center justify-between border-b border-slate-700 bg-slate-900/95 px-4 py-2">
         <div className="flex items-center gap-3">
-          <span className="text-xl">🚚</span>
+          <span className="text-2xl">🚚</span>
           <div>
             <div className="text-sm font-semibold text-slate-100">
-              Agentic Cold Backhaul Optimizer
+              Cluj Reefer Logistics — daily dispatch
             </div>
             <div className="text-xs text-slate-400">
-              Romania · Sentry → Analyst → Strategist · LangGraph + Chroma RAG
-              + OR-Tools
+              Depot-based fleet planner · multi-leg backhauls · HACCP/ANSVSA/GDP compliant
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-300">
           <ModeTabs mode={mode} onChange={setMode} />
           <span>
-            {trucks.length} trucks · {loads.length} loads
+            {trucks.length} vans · {loads.length} loads
           </span>
-          {mode === "single" && (
-            <label className="flex items-center gap-1">
-              <input
-                type="checkbox"
-                checked={useMockLlm}
-                onChange={(e) => setUseMockLlm(e.target.checked)}
-                className="accent-cyan-400"
-              />
-              mock LLM
-            </label>
-          )}
-          {mode === "fleet" && (
+          {mode === "route" && (
             <>
               <label className="flex items-center gap-1">
                 <input
@@ -95,14 +99,23 @@ export function App() {
                   onChange={(e) => setIncludeBroker(e.target.checked)}
                   className="accent-cyan-400"
                 />
-                include broker
+                broker freight
+              </label>
+              <label className="flex items-center gap-1">
+                <input
+                  type="checkbox"
+                  checked={enableChains}
+                  onChange={(e) => setEnableChains(e.target.checked)}
+                  className="accent-cyan-400"
+                />
+                chains
               </label>
               <button
-                className="rounded border border-cyan-700 bg-cyan-900/40 px-2 py-1 text-cyan-100 hover:bg-cyan-800/60 disabled:opacity-50"
-                disabled={fleetM.isPending}
-                onClick={() => fleetM.mutate()}
+                className="rounded border border-cyan-700 bg-cyan-900/40 px-3 py-1.5 font-semibold text-cyan-100 hover:bg-cyan-800/60 disabled:opacity-50"
+                disabled={routeM.isPending}
+                onClick={() => routeM.mutate()}
               >
-                {fleetM.isPending ? "Optimising…" : "Run fleet match"}
+                {routeM.isPending ? "Planning…" : "Plan today's routes"}
               </button>
             </>
           )}
@@ -120,24 +133,27 @@ export function App() {
             selectedTruckId={selectedTruckId}
             chosenLoadId={chosenLoadId}
             onSelectTruck={onSelectTruck}
-            fleetPlan={fleetPlan}
+            routePlan={routePlan}
+            depot={depot}
+            vanColors={vanColors}
           />
-          <Legend />
+          <Legend mode={mode} />
         </section>
         <aside className="col-span-5 overflow-y-auto border-l border-slate-700 bg-slate-900">
-          {mode === "single" ? (
+          {mode === "route" ? (
+            <RouteView
+              data={routeData}
+              loading={routeM.isPending}
+              error={routeM.isError ? (routeM.error as Error).message : null}
+              selectedRank={routeRank}
+              onSelectRank={setRouteRank}
+              vanColors={vanColors}
+            />
+          ) : (
             <ReasoningFeed
               state={matchState}
               loading={matchM.isPending}
               error={matchM.isError ? (matchM.error as Error).message : null}
-            />
-          ) : (
-            <FleetView
-              data={fleetData}
-              loading={fleetM.isPending}
-              error={fleetM.isError ? (fleetM.error as Error).message : null}
-              selectedRank={fleetRank}
-              onSelectRank={setFleetRank}
             />
           )}
         </aside>
@@ -155,7 +171,7 @@ function ModeTabs({
 }) {
   return (
     <div className="flex overflow-hidden rounded border border-slate-700">
-      {(["single", "fleet"] as Mode[]).map((m) => (
+      {(["route", "single"] as Mode[]).map((m) => (
         <button
           key={m}
           onClick={() => onChange(m)}
@@ -166,7 +182,7 @@ function ModeTabs({
               : "bg-slate-800 text-slate-400 hover:text-slate-200")
           }
         >
-          {m === "single" ? "Single truck" : "Fleet"}
+          {m === "route" ? "Daily routes" : "Single truck (debug)"}
         </button>
       ))}
     </div>
@@ -185,15 +201,27 @@ function BackendBanner({ message }: { message: string }) {
   );
 }
 
-function Legend() {
+function Legend({ mode }: { mode: Mode }) {
   return (
     <div className="absolute bottom-3 left-3 z-[400] space-y-1 rounded-md border border-slate-700 bg-slate-900/85 px-3 py-2 text-[11px] text-slate-300 shadow-lg">
       <div className="font-semibold text-slate-100">Legend</div>
-      <div className="flex items-center gap-2">
-        <Dot color="#22c55e" /> empty
-        <Dot color="#eab308" className="ml-2" /> loaded
-        <Dot color="#3b82f6" className="ml-2" /> returning
-      </div>
+      {mode === "route" && (
+        <>
+          <div className="flex items-center gap-2">
+            <span className="text-amber-300 text-base">★</span> Cluj depot
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="inline-block w-6 border-t-2 border-cyan-400" /> loaded leg ▲
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block w-6 border-t-2 border-dashed border-cyan-400/70"
+              style={{ borderStyle: "dashed" }}
+            />{" "}
+            empty leg ▲ (arrows show direction)
+          </div>
+        </>
+      )}
       <div className="flex items-center gap-2">
         <Square color="#dc2626" /> pharma
         <Square color="#84cc16" className="ml-2" /> dairy/produce
@@ -205,15 +233,6 @@ function Legend() {
         <Square color="#6b7280" className="ml-2" /> ambient
       </div>
     </div>
-  );
-}
-
-function Dot({ color, className = "" }: { color: string; className?: string }) {
-  return (
-    <span
-      className={"inline-block h-3 w-3 rounded-full border border-white " + className}
-      style={{ background: color }}
-    />
   );
 }
 

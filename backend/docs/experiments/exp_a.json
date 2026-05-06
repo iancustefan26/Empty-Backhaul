@@ -1,0 +1,708 @@
+{
+  "experiment": "A \u2014 Margin + utilisation lift",
+  "fleet_size": 10,
+  "load_pool_size": 35,
+  "depot": "Cluj-Napoca",
+  "compliance_compliant_pairs": 185,
+  "baseline": {
+    "rank": 1,
+    "objective_value_cents": 138324,
+    "total_fleet_margin_eur": 1383.24,
+    "total_loaded_km": 1021.5,
+    "total_empty_km": 1021.5,
+    "total_km": 2043.0,
+    "deadhead_ratio": 0.5,
+    "fleet_utilization_pct": 50.0,
+    "single_trips_count": 5,
+    "chain_trips_count": 0,
+    "idle_count": 5,
+    "customer_loads_served": 3,
+    "customer_loads_available": 20,
+    "broker_loads_served": 2,
+    "broker_loads_available": 15,
+    "unserved_customer_load_ids": [
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      15,
+      16,
+      18,
+      19,
+      20
+    ],
+    "plans": [
+      {
+        "kind": "SINGLE",
+        "van_id": 1,
+        "van_plate": "CJ-101-CRL",
+        "legs": [
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Brasov",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 45.6427,
+            "to_lon": 25.5887,
+            "km": 239.7,
+            "kind": "loaded",
+            "load_id": 35
+          },
+          {
+            "from_city": "Brasov",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 45.6427,
+            "from_lon": 25.5887,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 239.7,
+            "kind": "empty",
+            "load_id": null
+          }
+        ],
+        "load_ids": [
+          35
+        ],
+        "total_km": 479.4,
+        "empty_km": 239.7,
+        "loaded_km": 239.7,
+        "drive_hours": 7.38,
+        "margin_eur": 412.47,
+        "margin_cents": 41247
+      },
+      {
+        "kind": "SINGLE",
+        "van_id": 2,
+        "van_plate": "CJ-102-CRL",
+        "legs": [
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Sibiu",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 45.7983,
+            "to_lon": 24.1256,
+            "km": 140.1,
+            "kind": "loaded",
+            "load_id": 11
+          },
+          {
+            "from_city": "Sibiu",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 45.7983,
+            "from_lon": 24.1256,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 140.1,
+            "kind": "empty",
+            "load_id": null
+          }
+        ],
+        "load_ids": [
+          11
+        ],
+        "total_km": 280.2,
+        "empty_km": 140.1,
+        "loaded_km": 140.1,
+        "drive_hours": 4.31,
+        "margin_eur": 141.8,
+        "margin_cents": 14180
+      },
+      {
+        "kind": "SINGLE",
+        "van_id": 3,
+        "van_plate": "CJ-201-CRL",
+        "legs": [
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Brasov",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 45.6427,
+            "to_lon": 25.5887,
+            "km": 239.7,
+            "kind": "loaded",
+            "load_id": 4
+          },
+          {
+            "from_city": "Brasov",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 45.6427,
+            "from_lon": 25.5887,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 239.7,
+            "kind": "empty",
+            "load_id": null
+          }
+        ],
+        "load_ids": [
+          4
+        ],
+        "total_km": 479.4,
+        "empty_km": 239.7,
+        "loaded_km": 239.7,
+        "drive_hours": 7.38,
+        "margin_eur": 372.47,
+        "margin_cents": 37247
+      },
+      {
+        "kind": "SINGLE",
+        "van_id": 4,
+        "van_plate": "CJ-202-CRL",
+        "legs": [
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Brasov",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 45.6427,
+            "to_lon": 25.5887,
+            "km": 239.7,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Brasov",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 45.6427,
+            "from_lon": 25.5887,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 239.7,
+            "kind": "loaded",
+            "load_id": 25
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          }
+        ],
+        "load_ids": [
+          25
+        ],
+        "total_km": 479.4,
+        "empty_km": 239.7,
+        "loaded_km": 239.7,
+        "drive_hours": 7.38,
+        "margin_eur": 152.47,
+        "margin_cents": 15247
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 5,
+        "van_plate": "CJ-203-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      },
+      {
+        "kind": "SINGLE",
+        "van_id": 6,
+        "van_plate": "CJ-301-CRL",
+        "legs": [
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Oradea",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 47.0465,
+            "to_lon": 21.9189,
+            "km": 162.3,
+            "kind": "loaded",
+            "load_id": 17
+          },
+          {
+            "from_city": "Oradea",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 47.0465,
+            "from_lon": 21.9189,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 162.3,
+            "kind": "empty",
+            "load_id": null
+          }
+        ],
+        "load_ids": [
+          17
+        ],
+        "total_km": 324.7,
+        "empty_km": 162.3,
+        "loaded_km": 162.3,
+        "drive_hours": 4.99,
+        "margin_eur": 304.03,
+        "margin_cents": 30403
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 7,
+        "van_plate": "CJ-302-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 8,
+        "van_plate": "CJ-401-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 9,
+        "van_plate": "CJ-402-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 10,
+        "van_plate": "CJ-901-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      }
+    ]
+  },
+  "treatment": {
+    "rank": 1,
+    "objective_value_cents": 180577,
+    "total_fleet_margin_eur": 1790.77,
+    "total_loaded_km": 1021.5,
+    "total_empty_km": 542.1,
+    "total_km": 1563.6,
+    "deadhead_ratio": 0.3467,
+    "fleet_utilization_pct": 40.0,
+    "single_trips_count": 3,
+    "chain_trips_count": 1,
+    "idle_count": 6,
+    "customer_loads_served": 3,
+    "customer_loads_available": 20,
+    "broker_loads_served": 2,
+    "broker_loads_available": 15,
+    "unserved_customer_load_ids": [
+      1,
+      2,
+      3,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      12,
+      13,
+      14,
+      15,
+      16,
+      18,
+      19,
+      20
+    ],
+    "plans": [
+      {
+        "kind": "CHAIN",
+        "van_id": 1,
+        "van_plate": "CJ-101-CRL",
+        "legs": [
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Brasov",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 45.6427,
+            "to_lon": 25.5887,
+            "km": 239.7,
+            "kind": "loaded",
+            "load_id": 35
+          },
+          {
+            "from_city": "Brasov",
+            "to_city": "Brasov",
+            "from_lat": 45.6427,
+            "from_lon": 25.5887,
+            "to_lat": 45.6427,
+            "to_lon": 25.5887,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Brasov",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 45.6427,
+            "from_lon": 25.5887,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 239.7,
+            "kind": "loaded",
+            "load_id": 25
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          }
+        ],
+        "load_ids": [
+          35,
+          25
+        ],
+        "total_km": 479.4,
+        "empty_km": 0.0,
+        "loaded_km": 479.4,
+        "drive_hours": 7.38,
+        "margin_eur": 972.47,
+        "margin_cents": 97247
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 2,
+        "van_plate": "CJ-102-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 3,
+        "van_plate": "CJ-201-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      },
+      {
+        "kind": "SINGLE",
+        "van_id": 4,
+        "van_plate": "CJ-202-CRL",
+        "legs": [
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Sibiu",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 45.7983,
+            "to_lon": 24.1256,
+            "km": 140.1,
+            "kind": "loaded",
+            "load_id": 11
+          },
+          {
+            "from_city": "Sibiu",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 45.7983,
+            "from_lon": 24.1256,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 140.1,
+            "kind": "empty",
+            "load_id": null
+          }
+        ],
+        "load_ids": [
+          11
+        ],
+        "total_km": 280.2,
+        "empty_km": 140.1,
+        "loaded_km": 140.1,
+        "drive_hours": 4.31,
+        "margin_eur": 141.8,
+        "margin_cents": 14180
+      },
+      {
+        "kind": "SINGLE",
+        "van_id": 5,
+        "van_plate": "CJ-203-CRL",
+        "legs": [
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Brasov",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 45.6427,
+            "to_lon": 25.5887,
+            "km": 239.7,
+            "kind": "loaded",
+            "load_id": 4
+          },
+          {
+            "from_city": "Brasov",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 45.6427,
+            "from_lon": 25.5887,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 239.7,
+            "kind": "empty",
+            "load_id": null
+          }
+        ],
+        "load_ids": [
+          4
+        ],
+        "total_km": 479.4,
+        "empty_km": 239.7,
+        "loaded_km": 239.7,
+        "drive_hours": 7.38,
+        "margin_eur": 372.47,
+        "margin_cents": 37247
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 6,
+        "van_plate": "CJ-301-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 7,
+        "van_plate": "CJ-302-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 8,
+        "van_plate": "CJ-401-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      },
+      {
+        "kind": "SINGLE",
+        "van_id": 9,
+        "van_plate": "CJ-402-CRL",
+        "legs": [
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 0.0,
+            "kind": "empty",
+            "load_id": null
+          },
+          {
+            "from_city": "Cluj-Napoca",
+            "to_city": "Oradea",
+            "from_lat": 46.7712,
+            "from_lon": 23.6236,
+            "to_lat": 47.0465,
+            "to_lon": 21.9189,
+            "km": 162.3,
+            "kind": "loaded",
+            "load_id": 17
+          },
+          {
+            "from_city": "Oradea",
+            "to_city": "Cluj-Napoca",
+            "from_lat": 47.0465,
+            "from_lon": 21.9189,
+            "to_lat": 46.7712,
+            "to_lon": 23.6236,
+            "km": 162.3,
+            "kind": "empty",
+            "load_id": null
+          }
+        ],
+        "load_ids": [
+          17
+        ],
+        "total_km": 324.7,
+        "empty_km": 162.3,
+        "loaded_km": 162.3,
+        "drive_hours": 4.99,
+        "margin_eur": 304.03,
+        "margin_cents": 30403
+      },
+      {
+        "kind": "IDLE",
+        "van_id": 10,
+        "van_plate": "CJ-901-CRL",
+        "legs": [],
+        "load_ids": [],
+        "total_km": 0.0,
+        "empty_km": 0.0,
+        "loaded_km": 0.0,
+        "drive_hours": 0.0,
+        "margin_eur": 0.0,
+        "margin_cents": 0
+      }
+    ]
+  },
+  "delta": {
+    "margin_baseline_eur": 1383.24,
+    "margin_treatment_eur": 1790.77,
+    "margin_lift_eur": 407.53,
+    "margin_lift_pct": 29.5,
+    "utilisation_baseline_pct": 50.0,
+    "utilisation_treatment_pct": 40.0,
+    "utilisation_lift_pp": -10.0,
+    "deadhead_baseline_pct": 50.0,
+    "deadhead_treatment_pct": 34.67,
+    "deadhead_delta_pp": -15.33,
+    "empty_km_baseline": 1021.5,
+    "empty_km_treatment": 542.1,
+    "empty_km_delta": -479.4,
+    "loaded_km_baseline": 1021.5,
+    "loaded_km_treatment": 1021.5,
+    "chains_in_treatment": 1
+  }
+}

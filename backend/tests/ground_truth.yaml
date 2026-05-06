@@ -30,69 +30,69 @@ cases:
   # =========================================================================
   # TEMPERATURE CAPABILITY (12 rows)
   # =========================================================================
-  - truck_plate: B-202-CBO       # pharma_2_8 carrying pharma — match
+  - truck_plate: CJ-101-CRL       # pharma_2_8 carrying pharma — match
     load_id: 1
     expected_compliant: true
     rule_category: temperature
     rationale: "pharma_2_8 + logger truck matches pharma 2-8°C load"
-  - truck_plate: B-202-CBO       # pharma_2_8 carrying frozen — mismatch
+  - truck_plate: CJ-101-CRL       # pharma_2_8 carrying frozen — mismatch
     load_id: 7
     expected_compliant: false
     rule_category: temperature
     expected_blocker: temp.frozen-band
     rationale: "pharma_2_8 cannot carry frozen_vegetables; needs frozen/multi_temp"
-  - truck_plate: B-202-CBO       # pharma_2_8 carrying raw_meat — mismatch
+  - truck_plate: CJ-101-CRL       # pharma_2_8 carrying raw_meat — mismatch
     load_id: 4
     expected_compliant: false
     rule_category: temperature
     expected_blocker: temp
     rationale: "pharma_2_8 cannot carry raw_meat (chilled meat band)"
-  - truck_plate: OR-303-CBO      # frozen-only carrying pharma — mismatch
+  - truck_plate: CJ-401-CRL      # frozen-only carrying pharma — mismatch
     load_id: 1
     expected_compliant: false
     rule_category: temperature
     expected_blocker: temp
     rationale: "frozen-only cannot carry pharma 2-8°C"
-  - truck_plate: OR-303-CBO      # frozen-only carrying chilled dairy — mismatch
+  - truck_plate: CJ-401-CRL      # frozen-only carrying chilled dairy — mismatch
     load_id: 5
     expected_compliant: false
     rule_category: temperature
     expected_blocker: temp
     rationale: "frozen-only cannot carry chilled dairy"
-  - truck_plate: OR-303-CBO      # frozen-only carrying frozen veg — match
+  - truck_plate: CJ-401-CRL      # frozen-only carrying frozen veg — match
     load_id: 7
     expected_compliant: true
     rule_category: temperature
     rationale: "frozen-only matches frozen_vegetables"
-  - truck_plate: OR-303-CBO      # frozen-only carrying frozen fish — match
+  - truck_plate: CJ-401-CRL      # frozen-only carrying frozen fish — match
     load_id: 9
     expected_compliant: true
     rule_category: temperature
     rationale: "frozen-only matches frozen_fish"
-  - truck_plate: B-101-CBO       # chilled carrying pharma — mismatch
+  - truck_plate: CJ-201-CRL       # chilled carrying pharma — mismatch
     load_id: 1
     expected_compliant: false
     rule_category: temperature
     expected_blocker: temp.chilled-band
     rationale: "chilled cannot carry pharma 2-8°C"
-  - truck_plate: B-101-CBO       # chilled carrying frozen veg — mismatch
+  - truck_plate: CJ-201-CRL       # chilled carrying frozen veg — mismatch
     load_id: 7
     expected_compliant: false
     rule_category: temperature
     expected_blocker: temp
     rationale: "chilled cannot carry frozen_vegetables"
-  - truck_plate: B-101-CBO       # chilled carrying chilled dairy — match
+  - truck_plate: CJ-201-CRL       # chilled carrying chilled dairy — match
     load_id: 5
     expected_compliant: true
     rule_category: temperature
     rationale: "chilled matches dairy"
-  - truck_plate: OR-010-CBO      # ambient carrying frozen — mismatch
+  - truck_plate: CJ-901-CRL      # ambient carrying frozen — mismatch
     load_id: 8
     expected_compliant: false
     rule_category: temperature
     expected_blocker: temp
     rationale: "ambient-only cannot carry frozen_vegetables"
-  - truck_plate: B-808-CBO       # multi_temp carrying anything cold-chain — match
+  - truck_plate: CJ-302-CRL       # multi_temp carrying anything cold-chain — match
     load_id: 9
     expected_compliant: true
     rule_category: temperature
@@ -101,34 +101,34 @@ cases:
   # =========================================================================
   # PHARMA LOGGER (6 rows)
   # =========================================================================
-  - truck_plate: B-202-CBO       # pharma_2_8 + logger — pharma OK
+  - truck_plate: CJ-101-CRL       # pharma_2_8 + logger — pharma OK
     load_id: 14
     expected_compliant: true
     rule_category: pharma_logger
     rationale: "pharma_2_8 + has_pharma_logger=True; logger required by load"
-  - truck_plate: B-606-CBO       # pharma_2_8 + logger — pharma OK (Iasi pickup)
+  - truck_plate: CJ-102-CRL       # pharma_2_8 + logger — pharma OK (Iasi pickup)
     load_id: 14
     expected_compliant: true
     rule_category: pharma_logger
     rationale: "B-606 pharma_2_8 + logger; same-city pickup"
-  - truck_plate: B-808-CBO       # multi_temp NO logger — pharma blocked
+  - truck_plate: CJ-302-CRL       # multi_temp NO logger — pharma blocked
     load_id: 1
     expected_compliant: false
     rule_category: pharma_logger
     expected_blocker: gdp.pharma-temperature-and-logger
     rationale: "multi_temp can hold pharma temperature, but no calibrated logger"
-  - truck_plate: B-808-CBO       # logger not required for non-pharma — OK
+  - truck_plate: CJ-302-CRL       # logger not required for non-pharma — OK
     load_id: 5
     expected_compliant: true
     rule_category: pharma_logger
     rationale: "dairy load doesn't require logger; B-808 multi_temp + clean prior"
-  - truck_plate: B-101-CBO       # chilled NO logger — pharma blocked (also temp)
+  - truck_plate: CJ-201-CRL       # chilled NO logger — pharma blocked (also temp)
     load_id: 2
     expected_compliant: false
     rule_category: pharma_logger
     expected_blocker: gdp.pharma-temperature-and-logger
     rationale: "no logger; ALSO chilled cannot carry pharma but logger blocker fires"
-  - truck_plate: B-505-CBO       # chilled NO logger — produce OK
+  - truck_plate: CJ-202-CRL       # chilled NO logger — produce OK
     load_id: 11
     expected_compliant: true
     rule_category: pharma_logger
@@ -137,36 +137,36 @@ cases:
   # =========================================================================
   # CHEMICALS QUARANTINE (6 rows)
   # =========================================================================
-  - truck_plate: OR-010-CBO      # chemicals last → dairy blocked
+  - truck_plate: CJ-901-CRL      # chemicals last → dairy blocked
     load_id: 5
     expected_compliant: false
     rule_category: chemicals_quarantine
     expected_blocker: haccp.chemicals-quarantine
     rationale: "last_cargo=chemicals + dairy load — HACCP quarantine + temp"
-  - truck_plate: OR-010-CBO      # chemicals last → produce blocked
+  - truck_plate: CJ-901-CRL      # chemicals last → produce blocked
     load_id: 10
     expected_compliant: false
     rule_category: chemicals_quarantine
     expected_blocker: haccp.chemicals-quarantine
     rationale: "last_cargo=chemicals + produce — HACCP quarantine + temp"
-  - truck_plate: OR-010-CBO      # chemicals last → ambient_dry blocked (food)
+  - truck_plate: CJ-901-CRL      # chemicals last → ambient_dry blocked (food)
     load_id: 18
     expected_compliant: false
     rule_category: chemicals_quarantine
     expected_blocker: haccp.chemicals-quarantine
     rationale: "ambient_dry IS food-grade; chemicals quarantine applies; load also forbids chemicals priors"
-  - truck_plate: OR-010-CBO      # chemicals last → chemicals load blocked by temp + forbidden
+  - truck_plate: CJ-901-CRL      # chemicals last → chemicals load blocked by temp + forbidden
     load_id: 13
     expected_compliant: true
     rule_category: chemicals_quarantine
     rationale: "chemicals→chemicals OK (no food-grade quarantine)"
-  - truck_plate: OR-010-CBO      # chemicals last → pharma blocked
+  - truck_plate: CJ-901-CRL      # chemicals last → pharma blocked
     load_id: 2
     expected_compliant: false
     rule_category: chemicals_quarantine
     expected_blocker: haccp.chemicals-quarantine
     rationale: "chemicals → pharma is the strictest quarantine case"
-  - truck_plate: OR-010-CBO      # chemicals last → raw_meat (food) blocked
+  - truck_plate: CJ-901-CRL      # chemicals last → raw_meat (food) blocked
     load_id: 4
     expected_compliant: false
     rule_category: chemicals_quarantine
@@ -176,65 +176,65 @@ cases:
   # =========================================================================
   # FORBIDDEN PRIOR CARGO (12 rows) — direction tests + clean priors
   # =========================================================================
-  - truck_plate: B-909-CBO       # raw_meat last → raw_meat load OK (forbidden=[chemicals])
+  - truck_plate: CJ-203-CRL       # raw_meat last → raw_meat load OK (forbidden=[chemicals])
     load_id: 4
     expected_compliant: true
     rule_category: forbidden_prior_cargo
     rationale: "raw_meat→raw_meat continuation; load.forbidden=[chemicals], raw_meat NOT in list"
-  - truck_plate: B-909-CBO       # raw_meat last → dairy blocked (forbidden includes raw_meat, no wash)
+  - truck_plate: CJ-203-CRL       # raw_meat last → dairy blocked (forbidden includes raw_meat, no wash)
     load_id: 5
     expected_compliant: false
     rule_category: forbidden_prior_cargo
     expected_blocker: forbidden-prior-cargo
     rationale: "dairy forbids raw_meat priors; truck has no wash"
-  - truck_plate: B-909-CBO       # raw_meat last → produce blocked
+  - truck_plate: CJ-203-CRL       # raw_meat last → produce blocked
     load_id: 10
     expected_compliant: false
     rule_category: forbidden_prior_cargo
     expected_blocker: forbidden-prior-cargo
     rationale: "produce forbids raw_meat priors; no wash"
-  - truck_plate: B-909-CBO       # raw_meat last → produce blocked (different city)
+  - truck_plate: CJ-203-CRL       # raw_meat last → produce blocked (different city)
     load_id: 11
     expected_compliant: false
     rule_category: forbidden_prior_cargo
     expected_blocker: forbidden-prior-cargo
     rationale: "produce forbids raw_meat priors; no wash"
-  - truck_plate: B-909-CBO       # raw_meat last → raw_poultry OK
+  - truck_plate: CJ-203-CRL       # raw_meat last → raw_poultry OK
     load_id: 3
     expected_compliant: true
     rule_category: forbidden_prior_cargo
     rationale: "raw_meat→raw_poultry continuation OK; load.forbidden=[chemicals]"
-  - truck_plate: B-909-CBO       # raw_meat last → ambient_dry OK (forbidden only blocks chemicals)
+  - truck_plate: CJ-203-CRL       # raw_meat last → ambient_dry OK (forbidden only blocks chemicals)
     load_id: 12
     expected_compliant: true
     rule_category: forbidden_prior_cargo
     rationale: "ambient_dry.forbidden=[chemicals]; raw_meat NOT in list. Chilled cap covers ambient_dry. Direction-disambiguation case."
-  - truck_plate: B-505-CBO       # produce last → produce continuation OK
+  - truck_plate: CJ-202-CRL       # produce last → produce continuation OK
     load_id: 11
     expected_compliant: true
     rule_category: forbidden_prior_cargo
     rationale: "produce→produce OK; chilled cap matches"
-  - truck_plate: B-707-CBO       # frozen last → frozen veg OK (forbidden empty)
+  - truck_plate: CJ-402-CRL       # frozen last → frozen veg OK (forbidden empty)
     load_id: 7
     expected_compliant: true
     rule_category: forbidden_prior_cargo
     rationale: "frozen→frozen_veg continuation; forbidden=[]"
-  - truck_plate: B-707-CBO       # frozen last → frozen_fish OK
+  - truck_plate: CJ-402-CRL       # frozen last → frozen_fish OK
     load_id: 9
     expected_compliant: true
     rule_category: forbidden_prior_cargo
     rationale: "frozen→frozen_fish; forbidden=[chemicals], no issue"
-  - truck_plate: B-101-CBO       # dairy last → dairy continuation OK
+  - truck_plate: CJ-201-CRL       # dairy last → dairy continuation OK
     load_id: 5
     expected_compliant: true
     rule_category: forbidden_prior_cargo
     rationale: "dairy→dairy continuation OK"
-  - truck_plate: B-101-CBO       # dairy last → produce blocked? — actually dairy is not in produce forbidden list
+  - truck_plate: CJ-201-CRL       # dairy last → produce blocked? — actually dairy is not in produce forbidden list
     load_id: 11
     expected_compliant: true
     rule_category: forbidden_prior_cargo
     rationale: "dairy→produce OK; produce forbidden=[raw_meat,raw_poultry,chemicals]"
-  - truck_plate: OR-303-CBO      # frozen last → ambient_dry — load forbids chemicals only
+  - truck_plate: CJ-401-CRL      # frozen last → ambient_dry — load forbids chemicals only
     load_id: 12
     expected_compliant: true
     rule_category: forbidden_prior_cargo
@@ -243,48 +243,48 @@ cases:
   # =========================================================================
   # WASH OVERRIDE (9 rows) — ANSVSA wash unblocks raw_meat→dairy/produce/ambient_dry
   # =========================================================================
-  - truck_plate: OR-404-CBO      # raw_meat + wash → dairy unblocked
+  - truck_plate: CJ-301-CRL      # raw_meat + wash → dairy unblocked
     load_id: 5
     expected_compliant: true
     rule_category: wash_override
     rationale: "ANSVSA wash unblocks raw_meat→dairy"
-  - truck_plate: OR-404-CBO      # raw_meat + wash → dairy (Cluj→Pitesti)
+  - truck_plate: CJ-301-CRL      # raw_meat + wash → dairy (Cluj→Pitesti)
     load_id: 6
     expected_compliant: true
     rule_category: wash_override
     rationale: "wash unblocks raw_meat→dairy"
-  - truck_plate: OR-404-CBO      # raw_meat + wash → dairy (Timisoara→Arad, 0km)
+  - truck_plate: CJ-301-CRL      # raw_meat + wash → dairy (Timisoara→Arad, 0km)
     load_id: 15
     expected_compliant: true
     rule_category: wash_override
     rationale: "wash unblocks raw_meat→dairy; matches README headline (17/20 with wash)"
-  - truck_plate: OR-404-CBO      # raw_meat + wash → dairy (Brasov→Buc)
+  - truck_plate: CJ-301-CRL      # raw_meat + wash → dairy (Brasov→Buc)
     load_id: 20
     expected_compliant: true
     rule_category: wash_override
     rationale: "wash unblocks raw_meat→dairy"
-  - truck_plate: OR-404-CBO      # raw_meat + wash → produce (Iasi→Buc)
+  - truck_plate: CJ-301-CRL      # raw_meat + wash → produce (Iasi→Buc)
     load_id: 10
     expected_compliant: true
     rule_category: wash_override
     rationale: "wash unblocks raw_meat→produce"
-  - truck_plate: OR-404-CBO      # raw_meat + wash → produce (Cluj→Sibiu)
+  - truck_plate: CJ-301-CRL      # raw_meat + wash → produce (Cluj→Sibiu)
     load_id: 11
     expected_compliant: true
     rule_category: wash_override
     rationale: "wash unblocks raw_meat→produce"
-  - truck_plate: OR-404-CBO      # raw_meat + wash → ambient_dry — wait, ambient_dry forbidden_prior=[chemicals]
+  - truck_plate: CJ-301-CRL      # raw_meat + wash → ambient_dry — wait, ambient_dry forbidden_prior=[chemicals]
     load_id: 12
     expected_compliant: true
     rule_category: wash_override
     rationale: "ambient_dry forbids chemicals only; raw_meat→ambient_dry OK without wash; wash is a no-op here"
-  - truck_plate: OR-404-CBO      # raw_meat + wash → pharma still BLOCKED (override doesn't apply to pharma)
+  - truck_plate: CJ-301-CRL      # raw_meat + wash → pharma still BLOCKED (override doesn't apply to pharma)
     load_id: 1
     expected_compliant: false
     rule_category: wash_override
     expected_blocker: forbidden-prior-cargo
     rationale: "wash override does NOT apply to pharma loads — pharma forbids raw_meat regardless"
-  - truck_plate: OR-404-CBO      # raw_meat + wash → raw_poultry continuation OK
+  - truck_plate: CJ-301-CRL      # raw_meat + wash → raw_poultry continuation OK
     load_id: 3
     expected_compliant: true
     rule_category: wash_override
@@ -293,92 +293,92 @@ cases:
   # =========================================================================
   # CLEAN PATH (18 rows) — clean priors, no compliance friction, full happy paths
   # =========================================================================
-  - truck_plate: B-808-CBO       # clean → frozen_veg
+  - truck_plate: CJ-302-CRL       # clean → frozen_veg
     load_id: 8
     expected_compliant: true
     rule_category: clean_path
     rationale: "clean prior, multi_temp, 0-km Constanta pickup"
-  - truck_plate: B-808-CBO       # clean → frozen_fish
+  - truck_plate: CJ-302-CRL       # clean → frozen_fish
     load_id: 9
     expected_compliant: true
     rule_category: clean_path
     rationale: "clean prior allows frozen_fish; same city"
-  - truck_plate: B-808-CBO       # clean → ambient_dry
+  - truck_plate: CJ-302-CRL       # clean → ambient_dry
     load_id: 18
     expected_compliant: true
     rule_category: clean_path
     rationale: "clean → ambient_dry OK"
-  - truck_plate: B-808-CBO       # clean → chemicals
+  - truck_plate: CJ-302-CRL       # clean → chemicals
     load_id: 13
     expected_compliant: true
     rule_category: clean_path
     rationale: "multi_temp truck with clean prior can carry chemicals"
-  - truck_plate: B-808-CBO       # clean → dairy
+  - truck_plate: CJ-302-CRL       # clean → dairy
     load_id: 5
     expected_compliant: true
     rule_category: clean_path
     rationale: "clean → dairy"
-  - truck_plate: B-808-CBO       # clean → raw_meat (continuation NOT required from clean — OK)
+  - truck_plate: CJ-302-CRL       # clean → raw_meat (continuation NOT required from clean — OK)
     load_id: 4
     expected_compliant: true
     rule_category: clean_path
     rationale: "clean → raw_meat OK; load.forbidden=[chemicals]"
-  - truck_plate: B-202-CBO       # pharma → pharma continuation
+  - truck_plate: CJ-101-CRL       # pharma → pharma continuation
     load_id: 2
     expected_compliant: true
     rule_category: clean_path
     rationale: "pharma→pharma; pharma_2_8 + logger; load 2 = Sibiu pickup"
-  - truck_plate: B-202-CBO       # pharma → pharma (Iasi)
+  - truck_plate: CJ-101-CRL       # pharma → pharma (Iasi)
     load_id: 14
     expected_compliant: true
     rule_category: clean_path
     rationale: "pharma→pharma; logger present"
-  - truck_plate: B-606-CBO       # pharma → dairy — pharma is gdp-clean for dairy
+  - truck_plate: CJ-102-CRL       # pharma → dairy — pharma is gdp-clean for dairy
     load_id: 5
     expected_compliant: true
     rule_category: clean_path
     rationale: "pharma considered clean; dairy.forbidden=[raw_meat,raw_poultry,chemicals], pharma NOT in list"
-  - truck_plate: B-606-CBO       # pharma → produce
+  - truck_plate: CJ-102-CRL       # pharma → produce
     load_id: 10
     expected_compliant: true
     rule_category: clean_path
     rationale: "pharma → produce; pharma_2_8 covers chilled-band"
-  - truck_plate: B-505-CBO       # produce → produce same-city
+  - truck_plate: CJ-202-CRL       # produce → produce same-city
     load_id: 10
     expected_compliant: true
     rule_category: clean_path
     rationale: "produce→produce OK; Iasi same city"
-  - truck_plate: B-505-CBO       # produce → dairy
+  - truck_plate: CJ-202-CRL       # produce → dairy
     load_id: 5
     expected_compliant: true
     rule_category: clean_path
     rationale: "produce→dairy OK; chilled cap"
-  - truck_plate: B-707-CBO       # frozen → frozen_fish (Constanta)
+  - truck_plate: CJ-402-CRL       # frozen → frozen_fish (Constanta)
     load_id: 9
     expected_compliant: true
     rule_category: clean_path
     rationale: "frozen→frozen_fish; same city"
-  - truck_plate: B-707-CBO       # frozen → frozen_veg
+  - truck_plate: CJ-402-CRL       # frozen → frozen_veg
     load_id: 8
     expected_compliant: true
     rule_category: clean_path
     rationale: "frozen→frozen_veg same city"
-  - truck_plate: B-707-CBO       # frozen → ambient_dry — frozen cap can carry ambient
+  - truck_plate: CJ-402-CRL       # frozen → ambient_dry — frozen cap can carry ambient
     load_id: 18
     expected_compliant: true
     rule_category: clean_path
     rationale: "frozen capability covers ambient_dry; clean enough"
-  - truck_plate: B-101-CBO       # dairy → dairy
+  - truck_plate: CJ-201-CRL       # dairy → dairy
     load_id: 6
     expected_compliant: true
     rule_category: clean_path
     rationale: "dairy→dairy OK"
-  - truck_plate: B-101-CBO       # dairy → produce
+  - truck_plate: CJ-201-CRL       # dairy → produce
     load_id: 11
     expected_compliant: true
     rule_category: clean_path
     rationale: "dairy→produce OK; produce forbidden does not include dairy"
-  - truck_plate: OR-404-CBO      # raw_meat (with wash) → frozen_veg
+  - truck_plate: CJ-301-CRL      # raw_meat (with wash) → frozen_veg
     load_id: 7
     expected_compliant: true
     rule_category: clean_path
@@ -387,72 +387,72 @@ cases:
   # =========================================================================
   # MULTI-BLOCKER (12 rows) — combinations the LLM might mis-combine
   # =========================================================================
-  - truck_plate: B-101-CBO       # dairy last + chilled cap → pharma load = temp + logger blockers
+  - truck_plate: CJ-201-CRL       # dairy last + chilled cap → pharma load = temp + logger blockers
     load_id: 14
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: gdp.pharma-temperature-and-logger
     rationale: "chilled cannot carry pharma + no logger + dairy is acceptable prior"
-  - truck_plate: OR-010-CBO      # chemicals + ambient → pharma = quarantine + temp + logger
+  - truck_plate: CJ-901-CRL      # chemicals + ambient → pharma = quarantine + temp + logger
     load_id: 14
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: haccp.chemicals-quarantine
     rationale: "chemicals quarantine + ambient cap can't pharma + no logger (3 blockers)"
-  - truck_plate: OR-303-CBO      # frozen + last=frozen → dairy = temp blocker only
+  - truck_plate: CJ-401-CRL      # frozen + last=frozen → dairy = temp blocker only
     load_id: 5
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: temp
     rationale: "frozen-only cannot carry dairy"
-  - truck_plate: OR-303-CBO      # frozen + last=frozen → pharma = temp + logger
+  - truck_plate: CJ-401-CRL      # frozen + last=frozen → pharma = temp + logger
     load_id: 1
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: temp
     rationale: "frozen-only + no logger; pharma blocked by both"
-  - truck_plate: B-909-CBO       # chilled + last=raw_meat → pharma = temp + logger + forbidden
+  - truck_plate: CJ-203-CRL       # chilled + last=raw_meat → pharma = temp + logger + forbidden
     load_id: 1
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: gdp.pharma-temperature-and-logger
     rationale: "chilled + no logger + pharma forbids raw_meat (3 blockers)"
-  - truck_plate: B-909-CBO       # chilled + last=raw_meat → frozen = temp blocker
+  - truck_plate: CJ-203-CRL       # chilled + last=raw_meat → frozen = temp blocker
     load_id: 7
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: temp
     rationale: "chilled cannot carry frozen_veg"
-  - truck_plate: OR-303-CBO      # frozen + last=frozen → ambient_dry = OK (frozen ⊇ ambient)
+  - truck_plate: CJ-401-CRL      # frozen + last=frozen → ambient_dry = OK (frozen ⊇ ambient)
     load_id: 18
     expected_compliant: true
     rule_category: multi_blocker
     rationale: "frozen capability covers ambient_dry; frozen NOT in load.forbidden"
-  - truck_plate: OR-010-CBO      # chemicals + ambient → frozen_veg = temp + (no quarantine since no food-grade conflict — actually frozen IS food)
+  - truck_plate: CJ-901-CRL      # chemicals + ambient → frozen_veg = temp + (no quarantine since no food-grade conflict — actually frozen IS food)
     load_id: 8
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: temp
     rationale: "ambient cannot carry frozen + chemicals quarantine for food"
-  - truck_plate: B-707-CBO       # frozen + last=frozen → pharma = temp + logger
+  - truck_plate: CJ-402-CRL       # frozen + last=frozen → pharma = temp + logger
     load_id: 14
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: temp
     rationale: "frozen + no logger; pharma blocked"
-  - truck_plate: OR-010-CBO      # chemicals + ambient → ambient_dry — load forbids chemicals; quarantine also fires
+  - truck_plate: CJ-901-CRL      # chemicals + ambient → ambient_dry — load forbids chemicals; quarantine also fires
     load_id: 12
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: haccp.chemicals-quarantine
     rationale: "chemicals quarantine + load explicitly forbids chemicals priors"
-  - truck_plate: B-101-CBO       # chilled + last=dairy → frozen_fish = temp blocker
+  - truck_plate: CJ-201-CRL       # chilled + last=dairy → frozen_fish = temp blocker
     load_id: 9
     expected_compliant: false
     rule_category: multi_blocker
     expected_blocker: temp
     rationale: "chilled cannot carry frozen_fish"
-  - truck_plate: OR-404-CBO      # raw_meat + wash + multi_temp → pharma = forbidden (wash doesn't override pharma)
+  - truck_plate: CJ-301-CRL      # raw_meat + wash + multi_temp → pharma = forbidden (wash doesn't override pharma)
     load_id: 14
     expected_compliant: false
     rule_category: multi_blocker
