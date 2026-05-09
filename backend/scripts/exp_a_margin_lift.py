@@ -96,8 +96,8 @@ def naive_dispatch(
     )
 
 
-def run() -> dict:
-    ctx = hydrate(include_broker=True)
+def run(*, use_mock_llm: bool = True) -> dict:
+    ctx = hydrate(include_broker=True, use_mock_llm=use_mock_llm)
     vans, loads, compliance = ctx["vans"], ctx["loads"], ctx["compliance"]
 
     baseline = naive_dispatch(vans, loads, compliance)
@@ -170,9 +170,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--json", dest="as_json", action="store_true")
+    parser.add_argument("--gemini", action="store_true",
+                        help="Use live Gemini for the per-pair Analyst (default: mock).")
     args = parser.parse_args()
 
-    result = run()
+    result = run(use_mock_llm=not args.gemini)
     out = write_json("exp_a", result)
     print(f"[exp_a] wrote {out.relative_to(BACKEND_DIR.parent)}", file=sys.stderr)
     if args.as_json:

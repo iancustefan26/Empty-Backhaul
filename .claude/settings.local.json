@@ -61,7 +61,17 @@
       "Bash(gh --version)",
       "Bash(gh auth *)",
       "Bash(git fetch *)",
-      "Bash(git checkout *)"
+      "Bash(git checkout *)",
+      "Bash(python3 -m compileall -q scripts/verify_with_gemini.py scripts/_exp_common.py scripts/exp_a_margin_lift.py scripts/exp_b_compliance_value.py scripts/exp_c_broker_lift.py scripts/exp_d_fleet_scaling.py)",
+      "Bash(nohup npm run dev)",
+      "Bash(curl -s -o /dev/null -w \"vite HTTP %{http_code}\\\\n\" http://127.0.0.1:5173/)",
+      "Bash(curl -s -o /dev/null -w \"/api/route/plan via vite proxy HTTP %{http_code}\\\\n\" -X POST 'http://127.0.0.1:5173/api/route/plan?top_k=1&mock_llm=true')",
+      "Bash(cat /tmp/vite.log | tail -15)",
+      "Bash(curl -s -o /dev/null -w \"vite HTTP %{http_code}\\\\n\" http://localhost:5173/)",
+      "Bash(curl -s -o /dev/null -w \"/api/route/plan via vite proxy HTTP %{http_code}\\\\n\" -X POST 'http://localhost:5173/api/route/plan?top_k=1&mock_llm=true')",
+      "mcp__Claude_in_Chrome__tabs_context_mcp",
+      "Bash(pkill -f \"uvicorn app.main\")",
+      "Bash(pkill -f \"vite\")"
     ]
   }
 }

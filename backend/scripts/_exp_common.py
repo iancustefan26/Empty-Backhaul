@@ -20,15 +20,29 @@ from app.agents.fleet_workflow import analyst_fleet, sentry_fleet  # noqa: E402
 EXP_DIR = BACKEND_DIR / "docs" / "experiments"
 
 
-def hydrate(*, include_broker: bool = True, fleet_size: int = 15) -> dict:
+def hydrate(
+    *,
+    include_broker: bool = True,
+    fleet_size: int = 15,
+    use_mock_llm: bool = True,
+) -> dict:
     """Single Sentry + Analyst-fleet pass. Returns a dict with `vans`,
-    `loads`, `compliance`, `sentry_log`, `analyst_log`."""
+    `loads`, `compliance`, `sentry_log`, `analyst_log`.
+
+    Pass `use_mock_llm=False` to enrich the compliance verdicts with live
+    Gemini (with the cache + sanity-layer in front). The route planner
+    only consumes the boolean `is_compliant` field, so swapping providers
+    only affects the experiment results to the extent the LLM disagrees
+    with the deterministic checker — which the sanity layer overrides
+    anyway. Truthful-by-construction; the verification script measures
+    the residual.
+    """
     sentry = sentry_fleet(include_broker=include_broker, fleet_size=fleet_size)
     if "error" in sentry:
         sys.exit(f"Sentry error: {sentry['error']}")
     vans = sentry["fleet"]
     loads = sentry["available_loads"]
-    compliance, analyst_log = analyst_fleet(vans, loads, use_mock_llm=True)
+    compliance, analyst_log = analyst_fleet(vans, loads, use_mock_llm=use_mock_llm)
     return {
         "vans": vans, "loads": loads, "compliance": compliance,
         "sentry_log": sentry["sentry_log"], "analyst_log": analyst_log,

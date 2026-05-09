@@ -35,13 +35,13 @@ from scripts._exp_common import BACKEND_DIR, write_json  # noqa: E402
 FLEET_SIZES = [3, 5, 7, 10]
 
 
-def run_one(n: int) -> dict:
+def run_one(n: int, *, use_mock_llm: bool = True) -> dict:
     sentry = sentry_fleet(include_broker=True, fleet_size=n)
     if "error" in sentry:
         sys.exit(f"Sentry error at N={n}: {sentry['error']}")
     vans = sentry["fleet"]
     loads = sentry["available_loads"]
-    compliance, _ = analyst_fleet(vans, loads, use_mock_llm=True)
+    compliance, _ = analyst_fleet(vans, loads, use_mock_llm=use_mock_llm)
     result = plan_fleet_routes(vans, loads, compliance, top_k=1)
     plan = result["alternatives"][0]
     return {
@@ -66,8 +66,8 @@ def run_one(n: int) -> dict:
     }
 
 
-def run() -> dict:
-    points = [run_one(n) for n in FLEET_SIZES]
+def run(*, use_mock_llm: bool = True) -> dict:
+    points = [run_one(n, use_mock_llm=use_mock_llm) for n in FLEET_SIZES]
     return {
         "experiment": "D — Fleet-size scaling",
         "sweep": FLEET_SIZES,
@@ -94,9 +94,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--json", dest="as_json", action="store_true")
+    parser.add_argument("--gemini", action="store_true",
+                        help="Use live Gemini for the per-pair Analyst (default: mock).")
     args = parser.parse_args()
 
-    result = run()
+    result = run(use_mock_llm=not args.gemini)
     out = write_json("exp_d", result)
     print(f"[exp_d] wrote {out.relative_to(BACKEND_DIR.parent)}", file=sys.stderr)
     if args.as_json:

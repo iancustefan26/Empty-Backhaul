@@ -1,0 +1,309 @@
+{
+  "A": {
+    "title": "Margin + utilisation lift",
+    "metrics": [
+      {
+        "name": "baseline margin \u20ac",
+        "mock": 1383.24,
+        "gemini": 1383.24,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "treatment margin \u20ac",
+        "mock": 1790.77,
+        "gemini": 1790.77,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "margin lift \u20ac",
+        "mock": 407.53,
+        "gemini": 407.53,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "baseline deadhead %",
+        "mock": 50.0,
+        "gemini": 50.0,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "treatment deadhead %",
+        "mock": 34.67,
+        "gemini": 34.67,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "treatment utilisation %",
+        "mock": 40.0,
+        "gemini": 40.0,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "treatment empty km",
+        "mock": 542.1,
+        "gemini": 542.1,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "chains in treatment",
+        "mock": 1,
+        "gemini": 1,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      }
+    ]
+  },
+  "B": {
+    "title": "Compliance violation avoidance",
+    "metrics": [
+      {
+        "name": "baseline gross margin \u20ac",
+        "mock": 1790.77,
+        "gemini": 1790.77,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "baseline violation count",
+        "mock": 2,
+        "gemini": 2,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "baseline fine exposure \u20ac",
+        "mock": 5000,
+        "gemini": 5000,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "baseline NET margin \u20ac",
+        "mock": -3209.23,
+        "gemini": -3209.23,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "treatment gross margin \u20ac",
+        "mock": 1790.77,
+        "gemini": 1790.77,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "treatment violation count",
+        "mock": 0,
+        "gemini": 0,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      }
+    ]
+  },
+  "C": {
+    "title": "Customer + broker freight lift",
+    "metrics": [
+      {
+        "name": "customer-only margin \u20ac",
+        "mock": 818.3,
+        "gemini": 818.3,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "treatment margin \u20ac",
+        "mock": 1790.77,
+        "gemini": 1790.77,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "margin lift \u20ac",
+        "mock": 972.47,
+        "gemini": 972.47,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "treatment deadhead %",
+        "mock": 34.67,
+        "gemini": 34.67,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "treatment utilisation %",
+        "mock": 40.0,
+        "gemini": 40.0,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "chains in treatment",
+        "mock": 1,
+        "gemini": 1,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "chains with broker leg",
+        "mock": 1,
+        "gemini": 1,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "customer served (treatment)",
+        "mock": 3,
+        "gemini": 3,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "broker served (treatment)",
+        "mock": 2,
+        "gemini": 2,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      }
+    ]
+  },
+  "D": {
+    "title": "Fleet-size scaling",
+    "metrics": [
+      {
+        "name": "N=3: total margin \u20ac",
+        "mock": 1486.74,
+        "gemini": 1486.74,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=3: deadhead %",
+        "mock": 30.65,
+        "gemini": 30.65,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=3: chains",
+        "mock": 1,
+        "gemini": 1,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=5: total margin \u20ac",
+        "mock": 1486.74,
+        "gemini": 1486.74,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=5: deadhead %",
+        "mock": 30.65,
+        "gemini": 30.65,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=5: chains",
+        "mock": 1,
+        "gemini": 1,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=7: total margin \u20ac",
+        "mock": 1790.77,
+        "gemini": 1790.77,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=7: deadhead %",
+        "mock": 34.67,
+        "gemini": 34.67,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=7: chains",
+        "mock": 1,
+        "gemini": 1,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=10: total margin \u20ac",
+        "mock": 1790.77,
+        "gemini": 1790.77,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=10: deadhead %",
+        "mock": 34.67,
+        "gemini": 34.67,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      },
+      {
+        "name": "N=10: chains",
+        "mock": 1,
+        "gemini": 1,
+        "diff": 0.0,
+        "rel_diff_pct": 0.0,
+        "status": "\u2705"
+      }
+    ]
+  },
+  "__summary__": {
+    "total_metrics": 35,
+    "matched_exactly": 35,
+    "match_rate_pct": 100.0,
+    "drifts": [],
+    "verdict": "TRUTHFUL"
+  }
+}

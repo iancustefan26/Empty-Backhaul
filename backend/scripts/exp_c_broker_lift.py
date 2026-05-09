@@ -31,13 +31,13 @@ from app.agents.route_planner import plan_fleet_routes  # noqa: E402
 from scripts._exp_common import BACKEND_DIR, write_json  # noqa: E402
 
 
-def run_one(include_broker: bool) -> dict:
+def run_one(include_broker: bool, *, use_mock_llm: bool = True) -> dict:
     sentry = sentry_fleet(include_broker=include_broker, fleet_size=15)
     if "error" in sentry:
         sys.exit(f"Sentry error: {sentry['error']}")
     vans = sentry["fleet"]
     loads = sentry["available_loads"]
-    compliance, alog = analyst_fleet(vans, loads, use_mock_llm=True)
+    compliance, alog = analyst_fleet(vans, loads, use_mock_llm=use_mock_llm)
     result = plan_fleet_routes(vans, loads, compliance, top_k=1)
     plan = result["alternatives"][0]
     return {
@@ -47,9 +47,9 @@ def run_one(include_broker: bool) -> dict:
     }
 
 
-def run() -> dict:
-    baseline = run_one(include_broker=False)
-    treatment = run_one(include_broker=True)
+def run(*, use_mock_llm: bool = True) -> dict:
+    baseline = run_one(include_broker=False, use_mock_llm=use_mock_llm)
+    treatment = run_one(include_broker=True, use_mock_llm=use_mock_llm)
 
     bp = baseline["plan"]
     tp = treatment["plan"]
@@ -139,9 +139,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__,
                                      formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--json", dest="as_json", action="store_true")
+    parser.add_argument("--gemini", action="store_true",
+                        help="Use live Gemini for the per-pair Analyst (default: mock).")
     args = parser.parse_args()
 
-    result = run()
+    result = run(use_mock_llm=not args.gemini)
     out = write_json("exp_c", result)
     print(f"[exp_c] wrote {out.relative_to(BACKEND_DIR.parent)}", file=sys.stderr)
     if args.as_json:

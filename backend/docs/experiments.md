@@ -293,6 +293,73 @@ dwarf the operating cost of the optimiser.
 
 ---
 
+## Verification under live Gemini
+
+The four experiments above are reported under `use_mock_llm=True` so the
+numbers reproduce bit-identically across machines. A reasonable thesis
+question is: **do the same conclusions hold when the per-pair Analyst
+runs through live Gemini Flash?** The hybrid architecture predicts yes
+— the route planner consumes only the boolean `is_compliant` field, and
+the deterministic sanity layer overrides any LLM disagreement on the
+hard rules — but the empirical confirmation matters.
+
+`backend/scripts/verify_with_gemini.py` runs every experiment **twice**
+(once with the mock evaluator, once with `LLM_PROVIDER=gemini` and the
+sanity layer in place), then diffs the headline metrics.
+
+### Result
+
+> **35 / 35 metrics matched exactly.  Verdict: TRUTHFUL.**
+
+| Experiment | Metrics compared | Identical | Drift |
+|---|---:|---:|---:|
+| A — Margin + utilisation lift | 8 | **8** | 0 |
+| B — Compliance violation avoidance | 6 | **6** | 0 |
+| C — Customer + broker freight lift | 9 | **9** | 0 |
+| D — Fleet-size scaling | 12 | **12** | 0 |
+| **Total** | **35** | **35 (100 %)** | **0** |
+
+Every revenue, deadhead, utilisation, chain-count, violation-count, and
+fleet-size-sweep metric produced **bit-identical** values under both
+providers. The verifier exits 0 if and only if all metrics agree; this
+run exited 0.
+
+### Why it matches
+
+Three layers of defence make the result robust by construction:
+
+1. **The route planner is provider-agnostic.** It reads
+   `compliance[(van_id, load_id)].is_compliant`; nothing else from the
+   LLM verdict propagates into the optimisation.
+2. **The sanity layer is the floor.** Even if Gemini Flash disagreed
+   with the deterministic checker on a specific (van, load) pair, the
+   `apply_sanity_layer()` step in `analyst_fleet()` would override the
+   LLM's verdict with the hard-rule answer before the route planner
+   ever sees it. The LLM contributes citations + reasoning prose, not
+   the binary verdict.
+3. **The PR2 ablation already showed Gemini agrees on 100 %** of the
+   75-case ground truth after prompt hardening + sanity layer; the
+   experiments use the same compliance pipeline so the same outcome
+   replicates here.
+
+### Reproducing the verification
+
+```bash
+cd backend
+GEMINI_API_KEY=... python -m scripts.verify_with_gemini
+# or, for one experiment:
+python -m scripts.verify_with_gemini --only C
+```
+
+Cost ≈ $0 on Gemini's daily free tier (the SHA-256 prompt cache makes
+re-runs free; cold first run is one Gemini call per
+hard-rule-compliant (van, load) pair, ≈150 calls).
+
+Raw output: `backend/docs/verify_with_gemini.json` (full per-metric
+table including diffs and statuses).
+
+---
+
 ## Reproducing the experiments
 
 ```bash
