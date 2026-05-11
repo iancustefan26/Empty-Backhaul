@@ -71,7 +71,11 @@
       "Bash(curl -s -o /dev/null -w \"/api/route/plan via vite proxy HTTP %{http_code}\\\\n\" -X POST 'http://localhost:5173/api/route/plan?top_k=1&mock_llm=true')",
       "mcp__Claude_in_Chrome__tabs_context_mcp",
       "Bash(pkill -f \"uvicorn app.main\")",
-      "Bash(pkill -f \"vite\")"
+      "Bash(pkill -f \"vite\")",
+      "Read(//Users/stefaniancu/Desktop/**)",
+      "Bash(mkdir -p /tmp/lovable)",
+      "Bash(unzip -q -o \"/Users/stefaniancu/Desktop/cluj-route-chat-main.zip\" -d /tmp/lovable)",
+      "Bash(npm uninstall *)"
     ]
   }
 }

@@ -2,37 +2,106 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Cluj Reefer Logistics — Dispatcher Console design system.
+ * Calm pilot-HUD aesthetic. Slate-900 base, gold depot accent.
+ */
+
+:root {
+  --radius: 0.5rem;
+
+  /* Base palette as RGB triplets so Tailwind <alpha-value> works. */
+  --rgb-background:           15 19 28;     /* near slate-950 */
+  --rgb-foreground:           226 232 240;  /* slate-200 */
+  --rgb-card:                 24 31 44;     /* one notch lighter than bg */
+  --rgb-card-foreground:      226 232 240;
+  --rgb-border:               46 56 75;
+  --rgb-muted:                51 65 85;     /* slate-700 */
+  --rgb-muted-foreground:     148 163 184;  /* slate-400 */
+  --rgb-primary:              250 204 21;   /* amber-400 / brand gold */
+  --rgb-primary-foreground:   23 22 8;
+  --rgb-destructive:          239 68 68;    /* red-500 */
+  --rgb-destructive-foreground: 248 250 252;
+  --rgb-surface-1:            32 40 56;
+  --rgb-surface-2:            45 56 76;
+
+  --rgb-depot:                250 204 21;   /* gold */
+  --rgb-good:                 52 211 153;   /* emerald-400 */
+  --rgb-warn:                 251 191 36;   /* amber-400 */
+  --rgb-customer:             52 211 153;   /* emerald */
+  --rgb-broker:               167 139 250;  /* violet-400 */
+}
+
 html, body, #root {
   height: 100%;
   margin: 0;
-  background: #0f172a; /* slate-900 */
-  color: #e2e8f0;       /* slate-200 */
-  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
-/* Leaflet popups: dark theme overrides so they don't clash. */
+body {
+  background: rgb(var(--rgb-background));
+  color: rgb(var(--rgb-foreground));
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ------- Leaflet overrides — dark map vibe ------- */
+
+.leaflet-container {
+  background: rgb(11 14 21) !important;
+  font-family: inherit !important;
+}
 .leaflet-popup-content-wrapper,
 .leaflet-popup-tip {
-  background: #1e293b !important; /* slate-800 */
-  color: #e2e8f0 !important;
-  border: 1px solid #334155 !important; /* slate-700 */
+  background: rgb(var(--rgb-card)) !important;
+  color: rgb(var(--rgb-foreground)) !important;
+  border: 1px solid rgb(var(--rgb-border)) !important;
+  border-radius: 8px !important;
 }
 .leaflet-popup-content {
   margin: 8px 12px !important;
   font-size: 12px !important;
-  line-height: 1.4 !important;
+  line-height: 1.45 !important;
 }
-.leaflet-container {
-  background: #0b1220 !important;
-  font-family: inherit !important;
+.leaflet-control-attribution {
+  background: rgba(15, 19, 28, 0.7) !important;
+  color: rgb(120 132 158) !important;
+  font-size: 10px !important;
+}
+.leaflet-control-attribution a {
+  color: rgb(180 200 240) !important;
+}
+.leaflet-control-zoom a {
+  background: rgb(var(--rgb-surface-1)) !important;
+  color: rgb(var(--rgb-foreground)) !important;
+  border-color: rgb(var(--rgb-border)) !important;
 }
 
-/* Pulse animation for the currently-selected truck. */
-.cbo-pulse {
-  animation: cbo-pulse 1.6s ease-out infinite;
+/* ------- Animations ------- */
+
+@keyframes depot-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.55); }
+  70%  { box-shadow: 0 0 0 22px rgba(250, 204, 21, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
 }
-@keyframes cbo-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.7); }
-  70%  { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+.depot-marker {
+  animation: depot-pulse 2.4s ease-out infinite;
+  border-radius: 9999px;
 }
+
+/* ------- Chat bubble ------- */
+
+.chat-user-bubble {
+  background: rgb(var(--rgb-primary));
+  color: rgb(var(--rgb-primary-foreground));
+}
+
+/* ------- Custom scrollbar ------- */
+
+.thin-scroll::-webkit-scrollbar { width: 8px; height: 8px; }
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgb(var(--rgb-surface-2));
+  border-radius: 4px;
+}
+.thin-scroll::-webkit-scrollbar-track { background: transparent; }
