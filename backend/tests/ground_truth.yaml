@@ -458,3 +458,117 @@ cases:
     rule_category: multi_blocker
     expected_blocker: forbidden-prior-cargo
     rationale: "wash override doesn't apply to pharma; raw_meat→pharma forbidden + no logger"
+
+  # =========================================================================
+  # FLEET EXPANSION — labels for the 5 new vans (CJ-103, CJ-204, CJ-303,
+  # CJ-403, CJ-902) and a handful of new broker loads (L21..L60). These
+  # widen the eval-smoke gate's coverage so the bigger seed stays under
+  # ground-truth scrutiny.
+  # =========================================================================
+
+  # ---- CJ-103-CRL (pharma_2_8 + logger, last=pharma) ----
+  - truck_plate: CJ-103-CRL
+    load_id: 14
+    expected_compliant: true
+    rule_category: pharma_logger
+    rationale: "third pharma van; pharma load with logger present"
+  - truck_plate: CJ-103-CRL
+    load_id: 4
+    expected_compliant: false
+    rule_category: temperature
+    expected_blocker: temp
+    rationale: "pharma_2_8 cannot carry raw_meat (chilled meat band)"
+  - truck_plate: CJ-103-CRL
+    load_id: 5
+    expected_compliant: true
+    rule_category: clean_path
+    rationale: "pharma is clean prior; pharma_2_8 covers chilled-band dairy"
+
+  # ---- CJ-204-CRL (chilled, last=clean) ----
+  - truck_plate: CJ-204-CRL
+    load_id: 5
+    expected_compliant: true
+    rule_category: clean_path
+    rationale: "clean prior + chilled cap → dairy unrestricted"
+  - truck_plate: CJ-204-CRL
+    load_id: 11
+    expected_compliant: true
+    rule_category: clean_path
+    rationale: "clean prior + chilled cap → produce"
+  - truck_plate: CJ-204-CRL
+    load_id: 7
+    expected_compliant: false
+    rule_category: temperature
+    expected_blocker: temp
+    rationale: "chilled cannot carry frozen_vegetables"
+  - truck_plate: CJ-204-CRL
+    load_id: 1
+    expected_compliant: false
+    rule_category: temperature
+    expected_blocker: temp.chilled-band
+    rationale: "chilled cannot carry pharma 2-8°C"
+
+  # ---- CJ-303-CRL (multi_temp, last=dairy) ----
+  - truck_plate: CJ-303-CRL
+    load_id: 5
+    expected_compliant: true
+    rule_category: clean_path
+    rationale: "dairy → dairy continuation OK; multi_temp covers chilled"
+  - truck_plate: CJ-303-CRL
+    load_id: 7
+    expected_compliant: true
+    rule_category: clean_path
+    rationale: "multi_temp covers frozen_vegetables; dairy is clean enough prior"
+  - truck_plate: CJ-303-CRL
+    load_id: 4
+    expected_compliant: true
+    rule_category: forbidden_prior_cargo
+    rationale: "raw_meat load forbids only chemicals; dairy is NOT in that list — direction-disambiguation case"
+  - truck_plate: CJ-303-CRL
+    load_id: 14
+    expected_compliant: false
+    rule_category: pharma_logger
+    expected_blocker: gdp.pharma-temperature-and-logger
+    rationale: "multi_temp covers pharma temp but no logger; pharma load needs logger"
+
+  # ---- CJ-403-CRL (frozen, last=clean) ----
+  - truck_plate: CJ-403-CRL
+    load_id: 7
+    expected_compliant: true
+    rule_category: clean_path
+    rationale: "frozen cap + frozen_veg + clean prior — textbook"
+  - truck_plate: CJ-403-CRL
+    load_id: 9
+    expected_compliant: true
+    rule_category: clean_path
+    rationale: "frozen cap + frozen_fish + clean prior"
+  - truck_plate: CJ-403-CRL
+    load_id: 5
+    expected_compliant: false
+    rule_category: temperature
+    expected_blocker: temp
+    rationale: "frozen-only cannot carry chilled dairy"
+
+  # ---- CJ-902-CRL (ambient, last=clean — the 'good' ambient van) ----
+  - truck_plate: CJ-902-CRL
+    load_id: 12
+    expected_compliant: true
+    rule_category: clean_path
+    rationale: "clean prior + ambient cap → ambient_dry food load OK (ambient covers ambient_dry)"
+  - truck_plate: CJ-902-CRL
+    load_id: 13
+    expected_compliant: true
+    rule_category: clean_path
+    rationale: "clean → chemicals OK on ambient cap"
+  - truck_plate: CJ-902-CRL
+    load_id: 5
+    expected_compliant: false
+    rule_category: temperature
+    expected_blocker: temp
+    rationale: "ambient cannot carry chilled dairy"
+  - truck_plate: CJ-902-CRL
+    load_id: 1
+    expected_compliant: false
+    rule_category: temperature
+    expected_blocker: temp
+    rationale: "ambient cannot carry pharma 2-8°C"

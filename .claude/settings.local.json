@@ -75,7 +75,8 @@
       "Read(//Users/stefaniancu/Desktop/**)",
       "Bash(mkdir -p /tmp/lovable)",
       "Bash(unzip -q -o \"/Users/stefaniancu/Desktop/cluj-route-chat-main.zip\" -d /tmp/lovable)",
-      "Bash(npm uninstall *)"
+      "Bash(npm uninstall *)",
+      "Bash(pkill -f vite)"
     ]
   }
 }
