@@ -18,17 +18,19 @@ import type {
   TruckSnapshot,
 } from "../../lib/dispatch-types";
 
+// Orange depot star (brand colour) with a deep-orange ring for legibility on
+// the light map tiles. The pulsing animation lives in `.depot-marker` (CSS).
 const depotIcon = L.divIcon({
   className: "depot-marker-wrap",
-  html: `<div class="depot-marker" style="width:28px;height:28px;background:#facc15;border:3px solid #78350f;display:flex;align-items:center;justify-content:center;font-size:16px;color:#3b2200;font-weight:900">★</div>`,
-  iconSize: [28, 28],
-  iconAnchor: [14, 14],
+  html: `<div class="depot-marker" style="width:30px;height:30px;background:#f97316;border:3px solid #c2410c;display:flex;align-items:center;justify-content:center;font-size:17px;color:#ffffff;font-weight:900;box-shadow:0 2px 6px rgba(194,65,12,0.35)">★</div>`,
+  iconSize: [30, 30],
+  iconAnchor: [15, 15],
 });
 
 function vanIcon(color: string, plate: string) {
   return L.divIcon({
     className: "van-marker",
-    html: `<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid #0f172a;box-shadow:0 1px 4px rgba(0,0,0,.5)"></div><span style="font-size:9px;color:#e2e8f0;background:rgba(15,23,42,.85);padding:1px 4px;border-radius:3px;white-space:nowrap;font-weight:600">${plate.replace("-CRL", "")}</span></div>`,
+    html: `<div style="display:flex;flex-direction:column;align-items:center;gap:2px"><div style="width:18px;height:18px;border-radius:50%;background:${color};border:2px solid #ffffff;box-shadow:0 1px 4px rgba(15,23,42,.25)"></div><span style="font-size:9px;color:#0f172a;background:rgba(255,255,255,0.95);padding:1px 4px;border-radius:3px;white-space:nowrap;font-weight:600;border:1px solid rgba(15,23,42,0.12)">${plate.replace("-CRL", "")}</span></div>`,
     iconSize: [60, 32],
     iconAnchor: [30, 16],
   });
@@ -36,10 +38,10 @@ function vanIcon(color: string, plate: string) {
 
 function loadIcon(load: LoadSnapshot, isPickup: boolean) {
   const emoji = CARGO_EMOJI[load.cargo_type] ?? "📦";
-  const color = load.source === "customer" ? "#34d399" : "#a78bfa";
+  const color = load.source === "customer" ? "#059669" : "#7c3aed";
   return L.divIcon({
     className: "load-marker",
-    html: `<div style="width:22px;height:22px;border-radius:6px;background:${color}22;border:1.5px solid ${color};display:flex;align-items:center;justify-content:center;font-size:12px">${isPickup ? emoji : "→"}</div>`,
+    html: `<div style="width:22px;height:22px;border-radius:6px;background:${color}22;border:1.5px solid ${color};display:flex;align-items:center;justify-content:center;font-size:12px;box-shadow:0 1px 3px rgba(15,23,42,0.10)">${isPickup ? emoji : "→"}</div>`,
     iconSize: [22, 22],
     iconAnchor: [11, 11],
   });
@@ -111,7 +113,7 @@ export function DispatchMap({ fleet, loads, plan, depot }: Props) {
       >
         <TileLayer
           attribution='&copy; OpenStreetMap, &copy; CARTO'
-          url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png"
         />
 
         <FitBounds points={fitPoints} />

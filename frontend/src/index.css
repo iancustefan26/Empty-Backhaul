@@ -4,32 +4,37 @@
 
 /*
  * Cluj Reefer Logistics — Dispatcher Console design system.
- * Calm pilot-HUD aesthetic. Slate-900 base, gold depot accent.
+ * Light, calm, friendly: white base, sky-blue accents, orange brand.
+ *
+ * Brand:  orange  #f97316  — depot star, primary CTA, send button.
+ * Accent: sky    #0ea5e9   — chat user bubble, secondary highlights.
+ * Surfaces: slate-50/100 layers on a pure-white card background.
  */
 
 :root {
   --radius: 0.5rem;
 
   /* Base palette as RGB triplets so Tailwind <alpha-value> works. */
-  --rgb-background:           15 19 28;     /* near slate-950 */
-  --rgb-foreground:           226 232 240;  /* slate-200 */
-  --rgb-card:                 24 31 44;     /* one notch lighter than bg */
-  --rgb-card-foreground:      226 232 240;
-  --rgb-border:               46 56 75;
-  --rgb-muted:                51 65 85;     /* slate-700 */
-  --rgb-muted-foreground:     148 163 184;  /* slate-400 */
-  --rgb-primary:              250 204 21;   /* amber-400 / brand gold */
-  --rgb-primary-foreground:   23 22 8;
-  --rgb-destructive:          239 68 68;    /* red-500 */
-  --rgb-destructive-foreground: 248 250 252;
-  --rgb-surface-1:            32 40 56;
-  --rgb-surface-2:            45 56 76;
+  --rgb-background:           248 250 252;  /* slate-50 — page bg, very subtle */
+  --rgb-foreground:            15  23  42;  /* slate-900 — body text */
+  --rgb-card:                 255 255 255;  /* pure white — cards / chat / panels */
+  --rgb-card-foreground:       15  23  42;
+  --rgb-border:               226 232 240;  /* slate-200 */
+  --rgb-muted:                241 245 249;  /* slate-100 */
+  --rgb-muted-foreground:     100 116 139;  /* slate-500 */
+  --rgb-primary:              249 115  22;  /* orange-500 — brand */
+  --rgb-primary-foreground:   255 255 255;
+  --rgb-destructive:          220  38  38;  /* red-600 */
+  --rgb-destructive-foreground: 255 255 255;
+  --rgb-surface-1:            248 250 252;  /* slate-50 — pill bg */
+  --rgb-surface-2:            226 232 240;  /* slate-200 — pill hover */
 
-  --rgb-depot:                250 204 21;   /* gold */
-  --rgb-good:                 52 211 153;   /* emerald-400 */
-  --rgb-warn:                 251 191 36;   /* amber-400 */
-  --rgb-customer:             52 211 153;   /* emerald */
-  --rgb-broker:               167 139 250;  /* violet-400 */
+  --rgb-depot:                249 115  22;  /* orange — depot star */
+  --rgb-good:                   5 150 105;  /* emerald-600 — readable on white */
+  --rgb-warn:                 217 119   6;  /* amber-600 — distinct from primary */
+  --rgb-customer:               5 150 105;  /* emerald-600 */
+  --rgb-broker:               124  58 237;  /* violet-600 */
+  --rgb-accent:                14 165 233;  /* sky-500 — chat user bubble + highlights */
 }
 
 html, body, #root {
@@ -46,10 +51,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ------- Leaflet overrides — dark map vibe ------- */
+/* ------- Leaflet overrides — light map vibe ------- */
 
 .leaflet-container {
-  background: rgb(11 14 21) !important;
+  background: rgb(229 233 240) !important;  /* slate-200ish so partially-loaded tiles blend */
   font-family: inherit !important;
 }
 .leaflet-popup-content-wrapper,
@@ -58,6 +63,7 @@ body {
   color: rgb(var(--rgb-foreground)) !important;
   border: 1px solid rgb(var(--rgb-border)) !important;
   border-radius: 8px !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.10) !important;
 }
 .leaflet-popup-content {
   margin: 8px 12px !important;
@@ -65,25 +71,28 @@ body {
   line-height: 1.45 !important;
 }
 .leaflet-control-attribution {
-  background: rgba(15, 19, 28, 0.7) !important;
-  color: rgb(120 132 158) !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: rgb(100 116 139) !important;
   font-size: 10px !important;
 }
 .leaflet-control-attribution a {
-  color: rgb(180 200 240) !important;
+  color: rgb(14 165 233) !important;
 }
 .leaflet-control-zoom a {
-  background: rgb(var(--rgb-surface-1)) !important;
+  background: rgb(var(--rgb-card)) !important;
   color: rgb(var(--rgb-foreground)) !important;
   border-color: rgb(var(--rgb-border)) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: rgb(var(--rgb-surface-2)) !important;
 }
 
 /* ------- Animations ------- */
 
 @keyframes depot-pulse {
-  0%   { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.55); }
-  70%  { box-shadow: 0 0 0 22px rgba(250, 204, 21, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(250, 204, 21, 0); }
+  0%   { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0.55); }
+  70%  { box-shadow: 0 0 0 22px rgba(249, 115, 22, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(249, 115, 22, 0); }
 }
 .depot-marker {
   animation: depot-pulse 2.4s ease-out infinite;
@@ -93,8 +102,8 @@ body {
 /* ------- Chat bubble ------- */
 
 .chat-user-bubble {
-  background: rgb(var(--rgb-primary));
-  color: rgb(var(--rgb-primary-foreground));
+  background: rgb(var(--rgb-accent));   /* sky-500 */
+  color: white;
 }
 
 /* ------- Custom scrollbar ------- */
@@ -103,5 +112,8 @@ body {
 .thin-scroll::-webkit-scrollbar-thumb {
   background: rgb(var(--rgb-surface-2));
   border-radius: 4px;
+}
+.thin-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--rgb-muted-foreground) / 0.5);
 }
 .thin-scroll::-webkit-scrollbar-track { background: transparent; }

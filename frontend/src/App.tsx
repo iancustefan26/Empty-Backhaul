@@ -243,7 +243,7 @@ export function App() {
             />
           </Suspense>
           {error && (
-            <div className="absolute left-1/2 top-3 z-[1000] -translate-x-1/2 rounded-md border border-destructive bg-destructive/30 px-3 py-2 text-xs text-destructive-foreground shadow-lg">
+            <div className="absolute left-1/2 top-3 z-[1000] -translate-x-1/2 rounded-md border border-destructive bg-card px-3 py-2 text-xs text-destructive shadow-lg">
               <div className="font-semibold">Backend error</div>
               <div className="text-foreground/80">{error}</div>
             </div>
