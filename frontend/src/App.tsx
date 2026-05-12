@@ -1,13 +1,13 @@
 /**
  * Cluj Reefer Logistics — Dispatcher Console.
- * One screen: depot map on the left, chat-driven planner + per-plan
- * detail on the right. Every interaction starts with natural language.
+ * One screen, two halves: a Romania map on the left, a chat assistant
+ * on the right. Every interaction starts with natural language; the
+ * assistant replies with a short sentence + an inline summary card.
  */
-import { Settings, Truck } from "lucide-react";
+import { Truck } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 
 import { ChatPanel } from "./components/dispatch/ChatPanel";
-import { PlanDetail } from "./components/dispatch/PlanDetail";
 import {
   complianceSnapshot,
   explainIdleHeuristic,
@@ -197,31 +197,25 @@ export function App() {
             <Truck size={18} />
           </div>
           <div>
-            <h1 className="text-sm font-semibold tracking-tight">
+            <h1 className="text-base font-semibold tracking-tight">
               Cluj Reefer Logistics
             </h1>
-            <p className="text-[11px] text-muted-foreground">
-              Daily dispatch · 10 vans · Cluj-Napoca depot
+            <p className="text-xs text-muted-foreground">
+              Cluj-Napoca depot
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
-          <label className="flex items-center gap-2 text-xs text-muted-foreground cursor-pointer select-none">
-            <input
-              type="checkbox"
-              checked={mockLLM}
-              onChange={(e) => setMockLLM(e.target.checked)}
-              className="h-3.5 w-3.5 accent-primary"
-            />
-            Mock LLM
-          </label>
-          <button
-            className="rounded p-1.5 text-muted-foreground hover:bg-surface-1 hover:text-foreground"
-            title="Settings"
-          >
-            <Settings size={16} />
-          </button>
-        </div>
+        {/* Mock-LLM toggle as a subtle pill — only the dispatcher who
+            cares will notice. Settings gear removed for now. */}
+        <label className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground select-none hover:border-primary/40">
+          <input
+            type="checkbox"
+            checked={mockLLM}
+            onChange={(e) => setMockLLM(e.target.checked)}
+            className="h-3.5 w-3.5 accent-primary"
+          />
+          Use mock data (faster)
+        </label>
       </header>
 
       {/* Body */}
@@ -250,26 +244,18 @@ export function App() {
           )}
         </div>
 
-        {/* Right panel */}
-        <div className="flex h-1/2 min-h-0 flex-col border-l border-border bg-card md:h-auto md:w-[40%]">
-          <div className="min-h-0 flex-1 flex flex-col">
-            <ChatPanel
-              turns={turns}
-              busy={busy}
-              onSend={handleSend}
-              onClear={handleClear}
-              onSelectAlt={(r) => setActiveRank(r)}
-              activePlan={activePlan}
-            />
-          </div>
-          {activePlan && (
-            <PlanDetail
-              plan={activePlan}
-              activeRank={activeRank}
-              onSelectRank={setActiveRank}
-            />
-          )}
-        </div>
+        {/* Right panel — chat only. The chat's own plan card carries
+            the per-van details, so we no longer need a second panel. */}
+        <aside className="flex h-1/2 min-h-0 flex-col border-l border-border bg-card md:h-auto md:w-[40%]">
+          <ChatPanel
+            turns={turns}
+            busy={busy}
+            onSend={handleSend}
+            onClear={handleClear}
+            onSelectAlt={(r) => setActiveRank(r)}
+            activePlan={activePlan}
+          />
+        </aside>
       </div>
     </div>
   );

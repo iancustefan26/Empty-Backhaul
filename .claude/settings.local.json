@@ -76,7 +76,13 @@
       "Bash(mkdir -p /tmp/lovable)",
       "Bash(unzip -q -o \"/Users/stefaniancu/Desktop/cluj-route-chat-main.zip\" -d /tmp/lovable)",
       "Bash(npm uninstall *)",
-      "Bash(pkill -f vite)"
+      "Bash(pkill -f vite)",
+      "Bash(curl -s -o /dev/null -w \"voyager retina   HTTP %{http_code}  bytes %{size_download}\\\\n\" \"https://a.basemaps.cartocdn.com/voyager/7/72/45@2x.png\")",
+      "Bash(curl -s -o /dev/null -w \"voyager 1x       HTTP %{http_code}  bytes %{size_download}\\\\n\" \"https://a.basemaps.cartocdn.com/voyager/7/72/45.png\")",
+      "Bash(curl -s -o /dev/null -w \"voyager_labels   HTTP %{http_code}  bytes %{size_download}\\\\n\" \"https://a.basemaps.cartocdn.com/rastertiles/voyager/7/72/45@2x.png\")",
+      "Bash(curl -s -o /dev/null -w \"light_all retina HTTP %{http_code}  bytes %{size_download}\\\\n\" \"https://a.basemaps.cartocdn.com/light_all/7/72/45@2x.png\")",
+      "Bash(git rm *)",
+      "Bash(echo \"tsc exit=$?\")"
     ]
   }
 }

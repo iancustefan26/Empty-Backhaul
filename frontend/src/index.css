@@ -46,9 +46,15 @@ body {
   background: rgb(var(--rgb-background));
   color: rgb(var(--rgb-foreground));
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Friendly defaults: rounder corners and softer shadows everywhere. */
+.shadow-sm {
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05), 0 1px 3px rgba(15, 23, 42, 0.04);
 }
 
 /* ------- Leaflet overrides — light map vibe ------- */

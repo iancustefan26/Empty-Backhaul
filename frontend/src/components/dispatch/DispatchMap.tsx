@@ -113,7 +113,7 @@ export function DispatchMap({ fleet, loads, plan, depot }: Props) {
       >
         <TileLayer
           attribution='&copy; OpenStreetMap, &copy; CARTO'
-          url="https://{s}.basemaps.cartocdn.com/voyager/{z}/{x}/{y}{r}.png"
+          url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />
 
         <FitBounds points={fitPoints} />
@@ -185,14 +185,17 @@ export function DispatchMap({ fleet, loads, plan, depot }: Props) {
         ))}
       </MapContainer>
 
-      {/* Legend */}
-      <div className="pointer-events-none absolute bottom-4 left-4 z-[400] rounded-lg border border-border bg-card/90 p-3 text-xs backdrop-blur">
-        <div className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-          Legend
-        </div>
-        <div className="space-y-1.5">
+      {/* Legend — collapsed by default to keep the map breathing. */}
+      <details className="absolute bottom-4 left-4 z-[400] rounded-xl border border-border bg-card/95 text-xs shadow-sm backdrop-blur">
+        <summary className="cursor-pointer list-none px-3 py-2 font-medium text-foreground hover:text-primary">
+          <span className="inline-flex items-center gap-1.5">
+            <span className="text-base text-primary">★</span>
+            What am I looking at?
+          </span>
+        </summary>
+        <div className="space-y-1.5 border-t border-border px-3 py-2.5">
           <div className="flex items-center gap-2">
-            <span className="text-base">★</span>
+            <span className="text-base text-primary">★</span>
             <span>Depot — {depot.city}</span>
           </div>
           <div className="flex items-center gap-2">
@@ -212,7 +215,7 @@ export function DispatchMap({ fleet, loads, plan, depot }: Props) {
             <span>Broker load</span>
           </div>
         </div>
-      </div>
+      </details>
     </div>
   );
 }

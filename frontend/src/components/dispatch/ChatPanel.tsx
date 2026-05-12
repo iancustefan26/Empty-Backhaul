@@ -32,18 +32,28 @@ function FollowUpChips({
 }) {
   if (!suggestions.length) return null;
   return (
-    <div className="mt-2 flex flex-wrap gap-1.5">
+    <div className="mt-2 flex flex-wrap gap-2">
       {suggestions.map((s) => (
         <button
           key={s}
           onClick={() => onPick(s)}
-          className="rounded-full border border-border bg-surface-1 px-2.5 py-1 text-[11px] text-foreground/90 hover:border-primary/60 hover:bg-surface-2 transition-colors"
+          className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:border-primary hover:text-primary hover:shadow-sm transition-all"
         >
           {s}
         </button>
       ))}
     </div>
   );
+}
+
+function vanColorOf(id: number): string {
+  // Tiny inline copy of vanColor — keeps ChatPanel self-contained.
+  const PALETTE = [
+    "#22d3ee", "#a78bfa", "#f59e0b", "#34d399", "#f472b6",
+    "#60a5fa", "#fb7185", "#facc15", "#4ade80", "#c084fc",
+    "#fda4af", "#fbbf24", "#84cc16", "#38bdf8", "#fb923c",
+  ];
+  return PALETTE[id % PALETTE.length];
 }
 
 function PlanSummaryCard({
@@ -61,60 +71,112 @@ function PlanSummaryCard({
     payload.plan.optimiser.alternatives.find((a) => a.rank === payload.activeRank) ??
     payload.plan.optimiser.alternatives[0];
   if (!alt) return null;
+
   const totalAlts = payload.plan.optimiser.alternatives.length;
-  const opts = payload.options;
+  const dispatched = alt.plans.length - alt.idle_count;
+  const total = alt.plans.length;
+  const activeVans = alt.plans.filter((p) => p.kind !== "IDLE");
   const followups: string[] = [];
-  if (opts.enable_chains !== false) followups.push("Try without chains");
-  if (opts.include_broker !== false) followups.push("Skip broker freight");
-  followups.push("Show alternative plan");
+  if (payload.options.include_broker !== false) followups.push("Skip broker freight");
+  if (payload.options.enable_chains !== false) followups.push("Try without chains");
   followups.push("Replan for tomorrow");
 
   return (
-    <div className="mt-2 rounded-md border border-border bg-surface-1 p-2.5 text-xs">
-      <div className="grid grid-cols-3 gap-2">
-        <div>
-          <div className="text-[9px] uppercase text-muted-foreground tracking-wider">Margin</div>
-          <div className="font-semibold text-good tabular-nums">
-            €{alt.total_fleet_margin_eur.toLocaleString()}
+    <div className="mt-3 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      {/* Headline: 2 big stats, no jargon */}
+      <div className="grid grid-cols-2 gap-px bg-border">
+        <div className="bg-card px-4 py-3">
+          <div className="text-[11px] font-medium text-muted-foreground">
+            Today's profit
+          </div>
+          <div className="mt-1 text-2xl font-semibold tabular-nums text-good">
+            €{Math.round(alt.total_fleet_margin_eur).toLocaleString()}
           </div>
         </div>
-        <div>
-          <div className="text-[9px] uppercase text-muted-foreground tracking-wider">Deadhead</div>
-          <div className="font-semibold tabular-nums">
-            {Math.round(alt.deadhead_ratio * 100)}%
+        <div className="bg-card px-4 py-3">
+          <div className="text-[11px] font-medium text-muted-foreground">
+            Vans on the road
           </div>
-        </div>
-        <div>
-          <div className="text-[9px] uppercase text-muted-foreground tracking-wider">SLA</div>
-          <div
-            className={cn(
-              "font-semibold tabular-nums",
-              alt.unserved_customer_load_ids.length ? "text-warn" : "text-good",
-            )}
-          >
-            {alt.customer_loads_served}/{alt.customer_loads_available}
+          <div className="mt-1 text-2xl font-semibold tabular-nums text-foreground">
+            {dispatched}
+            <span className="text-base font-normal text-muted-foreground"> of {total}</span>
           </div>
         </div>
       </div>
-      {totalAlts > 1 && (
-        <div className="mt-2 flex gap-1">
-          {payload.plan.optimiser.alternatives.map((a) => (
-            <button
-              key={a.rank}
-              onClick={() => onSelectAlt(a.rank)}
-              className={cn(
-                "rounded px-2 py-0.5 text-[10px] font-medium",
-                a.rank === alt.rank
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-surface-2 text-muted-foreground hover:text-foreground",
-              )}
-            >
-              Plan {a.rank}
-            </button>
-          ))}
-        </div>
+
+      {/* Per-van rows — one line each, hidden behind a disclosure to keep
+          the chat scannable. */}
+      {activeVans.length > 0 && (
+        <details className="group border-t border-border">
+          <summary className="cursor-pointer list-none px-4 py-2.5 text-xs font-medium text-muted-foreground hover:bg-surface-1">
+            <span className="inline-flex items-center gap-1">
+              <span className="transition-transform group-open:rotate-90">▸</span>
+              See {activeVans.length} van{activeVans.length === 1 ? "" : "s"} dispatched
+            </span>
+          </summary>
+          <ul className="space-y-px bg-border">
+            {activeVans
+              .slice()
+              .sort((a, b) => b.margin_eur - a.margin_eur)
+              .map((v) => {
+                const cities = [v.legs[0]?.from_city ?? "Cluj"]
+                  .concat(v.legs.map((l) => l.to_city))
+                  .filter((c, i, arr) => i === 0 || arr[i - 1] !== c);
+                return (
+                  <li
+                    key={v.van_id}
+                    className="flex items-center gap-2 bg-card px-4 py-2 text-xs"
+                  >
+                    <span
+                      className="inline-block h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ background: vanColorOf(v.van_id) }}
+                    />
+                    <span
+                      className="shrink-0 font-mono text-[11px] font-semibold"
+                      style={{ color: vanColorOf(v.van_id) }}
+                    >
+                      {v.van_plate.replace("-CRL", "")}
+                    </span>
+                    {v.kind === "CHAIN" && (
+                      <span className="shrink-0 rounded bg-good/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-good">
+                        chain
+                      </span>
+                    )}
+                    <span className="min-w-0 flex-1 truncate text-foreground/80">
+                      {cities.join(" → ")}
+                    </span>
+                    <span className="shrink-0 font-semibold tabular-nums text-good">
+                      €{Math.round(v.margin_eur)}
+                    </span>
+                  </li>
+                );
+              })}
+          </ul>
+        </details>
       )}
-      <FollowUpChips suggestions={followups} onPick={onPick} />
+
+      {/* Alternatives + follow-ups footer */}
+      <div className="border-t border-border bg-surface-1 px-4 py-2.5">
+        {totalAlts > 1 && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {payload.plan.optimiser.alternatives.map((a) => (
+              <button
+                key={a.rank}
+                onClick={() => onSelectAlt(a.rank)}
+                className={cn(
+                  "rounded-full px-2.5 py-1 text-[11px] font-medium transition-colors",
+                  a.rank === alt.rank
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-card text-muted-foreground hover:text-foreground border border-border",
+                )}
+              >
+                Option {a.rank}
+              </button>
+            ))}
+          </div>
+        )}
+        <FollowUpChips suggestions={followups} onPick={onPick} />
+      </div>
     </div>
   );
 }
@@ -238,16 +300,20 @@ export function ChatPanel({ turns, busy, onSend, onClear, onSelectAlt }: Props) 
       {/* Chat history */}
       <div
         ref={scrollRef}
-        className="flex-1 min-h-0 overflow-y-auto thin-scroll px-4 py-4 space-y-4"
+        className="flex-1 min-h-0 overflow-y-auto thin-scroll px-5 py-6 space-y-5"
       >
         {turns.length === 0 && (
-          <div className="space-y-3">
-            <div className="text-foreground/90 leading-relaxed">
-              <span className="font-semibold">Bună ziua!</span> I'm your dispatcher
-              assistant. The fleet is at the Cluj-Napoca depot — 10 vans available,
-              35 freight loads visible in the pool right now.
+          <div className="space-y-4">
+            <div>
+              <div className="text-2xl">👋</div>
+              <div className="mt-2 text-base leading-relaxed text-foreground">
+                <span className="font-semibold">Bună ziua.</span> Ask me anything
+                about today's freight — I'll plan the routes for your vans.
+              </div>
             </div>
-            <div className="text-xs text-muted-foreground">Try one of these to start:</div>
+            <div className="text-xs uppercase tracking-wide text-muted-foreground">
+              Try one of these
+            </div>
             <FollowUpChips suggestions={QUICK_SUGGESTIONS_EMPTY} onPick={(s) => send(s)} />
           </div>
         )}
@@ -287,17 +353,17 @@ export function ChatPanel({ turns, busy, onSend, onClear, onSelectAlt }: Props) 
       </div>
 
       {/* Input */}
-      <div className="border-t border-border bg-card p-3">
-        <div className="flex items-end gap-2">
+      <div className="border-t border-border bg-card p-4">
+        <div className="flex items-end gap-2 rounded-xl border border-border bg-card px-3 py-2 shadow-sm focus-within:border-primary/60 transition-colors">
           <button
             onClick={toggleMic}
             className={cn(
-              "shrink-0 rounded-md border border-border p-2 text-muted-foreground hover:text-foreground transition-colors",
-              listening && "border-destructive text-destructive",
+              "shrink-0 rounded-full p-1.5 text-muted-foreground hover:text-foreground hover:bg-surface-1 transition-colors",
+              listening && "text-destructive",
             )}
             title={listening ? "Stop listening" : "Voice input"}
           >
-            {listening ? <MicOff size={16} /> : <Mic size={16} />}
+            {listening ? <MicOff size={18} /> : <Mic size={18} />}
           </button>
           <textarea
             ref={inputRef}
@@ -310,13 +376,13 @@ export function ChatPanel({ turns, busy, onSend, onClear, onSelectAlt }: Props) 
                 send();
               }
             }}
-            placeholder="Ask anything — e.g. 'Plan today's routes' or 'Why is van CJ-203 idle?'"
-            className="flex-1 resize-none rounded-md border border-border bg-surface-1 px-3 py-2 text-sm placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none max-h-32"
+            placeholder="Ask me anything…"
+            className="flex-1 resize-none bg-transparent px-1 py-1.5 text-sm placeholder:text-muted-foreground focus:outline-none max-h-32"
           />
           <button
             onClick={() => send()}
             disabled={!text.trim() || busy}
-            className="shrink-0 rounded-md bg-primary p-2 text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity"
+            className="shrink-0 rounded-full bg-primary p-2 text-primary-foreground hover:opacity-90 disabled:opacity-40 transition-opacity"
             title="Send"
           >
             <Send size={16} />
@@ -325,9 +391,9 @@ export function ChatPanel({ turns, busy, onSend, onClear, onSelectAlt }: Props) 
         {turns.length > 0 && (
           <button
             onClick={onClear}
-            className="mt-2 inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+            className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
-            <Trash2 size={11} /> Clear conversation
+            <Trash2 size={12} /> Clear conversation
           </button>
         )}
       </div>
