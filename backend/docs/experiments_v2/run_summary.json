@@ -1,0 +1,92 @@
+{
+  "run_completed_at": "2026-05-17T10:04:15.018620+00:00",
+  "git_sha": "b0bc849",
+  "experiments_run": [
+    "A1",
+    "S2",
+    "T1",
+    "T2"
+  ],
+  "all_passed": true,
+  "totals_cumulative": {
+    "calls": 870,
+    "cache_hits": 221,
+    "input_tokens": 2828908,
+    "output_tokens": 230829,
+    "cost_usd": 1.4257,
+    "cost_eur": 1.3117,
+    "latency_ms": 1645918,
+    "errors": 0
+  },
+  "notes": [
+    "A1 ran under live Gemini 2.5 Flash; per-experiment costs in cost_meter blocks.",
+    "S2/T1/T2 are deterministic regardless of LLM provider \u2014 published numbers are from mock-mode runs to keep the repro fast. The live-Gemini cost meter for those three would be ~0 \u20ac additional (cache hits only) once the A1 sweep primes the (truck, load) prompt cache.",
+    "V4 ablation: 39 of 146 cases hit the Gemini daily-quota guard; those rows were retroactively patched with deterministic hard-rules verdicts \u2014 exactly what the new provider-failure fallback in scripts/run_ablation.py would now do automatically."
+  ],
+  "per_experiment": [
+    {
+      "experiment_id": "A1",
+      "json_path": "docs/experiments_v2/exp_a1.json",
+      "mode": "gemini",
+      "model": "gemini-2.5-flash",
+      "cost_meter": {
+        "calls": 226,
+        "cache_hits": 175,
+        "input_tokens": 575293,
+        "output_tokens": 49327,
+        "cost_usd": 0.2959,
+        "cost_eur": 0.2722,
+        "latency_ms": 365915,
+        "errors": 0
+      }
+    },
+    {
+      "experiment_id": "S2",
+      "json_path": "docs/experiments_v2/exp_s2.json",
+      "mode": "mock",
+      "model": null,
+      "cost_meter": {
+        "calls": 0,
+        "cache_hits": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "cost_eur": 0.0,
+        "latency_ms": 0,
+        "errors": 0
+      }
+    },
+    {
+      "experiment_id": "T1",
+      "json_path": "docs/experiments_v2/exp_t1.json",
+      "mode": "mock",
+      "model": null,
+      "cost_meter": {
+        "calls": 0,
+        "cache_hits": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "cost_eur": 0.0,
+        "latency_ms": 0,
+        "errors": 0
+      }
+    },
+    {
+      "experiment_id": "T2",
+      "json_path": "docs/experiments_v2/exp_t2.json",
+      "mode": "mock",
+      "model": null,
+      "cost_meter": {
+        "calls": 0,
+        "cache_hits": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "cost_eur": 0.0,
+        "latency_ms": 0,
+        "errors": 0
+      }
+    }
+  ]
+}

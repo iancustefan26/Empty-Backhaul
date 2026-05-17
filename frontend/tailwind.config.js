@@ -24,6 +24,7 @@ export default {
         warn: "rgb(var(--rgb-warn) / <alpha-value>)",
         customer: "rgb(var(--rgb-customer) / <alpha-value>)",
         broker: "rgb(var(--rgb-broker) / <alpha-value>)",
+        accent: "rgb(var(--rgb-accent) / <alpha-value>)",
         // legacy agent palette (kept for backward compat with leftover bits)
         sentry: "#22d3ee",
         analyst: "#a78bfa",

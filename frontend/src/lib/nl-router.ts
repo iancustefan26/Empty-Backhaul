@@ -14,6 +14,7 @@ export type Intent =
   | { kind: "alternative"; rank: number }
   | { kind: "idle_explain"; van: string }
   | { kind: "compliance" }
+  | { kind: "stats" }
   | { kind: "clarify"; question: string; suggestions: string[] }
   | { kind: "smalltalk"; reply: string };
 
@@ -65,6 +66,15 @@ export function classify(input: string): Intent {
   // Compliance
   if (/complian|legi|reglement|fines?|amenz/.test(t)) {
     return { kind: "compliance" };
+  }
+
+  // Stats / costs / kilometres / fuel
+  if (
+    /\b(stat(istic)?s?|cost(s|uri)?|kilomet|km|fuel|gas|carburant|combustibil|empty km|deadhead|consum)\b/.test(
+      t,
+    )
+  ) {
+    return { kind: "stats" };
   }
 
   // Alternative plans

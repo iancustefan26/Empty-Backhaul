@@ -1,0 +1,394 @@
+{
+  "experiment_id": "T1",
+  "experiment": "Strategist \u2014 CP-SAT vs greedy nearest-margin (abundant vs scarce supply)",
+  "agent": "strategist",
+  "hypothesis": "In the ABUNDANT regime (100 loads / 25 vans, 4:1) CP-SAT lift over greedy is small (\u2264 5 %). In the SCARCE regime (top-20 loads only) lift grows to \u2265 15 %. CP-SAT \u2265 greedy always.",
+  "inputs": {
+    "full_load_pool_size": 100,
+    "scarce_load_pool_size": 10,
+    "fleet_sizes_tested": [
+      5,
+      10,
+      15,
+      25
+    ],
+    "pareto_fleet": 15,
+    "pareto_time_limits_s": [
+      0.1,
+      0.5,
+      2.0,
+      5.0,
+      30.0
+    ],
+    "depot": "Cluj-Napoca",
+    "use_mock_llm": true
+  },
+  "results": {
+    "abundant": [
+      {
+        "regime": "abundant",
+        "fleet_size": 5,
+        "load_pool_size": 100,
+        "compliance_hash": "5cf98976b2fc",
+        "greedy": {
+          "total_margin_eur": 4322.75,
+          "vans_assigned": 5,
+          "vans_total": 5,
+          "vans_idle": 0,
+          "fleet_utilization_pct": 100.0,
+          "total_loaded_km": 1455.6,
+          "total_empty_km": 0.0,
+          "total_km": 1455.6,
+          "deadhead_ratio": 0.0,
+          "customer_loads_served": 4,
+          "customer_loads_available": 25,
+          "conflict_count": 2,
+          "runtime_ms": 1
+        },
+        "cpsat": {
+          "total_margin_eur": 4357.17,
+          "vans_assigned": 5,
+          "vans_total": 5,
+          "vans_idle": 0,
+          "fleet_utilization_pct": 100.0,
+          "total_loaded_km": 1580.9,
+          "total_empty_km": 140.1,
+          "total_km": 1721.0,
+          "deadhead_ratio": 0.0814,
+          "customer_loads_served": 5,
+          "customer_loads_available": 25,
+          "optimiser_status": "OPTIMAL",
+          "runtime_ms": 38
+        },
+        "lift_pct": 0.8,
+        "idle_delta": 0,
+        "customer_served_delta": 1
+      },
+      {
+        "regime": "abundant",
+        "fleet_size": 10,
+        "load_pool_size": 100,
+        "compliance_hash": "0d9e284a4ee1",
+        "greedy": {
+          "total_margin_eur": 6053.89,
+          "vans_assigned": 10,
+          "vans_total": 10,
+          "vans_idle": 0,
+          "fleet_utilization_pct": 100.0,
+          "total_loaded_km": 2325.8,
+          "total_empty_km": 140.1,
+          "total_km": 2465.9,
+          "deadhead_ratio": 0.0568,
+          "customer_loads_served": 6,
+          "customer_loads_available": 25,
+          "conflict_count": 5,
+          "runtime_ms": 2
+        },
+        "cpsat": {
+          "total_margin_eur": 6083.89,
+          "vans_assigned": 10,
+          "vans_total": 10,
+          "vans_idle": 0,
+          "fleet_utilization_pct": 100.0,
+          "total_loaded_km": 2325.8,
+          "total_empty_km": 140.1,
+          "total_km": 2465.9,
+          "deadhead_ratio": 0.0568,
+          "customer_loads_served": 6,
+          "customer_loads_available": 25,
+          "optimiser_status": "OPTIMAL",
+          "runtime_ms": 20
+        },
+        "lift_pct": 0.5,
+        "idle_delta": 0,
+        "customer_served_delta": 0
+      },
+      {
+        "regime": "abundant",
+        "fleet_size": 15,
+        "load_pool_size": 100,
+        "compliance_hash": "0a78ea412335",
+        "greedy": {
+          "total_margin_eur": 8476.43,
+          "vans_assigned": 15,
+          "vans_total": 15,
+          "vans_idle": 0,
+          "fleet_utilization_pct": 100.0,
+          "total_loaded_km": 3417.9,
+          "total_empty_km": 280.2,
+          "total_km": 3698.1,
+          "deadhead_ratio": 0.0758,
+          "customer_loads_served": 8,
+          "customer_loads_available": 25,
+          "conflict_count": 11,
+          "runtime_ms": 3
+        },
+        "cpsat": {
+          "total_margin_eur": 8592.49,
+          "vans_assigned": 15,
+          "vans_total": 15,
+          "vans_idle": 0,
+          "fleet_utilization_pct": 100.0,
+          "total_loaded_km": 3540.2,
+          "total_empty_km": 280.2,
+          "total_km": 3820.4,
+          "deadhead_ratio": 0.0733,
+          "customer_loads_served": 8,
+          "customer_loads_available": 25,
+          "optimiser_status": "OPTIMAL",
+          "runtime_ms": 28
+        },
+        "lift_pct": 1.4,
+        "idle_delta": 0,
+        "customer_served_delta": 0
+      },
+      {
+        "regime": "abundant",
+        "fleet_size": 25,
+        "load_pool_size": 100,
+        "compliance_hash": "79c15953a335",
+        "greedy": {
+          "total_margin_eur": 11880.25,
+          "vans_assigned": 25,
+          "vans_total": 25,
+          "vans_idle": 0,
+          "fleet_utilization_pct": 100.0,
+          "total_loaded_km": 5932.0,
+          "total_empty_km": 420.3,
+          "total_km": 6352.3,
+          "deadhead_ratio": 0.0662,
+          "customer_loads_served": 10,
+          "customer_loads_available": 25,
+          "conflict_count": 21,
+          "runtime_ms": 5
+        },
+        "cpsat": {
+          "total_margin_eur": 11880.25,
+          "vans_assigned": 25,
+          "vans_total": 25,
+          "vans_idle": 0,
+          "fleet_utilization_pct": 100.0,
+          "total_loaded_km": 5932.0,
+          "total_empty_km": 420.3,
+          "total_km": 6352.3,
+          "deadhead_ratio": 0.0662,
+          "customer_loads_served": 10,
+          "customer_loads_available": 25,
+          "optimiser_status": "OPTIMAL",
+          "runtime_ms": 47
+        },
+        "lift_pct": 0.0,
+        "idle_delta": 0,
+        "customer_served_delta": 0
+      }
+    ],
+    "scarce": [
+      {
+        "regime": "scarce",
+        "fleet_size": 5,
+        "load_pool_size": 10,
+        "compliance_hash": "c347046c48d6",
+        "greedy": {
+          "total_margin_eur": 3533.78,
+          "vans_assigned": 3,
+          "vans_total": 5,
+          "vans_idle": 2,
+          "fleet_utilization_pct": 60.0,
+          "total_loaded_km": 1030.9,
+          "total_empty_km": 0.0,
+          "total_km": 1030.9,
+          "deadhead_ratio": 0.0,
+          "customer_loads_served": 3,
+          "customer_loads_available": 4,
+          "conflict_count": 2,
+          "runtime_ms": 0
+        },
+        "cpsat": {
+          "total_margin_eur": 3533.78,
+          "vans_assigned": 3,
+          "vans_total": 5,
+          "vans_idle": 2,
+          "fleet_utilization_pct": 60.0,
+          "total_loaded_km": 1030.9,
+          "total_empty_km": 0.0,
+          "total_km": 1030.9,
+          "deadhead_ratio": 0.0,
+          "customer_loads_served": 3,
+          "customer_loads_available": 4,
+          "optimiser_status": "OPTIMAL",
+          "runtime_ms": 3
+        },
+        "lift_pct": 0.0,
+        "idle_delta": 0,
+        "customer_served_delta": 0
+      },
+      {
+        "regime": "scarce",
+        "fleet_size": 10,
+        "load_pool_size": 10,
+        "compliance_hash": "96fd51ec422d",
+        "greedy": {
+          "total_margin_eur": 3533.78,
+          "vans_assigned": 3,
+          "vans_total": 10,
+          "vans_idle": 7,
+          "fleet_utilization_pct": 30.0,
+          "total_loaded_km": 1030.9,
+          "total_empty_km": 0.0,
+          "total_km": 1030.9,
+          "deadhead_ratio": 0.0,
+          "customer_loads_served": 3,
+          "customer_loads_available": 4,
+          "conflict_count": 2,
+          "runtime_ms": 0
+        },
+        "cpsat": {
+          "total_margin_eur": 3533.78,
+          "vans_assigned": 3,
+          "vans_total": 10,
+          "vans_idle": 7,
+          "fleet_utilization_pct": 30.0,
+          "total_loaded_km": 1030.9,
+          "total_empty_km": 0.0,
+          "total_km": 1030.9,
+          "deadhead_ratio": 0.0,
+          "customer_loads_served": 3,
+          "customer_loads_available": 4,
+          "optimiser_status": "OPTIMAL",
+          "runtime_ms": 3
+        },
+        "lift_pct": 0.0,
+        "idle_delta": 0,
+        "customer_served_delta": 0
+      },
+      {
+        "regime": "scarce",
+        "fleet_size": 15,
+        "load_pool_size": 10,
+        "compliance_hash": "5e464838cbc2",
+        "greedy": {
+          "total_margin_eur": 4789.1,
+          "vans_assigned": 4,
+          "vans_total": 15,
+          "vans_idle": 11,
+          "fleet_utilization_pct": 26.7,
+          "total_loaded_km": 1296.3,
+          "total_empty_km": 140.1,
+          "total_km": 1436.4,
+          "deadhead_ratio": 0.0975,
+          "customer_loads_served": 4,
+          "customer_loads_available": 4,
+          "conflict_count": 3,
+          "runtime_ms": 0
+        },
+        "cpsat": {
+          "total_margin_eur": 4789.1,
+          "vans_assigned": 4,
+          "vans_total": 15,
+          "vans_idle": 11,
+          "fleet_utilization_pct": 26.7,
+          "total_loaded_km": 1296.3,
+          "total_empty_km": 140.1,
+          "total_km": 1436.4,
+          "deadhead_ratio": 0.0975,
+          "customer_loads_served": 4,
+          "customer_loads_available": 4,
+          "optimiser_status": "OPTIMAL",
+          "runtime_ms": 3
+        },
+        "lift_pct": 0.0,
+        "idle_delta": 0,
+        "customer_served_delta": 0
+      },
+      {
+        "regime": "scarce",
+        "fleet_size": 25,
+        "load_pool_size": 10,
+        "compliance_hash": "40b7b85811da",
+        "greedy": {
+          "total_margin_eur": 6083.41,
+          "vans_assigned": 6,
+          "vans_total": 25,
+          "vans_idle": 19,
+          "fleet_utilization_pct": 24.0,
+          "total_loaded_km": 1820.6,
+          "total_empty_km": 140.1,
+          "total_km": 1960.7,
+          "deadhead_ratio": 0.0715,
+          "customer_loads_served": 4,
+          "customer_loads_available": 4,
+          "conflict_count": 5,
+          "runtime_ms": 0
+        },
+        "cpsat": {
+          "total_margin_eur": 6083.41,
+          "vans_assigned": 6,
+          "vans_total": 25,
+          "vans_idle": 19,
+          "fleet_utilization_pct": 24.0,
+          "total_loaded_km": 1820.6,
+          "total_empty_km": 140.1,
+          "total_km": 1960.7,
+          "deadhead_ratio": 0.0715,
+          "customer_loads_served": 4,
+          "customer_loads_available": 4,
+          "optimiser_status": "OPTIMAL",
+          "runtime_ms": 3
+        },
+        "lift_pct": 0.0,
+        "idle_delta": 0,
+        "customer_served_delta": 0
+      }
+    ],
+    "pareto_at_fleet_15": [
+      {
+        "time_limit_s": 0.1,
+        "margin_eur": 8592.49,
+        "runtime_ms": 28,
+        "status": "OPTIMAL"
+      },
+      {
+        "time_limit_s": 0.5,
+        "margin_eur": 8592.49,
+        "runtime_ms": 28,
+        "status": "OPTIMAL"
+      },
+      {
+        "time_limit_s": 2.0,
+        "margin_eur": 8592.49,
+        "runtime_ms": 27,
+        "status": "OPTIMAL"
+      },
+      {
+        "time_limit_s": 5.0,
+        "margin_eur": 8592.49,
+        "runtime_ms": 27,
+        "status": "OPTIMAL"
+      },
+      {
+        "time_limit_s": 30.0,
+        "margin_eur": 8592.49,
+        "runtime_ms": 26,
+        "status": "OPTIMAL"
+      }
+    ]
+  },
+  "provenance": {
+    "completed_at": "2026-05-17T10:03:44.153232+00:00",
+    "git_sha": "b0bc849",
+    "mode": "mock",
+    "model": null,
+    "seed_fleet_size": 25,
+    "seed_load_pool_size": 100
+  },
+  "cost_meter": {
+    "calls": 0,
+    "cache_hits": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "cost_eur": 0.0,
+    "latency_ms": 0,
+    "errors": 0
+  }
+}

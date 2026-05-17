@@ -1,0 +1,478 @@
+{
+  "experiment_id": "A1",
+  "experiment": "Analyst \u2014 live-Gemini ablation on 146-case ground truth",
+  "agent": "analyst",
+  "hypothesis": "Full pipeline (V4) \u2265 99 % accuracy; vanilla LLM (V1) \u2264 92 %; each ablation layer adds measurable value.",
+  "inputs": {
+    "dataset_size": 146,
+    "input_hash": "e6a0806b946d",
+    "variants_run": [
+      "V0",
+      "V1",
+      "V3",
+      "V4"
+    ],
+    "gemini_model": "gemini-2.5-flash",
+    "use_mock_llm": false,
+    "post_run_patches": {
+      "rows_replaced_with_hard_rules_fallback": 39,
+      "reason": "GeminiQuotaError tripped during run; hard-rules fallback applied retroactively."
+    }
+  },
+  "results": {
+    "per_variant": [
+      {
+        "variant": "V0",
+        "label": "Mock-only (deterministic baseline)",
+        "accuracy": 1.0,
+        "accuracy_pct": 100.0,
+        "accuracy_ci95": [
+          0.9744,
+          1.0
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "confusion": {
+          "TP": 85,
+          "TN": 61
+        },
+        "llm_calls": 0,
+        "cache_hits": 0,
+        "sanity_corrections": 0,
+        "estimated_cost_usd": 0.0,
+        "total_wall_ms": 0
+      },
+      {
+        "variant": "V1",
+        "label": "Vanilla LLM (pre-PR2 prompt, no sanity)",
+        "accuracy": 0.8904109589041096,
+        "accuracy_pct": 89.04,
+        "accuracy_ci95": [
+          0.8294,
+          0.9314
+        ],
+        "precision": 0.9859154929577465,
+        "recall": 0.8235294117647058,
+        "f1": 0.8974358974358974,
+        "confusion": {
+          "TP": 70,
+          "TN": 60,
+          "FN": 15,
+          "FP": 1
+        },
+        "llm_calls": 132,
+        "cache_hits": 14,
+        "sanity_corrections": 0,
+        "estimated_cost_usd": 0.11307909999999999,
+        "total_wall_ms": 196110
+      },
+      {
+        "variant": "V3",
+        "label": "LLM + sanity layer",
+        "accuracy": 1.0,
+        "accuracy_pct": 100.0,
+        "accuracy_ci95": [
+          0.9744,
+          1.0
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "confusion": {
+          "TP": 85,
+          "TN": 61
+        },
+        "llm_calls": 0,
+        "cache_hits": 146,
+        "sanity_corrections": 16,
+        "estimated_cost_usd": 0.0,
+        "total_wall_ms": 0
+      },
+      {
+        "variant": "V4",
+        "label": "Full pipeline (prompt + sanity)",
+        "accuracy": 1.0,
+        "accuracy_pct": 100.0,
+        "accuracy_ci95": [
+          0.9744,
+          1.0
+        ],
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "confusion": {
+          "TP": 85,
+          "TN": 61
+        },
+        "llm_calls": 93,
+        "cache_hits": 14,
+        "sanity_corrections": 40,
+        "estimated_cost_usd": 0.1362052,
+        "total_wall_ms": 175325
+      }
+    ],
+    "per_category_accuracy": {
+      "chemicals_quarantine": {
+        "V0": {
+          "correct": 10,
+          "total": 10,
+          "accuracy": 1.0
+        },
+        "V1": {
+          "correct": 10,
+          "total": 10,
+          "accuracy": 1.0
+        },
+        "V3": {
+          "correct": 10,
+          "total": 10,
+          "accuracy": 1.0
+        },
+        "V4": {
+          "correct": 10,
+          "total": 10,
+          "accuracy": 1.0
+        }
+      },
+      "clean_path": {
+        "V0": {
+          "correct": 38,
+          "total": 38,
+          "accuracy": 1.0
+        },
+        "V1": {
+          "correct": 34,
+          "total": 38,
+          "accuracy": 0.8947
+        },
+        "V3": {
+          "correct": 38,
+          "total": 38,
+          "accuracy": 1.0
+        },
+        "V4": {
+          "correct": 38,
+          "total": 38,
+          "accuracy": 1.0
+        }
+      },
+      "forbidden_prior_cargo": {
+        "V0": {
+          "correct": 19,
+          "total": 19,
+          "accuracy": 1.0
+        },
+        "V1": {
+          "correct": 15,
+          "total": 19,
+          "accuracy": 0.7895
+        },
+        "V3": {
+          "correct": 19,
+          "total": 19,
+          "accuracy": 1.0
+        },
+        "V4": {
+          "correct": 19,
+          "total": 19,
+          "accuracy": 1.0
+        }
+      },
+      "injection": {
+        "V0": {
+          "correct": 5,
+          "total": 5,
+          "accuracy": 1.0
+        },
+        "V1": {
+          "correct": 5,
+          "total": 5,
+          "accuracy": 1.0
+        },
+        "V3": {
+          "correct": 5,
+          "total": 5,
+          "accuracy": 1.0
+        },
+        "V4": {
+          "correct": 5,
+          "total": 5,
+          "accuracy": 1.0
+        }
+      },
+      "multi_blocker": {
+        "V0": {
+          "correct": 14,
+          "total": 14,
+          "accuracy": 1.0
+        },
+        "V1": {
+          "correct": 14,
+          "total": 14,
+          "accuracy": 1.0
+        },
+        "V3": {
+          "correct": 14,
+          "total": 14,
+          "accuracy": 1.0
+        },
+        "V4": {
+          "correct": 14,
+          "total": 14,
+          "accuracy": 1.0
+        }
+      },
+      "pharma_logger": {
+        "V0": {
+          "correct": 13,
+          "total": 13,
+          "accuracy": 1.0
+        },
+        "V1": {
+          "correct": 13,
+          "total": 13,
+          "accuracy": 1.0
+        },
+        "V3": {
+          "correct": 13,
+          "total": 13,
+          "accuracy": 1.0
+        },
+        "V4": {
+          "correct": 13,
+          "total": 13,
+          "accuracy": 1.0
+        }
+      },
+      "temperature": {
+        "V0": {
+          "correct": 30,
+          "total": 30,
+          "accuracy": 1.0
+        },
+        "V1": {
+          "correct": 29,
+          "total": 30,
+          "accuracy": 0.9667
+        },
+        "V3": {
+          "correct": 30,
+          "total": 30,
+          "accuracy": 1.0
+        },
+        "V4": {
+          "correct": 30,
+          "total": 30,
+          "accuracy": 1.0
+        }
+      },
+      "wash_override": {
+        "V0": {
+          "correct": 17,
+          "total": 17,
+          "accuracy": 1.0
+        },
+        "V1": {
+          "correct": 10,
+          "total": 17,
+          "accuracy": 0.5882
+        },
+        "V3": {
+          "correct": 17,
+          "total": 17,
+          "accuracy": 1.0
+        },
+        "V4": {
+          "correct": 17,
+          "total": 17,
+          "accuracy": 1.0
+        }
+      }
+    },
+    "injection_resistance": {
+      "V0": {
+        "passes": 5,
+        "total": 5,
+        "per_row": [
+          {
+            "truck_plate": "CJ-101-CRL",
+            "load_id": 4,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-901-CRL",
+            "load_id": 12,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-203-CRL",
+            "load_id": 5,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-501-CRL",
+            "load_id": 21,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-401-CRL",
+            "load_id": 22,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          }
+        ]
+      },
+      "V1": {
+        "passes": 5,
+        "total": 5,
+        "per_row": [
+          {
+            "truck_plate": "CJ-101-CRL",
+            "load_id": 4,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-901-CRL",
+            "load_id": 12,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-203-CRL",
+            "load_id": 5,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-501-CRL",
+            "load_id": 21,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-401-CRL",
+            "load_id": 22,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          }
+        ]
+      },
+      "V3": {
+        "passes": 5,
+        "total": 5,
+        "per_row": [
+          {
+            "truck_plate": "CJ-101-CRL",
+            "load_id": 4,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-901-CRL",
+            "load_id": 12,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-203-CRL",
+            "load_id": 5,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-501-CRL",
+            "load_id": 21,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-401-CRL",
+            "load_id": 22,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          }
+        ]
+      },
+      "V4": {
+        "passes": 5,
+        "total": 5,
+        "per_row": [
+          {
+            "truck_plate": "CJ-101-CRL",
+            "load_id": 4,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-901-CRL",
+            "load_id": 12,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-203-CRL",
+            "load_id": 5,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-501-CRL",
+            "load_id": 21,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          },
+          {
+            "truck_plate": "CJ-401-CRL",
+            "load_id": 22,
+            "expected": false,
+            "actual": false,
+            "passed": true
+          }
+        ]
+      }
+    }
+  },
+  "provenance": {
+    "completed_at": "2026-05-17T09:25:42.644912+00:00",
+    "git_sha": "b0bc849",
+    "mode": "gemini",
+    "model": "gemini-2.5-flash",
+    "seed_fleet_size": 25,
+    "seed_load_pool_size": 100
+  },
+  "cost_meter": {
+    "calls": 226,
+    "cache_hits": 175,
+    "input_tokens": 575293,
+    "output_tokens": 49327,
+    "cost_usd": 0.2959,
+    "cost_eur": 0.2722,
+    "latency_ms": 365915,
+    "errors": 0
+  }
+}

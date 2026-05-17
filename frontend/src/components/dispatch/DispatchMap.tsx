@@ -61,9 +61,18 @@ interface Props {
   loads: LoadSnapshot[];
   plan: PlanAlternative | null;
   depot: { city: string; lat: number; lon: number };
+  selectedVanId?: number | null;
+  onSelectVan?: (vanId: number | null) => void;
 }
 
-export function DispatchMap({ fleet, loads, plan, depot }: Props) {
+export function DispatchMap({
+  fleet,
+  loads,
+  plan,
+  depot,
+  selectedVanId,
+  onSelectVan,
+}: Props) {
   const polylines = useMemo(() => {
     if (!plan) return [];
     const out: {
@@ -71,6 +80,7 @@ export function DispatchMap({ fleet, loads, plan, depot }: Props) {
       positions: [number, number][];
       loaded: boolean;
       vanPlate: string;
+      vanId: number;
     }[] = [];
     for (const p of plan.plans) {
       if (p.kind === "IDLE") continue;
@@ -84,6 +94,7 @@ export function DispatchMap({ fleet, loads, plan, depot }: Props) {
           ],
           loaded: leg.kind === "loaded",
           vanPlate: p.van_plate,
+          vanId: p.van_id,
         });
       }
     }
@@ -164,25 +175,34 @@ export function DispatchMap({ fleet, loads, plan, depot }: Props) {
             </Marker>
           ))}
 
-        {polylines.map((pl, i) => (
-          <Polyline
-            key={i}
-            positions={pl.positions}
-            pathOptions={{
-              color: pl.color,
-              weight: pl.loaded ? 4 : 2,
-              opacity: pl.loaded ? 0.95 : 0.55,
-              dashArray: pl.loaded ? undefined : "6 8",
-              lineCap: "round",
-            }}
-          >
-            <Popup>
-              <strong>{pl.vanPlate}</strong>
-              <br />
-              {pl.loaded ? "Loaded leg" : "Empty leg"}
-            </Popup>
-          </Polyline>
-        ))}
+        {polylines.map((pl, i) => {
+          const isSelected = selectedVanId === pl.vanId;
+          const dimmed = selectedVanId != null && !isSelected;
+          return (
+            <Polyline
+              key={i}
+              positions={pl.positions}
+              pathOptions={{
+                color: pl.color,
+                weight: pl.loaded ? (isSelected ? 6 : 4) : isSelected ? 3 : 2,
+                opacity: dimmed ? 0.18 : pl.loaded ? 0.95 : 0.55,
+                dashArray: pl.loaded ? undefined : "6 8",
+                lineCap: "round",
+              }}
+              eventHandlers={{
+                click: () => onSelectVan?.(pl.vanId),
+              }}
+            >
+              <Popup>
+                <strong>{pl.vanPlate}</strong>
+                <br />
+                {pl.loaded ? "Loaded leg" : "Empty leg"}
+                <br />
+                <em style={{ color: "#64748b" }}>Click route for full details →</em>
+              </Popup>
+            </Polyline>
+          );
+        })}
       </MapContainer>
 
       {/* Legend — collapsed by default to keep the map breathing. */}

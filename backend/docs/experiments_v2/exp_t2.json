@@ -1,0 +1,428 @@
+{
+  "experiment_id": "T2",
+  "experiment": "Strategist \u2014 backhaul chains vs single trips",
+  "agent": "strategist",
+  "hypothesis": "Enabling chains lifts margin \u2265 35 % at fleet=25 and drops deadhead from ~30 % to \u2264 15 %. Lift remains \u2265 10 % at thin broker markets (25 loads).",
+  "inputs": {
+    "headline_fleet": 25,
+    "headline_broker_density": 75,
+    "sensitivity_fleets": [
+      10,
+      15,
+      25
+    ],
+    "sensitivity_broker_densities": [
+      25,
+      50,
+      75
+    ],
+    "depot": "Cluj-Napoca"
+  },
+  "results": {
+    "headline": {
+      "fleet_size": 25,
+      "broker_density": 75,
+      "chains_on": {
+        "total_margin_eur": 13427.39,
+        "total_loaded_km": 8053.9,
+        "total_empty_km": 442.6,
+        "total_km": 8496.5,
+        "deadhead_pct": 5.21,
+        "chains_formed": 22,
+        "singles_formed": 1,
+        "idle_count": 2,
+        "customer_served": 5,
+        "customer_available": 25,
+        "broker_served": 40,
+        "broker_available": 75,
+        "fleet_utilization_pct": 92.0
+      },
+      "chains_off": {
+        "total_margin_eur": 5583.24,
+        "total_loaded_km": 3927.0,
+        "total_empty_km": 3927.0,
+        "total_km": 7854.0,
+        "deadhead_pct": 50.0,
+        "chains_formed": 0,
+        "singles_formed": 24,
+        "idle_count": 1,
+        "customer_served": 3,
+        "customer_available": 25,
+        "broker_served": 21,
+        "broker_available": 75,
+        "fleet_utilization_pct": 96.0
+      },
+      "deltas": {
+        "margin_delta_eur": 7844.15,
+        "margin_delta_pct": 140.5,
+        "deadhead_delta_pp": -44.79,
+        "broker_served_delta": 19,
+        "customer_served_delta": 2,
+        "idle_delta": -1
+      }
+    },
+    "chain_breakdown": [
+      {
+        "van_plate": "CJ-101-CRL",
+        "leg_1": "Cluj-Napoca\u2192Brasov",
+        "leg_2": "Brasov\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Brasov \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 479.4,
+        "loaded_km": 479.4,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 932.47
+      },
+      {
+        "van_plate": "CJ-102-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 1021.8
+      },
+      {
+        "van_plate": "CJ-201-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 431.8
+      },
+      {
+        "van_plate": "CJ-202-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 611.8
+      },
+      {
+        "van_plate": "CJ-203-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 571.8
+      },
+      {
+        "van_plate": "CJ-301-CRL",
+        "leg_1": "Cluj-Napoca\u2192Brasov",
+        "leg_2": "Brasov\u2192Sibiu",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Brasov \u2192 Sibiu \u2192 Cluj-Napoca",
+        "total_km": 520.0,
+        "loaded_km": 379.9,
+        "empty_km": 140.1,
+        "fill_factor": 0.731,
+        "margin_eur": 287.99
+      },
+      {
+        "van_plate": "CJ-302-CRL",
+        "leg_1": "Cluj-Napoca\u2192Brasov",
+        "leg_2": "Brasov\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Brasov \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 479.4,
+        "loaded_km": 479.4,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 412.47
+      },
+      {
+        "van_plate": "CJ-401-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 671.8
+      },
+      {
+        "van_plate": "CJ-402-CRL",
+        "leg_1": "Cluj-Napoca\u2192Oradea",
+        "leg_2": "Oradea\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Oradea \u2192 Oradea \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 324.7,
+        "loaded_km": 324.7,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 654.03
+      },
+      {
+        "van_plate": "CJ-103-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 941.8
+      },
+      {
+        "van_plate": "CJ-204-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 611.8
+      },
+      {
+        "van_plate": "CJ-303-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 641.8
+      },
+      {
+        "van_plate": "CJ-403-CRL",
+        "leg_1": "Cluj-Napoca\u2192Brasov",
+        "leg_2": "Brasov\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Brasov \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 479.4,
+        "loaded_km": 479.4,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 432.47
+      },
+      {
+        "van_plate": "CJ-902-CRL",
+        "leg_1": "Cluj-Napoca\u2192Brasov",
+        "leg_2": "Brasov\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 520.0,
+        "loaded_km": 379.8,
+        "empty_km": 140.2,
+        "fill_factor": 0.73,
+        "margin_eur": 267.99
+      },
+      {
+        "van_plate": "CJ-501-CRL",
+        "leg_1": "Cluj-Napoca\u2192Oradea",
+        "leg_2": "Oradea\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Oradea \u2192 Oradea \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 324.7,
+        "loaded_km": 324.7,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 424.03
+      },
+      {
+        "van_plate": "CJ-502-CRL",
+        "leg_1": "Cluj-Napoca\u2192Brasov",
+        "leg_2": "Brasov\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Brasov \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 479.4,
+        "loaded_km": 479.4,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 432.47
+      },
+      {
+        "van_plate": "CJ-503-CRL",
+        "leg_1": "Cluj-Napoca\u2192Brasov",
+        "leg_2": "Brasov\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Brasov \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 479.4,
+        "loaded_km": 479.4,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 582.47
+      },
+      {
+        "van_plate": "CJ-504-CRL",
+        "leg_1": "Cluj-Napoca\u2192Oradea",
+        "leg_2": "Oradea\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Oradea \u2192 Oradea \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 324.7,
+        "loaded_km": 324.7,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 354.03
+      },
+      {
+        "van_plate": "CJ-505-CRL",
+        "leg_1": "Cluj-Napoca\u2192Brasov",
+        "leg_2": "Brasov\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Brasov \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 479.4,
+        "loaded_km": 479.4,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 1332.47
+      },
+      {
+        "van_plate": "CJ-506-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 401.8
+      },
+      {
+        "van_plate": "CJ-507-CRL",
+        "leg_1": "Cluj-Napoca\u2192Brasov",
+        "leg_2": "Brasov\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Brasov \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 479.4,
+        "loaded_km": 479.4,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 832.47
+      },
+      {
+        "van_plate": "CJ-508-CRL",
+        "leg_1": "Cluj-Napoca\u2192Sibiu",
+        "leg_2": "Sibiu\u2192Cluj-Napoca",
+        "cities_visited": "Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca",
+        "total_km": 280.2,
+        "loaded_km": 280.2,
+        "empty_km": 0.0,
+        "fill_factor": 1.0,
+        "margin_eur": 471.8
+      }
+    ],
+    "sensitivity_matrix": [
+      {
+        "fleet_size": 10,
+        "broker_density": 25,
+        "chains_on_margin_eur": 4933.34,
+        "chains_off_margin_eur": 2310.44,
+        "margin_delta_pct": 113.5,
+        "chains_on_deadhead_pct": 11.15,
+        "chains_off_deadhead_pct": 50.0,
+        "deadhead_delta_pp": -38.85,
+        "chains_formed": 7
+      },
+      {
+        "fleet_size": 10,
+        "broker_density": 50,
+        "chains_on_margin_eur": 6954.47,
+        "chains_off_margin_eur": 2714.47,
+        "margin_delta_pct": 156.2,
+        "chains_on_deadhead_pct": 4.65,
+        "chains_off_deadhead_pct": 50.0,
+        "deadhead_delta_pp": -45.35,
+        "chains_formed": 9
+      },
+      {
+        "fleet_size": 10,
+        "broker_density": 75,
+        "chains_on_margin_eur": 7213.8,
+        "chains_off_margin_eur": 2794.47,
+        "margin_delta_pct": 158.1,
+        "chains_on_deadhead_pct": 4.93,
+        "chains_off_deadhead_pct": 50.0,
+        "deadhead_delta_pp": -45.07,
+        "chains_formed": 9
+      },
+      {
+        "fleet_size": 15,
+        "broker_density": 25,
+        "chains_on_margin_eur": 5075.14,
+        "chains_off_margin_eur": 2795.24,
+        "margin_delta_pct": 81.6,
+        "chains_on_deadhead_pct": 14.1,
+        "chains_off_deadhead_pct": 50.0,
+        "deadhead_delta_pp": -35.9,
+        "chains_formed": 7
+      },
+      {
+        "fleet_size": 15,
+        "broker_density": 50,
+        "chains_on_margin_eur": 9547.04,
+        "chains_off_margin_eur": 3686.37,
+        "margin_delta_pct": 159.0,
+        "chains_on_deadhead_pct": 3.04,
+        "chains_off_deadhead_pct": 50.0,
+        "deadhead_delta_pp": -46.96,
+        "chains_formed": 14
+      },
+      {
+        "fleet_size": 15,
+        "broker_density": 75,
+        "chains_on_margin_eur": 10134.81,
+        "chains_off_margin_eur": 3875.7,
+        "margin_delta_pct": 161.5,
+        "chains_on_deadhead_pct": 3.07,
+        "chains_off_deadhead_pct": 50.0,
+        "deadhead_delta_pp": -46.93,
+        "chains_formed": 14
+      },
+      {
+        "fleet_size": 25,
+        "broker_density": 25,
+        "chains_on_margin_eur": 5075.14,
+        "chains_off_margin_eur": 2851.74,
+        "margin_delta_pct": 78.0,
+        "chains_on_deadhead_pct": 14.1,
+        "chains_off_deadhead_pct": 50.0,
+        "deadhead_delta_pp": -35.9,
+        "chains_formed": 7
+      },
+      {
+        "fleet_size": 25,
+        "broker_density": 50,
+        "chains_on_margin_eur": 10681.53,
+        "chains_off_margin_eur": 5046.81,
+        "margin_delta_pct": 111.6,
+        "chains_on_deadhead_pct": 4.54,
+        "chains_off_deadhead_pct": 50.0,
+        "deadhead_delta_pp": -45.46,
+        "chains_formed": 17
+      },
+      {
+        "fleet_size": 25,
+        "broker_density": 75,
+        "chains_on_margin_eur": 13427.39,
+        "chains_off_margin_eur": 5583.24,
+        "margin_delta_pct": 140.5,
+        "chains_on_deadhead_pct": 5.21,
+        "chains_off_deadhead_pct": 50.0,
+        "deadhead_delta_pp": -44.79,
+        "chains_formed": 22
+      }
+    ]
+  },
+  "provenance": {
+    "completed_at": "2026-05-17T10:03:50.779380+00:00",
+    "git_sha": "b0bc849",
+    "mode": "mock",
+    "model": null,
+    "seed_fleet_size": 25,
+    "seed_load_pool_size": 100
+  },
+  "cost_meter": {
+    "calls": 0,
+    "cache_hits": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "cost_eur": 0.0,
+    "latency_ms": 0,
+    "errors": 0
+  }
+}

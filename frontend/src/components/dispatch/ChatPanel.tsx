@@ -19,8 +19,8 @@ interface Props {
 
 const QUICK_SUGGESTIONS_EMPTY = [
   "Plan today's routes",
-  "Find loads for next week",
-  "Show what compliance saves us",
+  "Show me costs and km",
+  "What does compliance save us?",
 ];
 
 function FollowUpChips({
@@ -77,9 +77,9 @@ function PlanSummaryCard({
   const total = alt.plans.length;
   const activeVans = alt.plans.filter((p) => p.kind !== "IDLE");
   const followups: string[] = [];
+  followups.push("Show me costs and km");
   if (payload.options.include_broker !== false) followups.push("Skip broker freight");
-  if (payload.options.enable_chains !== false) followups.push("Try without chains");
-  followups.push("Replan for tomorrow");
+  followups.push("What does compliance save us?");
 
   return (
     <div className="mt-3 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
@@ -217,6 +217,109 @@ function IdlePayload({ turn }: { turn: ChatTurn }) {
   );
 }
 
+function StatsBlock({ turn }: { turn: ChatTurn }) {
+  if (!turn.payload || turn.payload.kind !== "stats") return null;
+  const s = turn.payload;
+  return (
+    <div className="mt-3 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      {/* Hero: total cost vs revenue vs margin */}
+      <div className="grid grid-cols-3 gap-px bg-border">
+        <div className="bg-card px-3 py-2.5">
+          <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Revenue
+          </div>
+          <div className="mt-0.5 text-base font-semibold tabular-nums">
+            €{Math.round(s.revenue_eur).toLocaleString()}
+          </div>
+        </div>
+        <div className="bg-card px-3 py-2.5">
+          <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Total cost
+          </div>
+          <div className="mt-0.5 text-base font-semibold tabular-nums text-warn">
+            €{Math.round(s.total_cost_eur).toLocaleString()}
+          </div>
+        </div>
+        <div className="bg-card px-3 py-2.5">
+          <div className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+            Margin
+          </div>
+          <div className="mt-0.5 text-base font-semibold tabular-nums text-good">
+            €{Math.round(s.margin_eur).toLocaleString()}
+          </div>
+        </div>
+      </div>
+
+      {/* Kilometres */}
+      <div className="border-t border-border px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Kilometres
+        </div>
+        <div className="mt-1.5 flex items-baseline justify-between text-xs">
+          <span className="text-foreground/80">Loaded (paid)</span>
+          <span className="font-semibold tabular-nums text-good">
+            {Math.round(s.loaded_km).toLocaleString()} km
+          </span>
+        </div>
+        <div className="flex items-baseline justify-between text-xs">
+          <span className="text-foreground/80">Empty (deadhead)</span>
+          <span className="font-semibold tabular-nums text-warn">
+            {Math.round(s.empty_km).toLocaleString()} km · {s.empty_pct.toFixed(0)}%
+          </span>
+        </div>
+        <div className="mt-1 flex items-baseline justify-between border-t border-border pt-1.5 text-xs">
+          <span className="font-medium text-foreground">Total</span>
+          <span className="font-semibold tabular-nums">
+            {Math.round(s.total_km).toLocaleString()} km
+          </span>
+        </div>
+        {/* Mini bar */}
+        <div className="mt-2 flex h-2 overflow-hidden rounded-full bg-surface-1">
+          <div
+            className="bg-good"
+            style={{
+              width: `${s.total_km > 0 ? (s.loaded_km / s.total_km) * 100 : 0}%`,
+            }}
+          />
+          <div
+            className="bg-warn"
+            style={{
+              width: `${s.total_km > 0 ? (s.empty_km / s.total_km) * 100 : 0}%`,
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Fuel */}
+      <div className="border-t border-border bg-surface-1 px-4 py-3">
+        <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          Fuel today
+        </div>
+        <div className="mt-1.5 grid grid-cols-3 gap-2 text-center">
+          <div>
+            <div className="text-[10px] text-muted-foreground">Diesel price</div>
+            <div className="text-sm font-semibold tabular-nums">
+              €{s.diesel_price_eur.toFixed(2)}/L
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] text-muted-foreground">Litres burned</div>
+            <div className="text-sm font-semibold tabular-nums">
+              {Math.round(s.fuel_litres).toLocaleString()} L
+            </div>
+          </div>
+          <div>
+            <div className="text-[10px] text-muted-foreground">Fuel cost</div>
+            <div className="text-sm font-semibold tabular-nums text-warn">
+              €{Math.round(s.fuel_cost_eur).toLocaleString()}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ClarifyPayload({
   turn,
   onPick,
@@ -338,6 +441,7 @@ export function ChatPanel({ turns, busy, onSend, onClear, onSelectAlt }: Props) 
                   />
                   <CompliancePayload turn={t} />
                   <IdlePayload turn={t} />
+                  <StatsBlock turn={t} />
                   <ClarifyPayload turn={t} onPick={(s) => send(s)} />
                 </div>
               )}

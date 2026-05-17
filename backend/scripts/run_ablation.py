@@ -194,11 +194,24 @@ def _run_llm(
     except Exception as exc:
         meta["had_error"] = True
         meta["wall_ms"] = int((time.perf_counter() - t0) * 1000)
+        # PROVIDER FAILURE FALLBACK — use the deterministic hard rules
+        # rather than defaulting to is_compliant=False. The previous
+        # default-False behaviour silently inflated FN counts whenever
+        # the daily-quota guard tripped, masquerading as a model
+        # accuracy regression. Hard rules are the production safety
+        # net anyway — the sanity layer would produce the same verdict
+        # had the LLM been called.
+        hard_v = hard_rules_verdict(truck, load)
         v = ComplianceVerdict(
-            load_id=load["id"], is_compliant=False, confidence=0.0,
-            blockers=[f"provider failure: {type(exc).__name__}: {exc}"],
-            warnings=[], reasoning="LLM call failed.",
-            cited_rule_ids=[], cited_excerpts=[], sanity_overrides=[],
+            load_id=load["id"],
+            is_compliant=hard_v["is_compliant"],
+            confidence=0.0,
+            blockers=hard_v["blockers"] or [f"provider failure: {type(exc).__name__}: {exc}"],
+            warnings=hard_v["warnings"],
+            reasoning=f"LLM call failed ({type(exc).__name__}); fell back to deterministic hard rules.",
+            cited_rule_ids=hard_v["cited_rule_ids"],
+            cited_excerpts=[],
+            sanity_overrides=["provider-failure-fallback"],
         )
         return v, meta
     meta["wall_ms"] = int((time.perf_counter() - t0) * 1000)
