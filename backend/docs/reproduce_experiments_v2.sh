@@ -45,6 +45,11 @@ echo "[v2] 3. pytest sanity tests"
 echo "[v2] 4. run all four experiments  ${USE_GEMINI:-(mock mode)}"
 "$PY" -m scripts.run_all_experiments $USE_GEMINI
 
+echo "[v2] 5. render charts (PNGs)"
+"$PY" -m scripts.build_v2_charts
+
 echo
-echo "[v2] Done. Outputs under docs/experiments_v2/:"
+echo "[v2] Done. Outputs under docs/experiments_v2/ + docs/figures/experiments_v2/:"
 ls -la docs/experiments_v2/ | grep -v "^total" | tail -n +2
+echo
+ls -la docs/figures/experiments_v2/ 2>/dev/null | grep -v "^total" | tail -n +2

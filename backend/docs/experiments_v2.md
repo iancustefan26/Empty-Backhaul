@@ -28,6 +28,13 @@ Outputs land under `backend/docs/experiments_v2/`:
 | `exp_t2.json`  | Strategist chains-on vs chains-off |
 | `run_summary.json` | per-experiment pass/fail, total token spend, wall clock |
 
+Figures land under `backend/docs/figures/experiments_v2/`. Re-render
+any time from the JSON outputs:
+
+```bash
+python -m scripts.build_v2_charts
+```
+
 Each script asserts a list of invariants and exits 1 on any failure
 (see Phase 4 — **Truthfulness gate** below).
 
@@ -114,6 +121,19 @@ By load source:
 | CJ-101-CRL | Iasi → Bucuresti | €1 446.61 | 11.8 h |
 | CJ-102-CRL | Iasi → Bucuresti | €1 446.61 | 11.8 h |
 | CJ-201-CRL | Iasi → Bucuresti | €1 446.61 | 11.8 h |
+
+![S2 — drive-time histogram](figures/experiments_v2/s2_drive_time_histogram.png)
+
+*Figure S2.1.* Distribution of estimated drive time across all
+2 500 (van × load) pairs. Bars to the right of the dashed line are
+blocked by the EU 561/2006 9 h cap. Most blocked pairs sit at 10 h+
+(very long cross-country trips like Iasi → Bucuresti via Cluj).
+
+![S2 — blocked-by-source](figures/experiments_v2/s2_blocked_by_source.png)
+
+*Figure S2.2.* Customer (20.0 %) loses a slightly higher fraction
+of its profitable pairs to the hours filter than broker (16.7 %),
+because contracted shippers tend to send longer-haul routes.
 
 **Conclusion.** The Sentry agent's hours filter buys *operational
 legality at no LLM cost*. 17.5 % of profitable-on-price pairs would
@@ -203,6 +223,22 @@ Reading the table:
 
 **Total live-Gemini cost: $0.296** (≈ €0.27) for the full ablation,
 including all V0/V1/V3/V4 runs.
+
+![A1 — per-variant accuracy](figures/experiments_v2/a1_accuracy_per_variant.png)
+
+*Figure A1.1.* Accuracy on the 146-case ground truth with 95 %
+Wilson confidence intervals. The vanilla LLM (V1) sits well below
+the publication floor; bolting on the sanity layer (V3) — even
+without the hardened prompt — drives accuracy to 100 %. V4 (full
+pipeline) matches V3 on this dataset.
+
+![A1 — per-category heatmap](figures/experiments_v2/a1_category_heatmap.png)
+
+*Figure A1.2.* Per-rule accuracy by variant. V1's weakness is
+concentrated in `clean_path`, `forbidden_prior_cargo`, and
+`wash_override` — exactly the rules where the deterministic
+predicate has the most nuance. The sanity layer (V3 / V4) recovers
+every category to 1.000.
 
 **Operational note — daily-quota guard trip and the new
 provider-failure fallback.** The first live run hit the
@@ -322,6 +358,22 @@ Pareto at fleet=15 (abundant pool):
 | 5 s | €8 592 | 25 ms | OPTIMAL |
 | 30 s | €8 592 | 25 ms | OPTIMAL |
 
+![T1 — margin by fleet size](figures/experiments_v2/t1_margin_by_fleet.png)
+
+*Figure T1.1.* CP-SAT (green) versus FCFS greedy (orange) margin at
+each fleet size, abundant vs scarce. The two bars are
+indistinguishable in most cells — bipartite matching with
+heterogeneous van capabilities is just easy. The marginal lift
+peaks at +1.4 % (fleet=15, abundant).
+
+![T1 — Pareto runtime vs margin](figures/experiments_v2/t1_pareto.png)
+
+*Figure T1.2.* Sweeping the CP-SAT time-limit from 0.1 s to 30 s
+returns identical margin in identical runtime — the OPTIMAL solve
+takes ~25 ms; the time limit is non-binding. The Strategist's
+proof-of-optimality guarantee is free at the price of < 50 ms per
+solve.
+
 **Conclusion.** CP-SAT is at least as good as the realistic SMB
 greedy baseline at every fleet size in both regimes. The marginal
 lift on this heterogeneous-capability seed is small (≤ 1.4 %)
@@ -393,6 +445,28 @@ invariant in `_assert_invariants`).
 | fleet=10 | +114 % / −38.9 pp | +156 % / −45.4 pp | +158 % / −45.1 pp |
 | fleet=15 | +82 % / −35.9 pp | +159 % / −47.0 pp | +162 % / −46.9 pp |
 | fleet=25 | +78 % / −35.9 pp | +112 % / −45.5 pp | +140 % / −44.8 pp |
+
+![T2 — headline bars](figures/experiments_v2/t2_headline_bars.png)
+
+*Figure T2.1.* Headline run at fleet=25, full 75-load broker pool.
+Chains-on more than doubles the total fleet margin while collapsing
+deadhead from 50 % to ~5 % — every loaded leg is paired with another
+loaded leg.
+
+![T2 — sensitivity heatmap](figures/experiments_v2/t2_sensitivity_heatmap.png)
+
+*Figure T2.2.* Margin lift (left) and deadhead change (right)
+across the 3 × 3 fleet × broker-density sensitivity grid. Even
+at the thinnest broker market (25 loads), chains lift margin
+≥ 78 % and cut deadhead ≥ 36 pp — the benefit is robust, not an
+artefact of broker surplus.
+
+![T2 — per-chain quality](figures/experiments_v2/t2_chain_fillfactor.png)
+
+*Figure T2.3.* The 22 chains formed in the headline run, plotted
+as (total_km, margin). Colour = fill_factor (loaded_km ÷ total_km);
+every chain reaches 1.00 — both legs paid, zero deadhead. The
+strict chain generator never admits a low-fill leg.
 
 **Conclusion.** Chains are the *headline contribution* of the
 Strategist agent. Even at the thinnest broker market (25 loads),
