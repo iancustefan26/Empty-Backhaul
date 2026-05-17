@@ -1,233 +1,262 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+/**
+ * Cluj Reefer Logistics — Dispatcher Console.
+ * One screen, two halves: a Romania map on the left, a chat assistant
+ * on the right. Every interaction starts with natural language; the
+ * assistant replies with a short sentence + an inline summary card.
+ */
+import { Truck } from "lucide-react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
-import { fetchLoads, fetchTrucks, runFleetMatch, runMatch } from "./api";
-import { FleetView } from "./components/FleetView";
-import { Map } from "./components/Map";
-import { ReasoningFeed } from "./components/ReasoningFeed";
-import { FleetMatchResponse, MatchState } from "./types";
+import { ChatPanel } from "./components/dispatch/ChatPanel";
+import {
+  complianceSnapshot,
+  explainIdleHeuristic,
+  fetchPlan,
+  type FetchPlanOptions,
+} from "./lib/api-adapter";
+import {
+  clearHistory as clearStoredHistory,
+  loadHistory,
+  makeTurn,
+  saveHistory,
+} from "./lib/chat-store";
+import { classify } from "./lib/nl-router";
+import type { ChatPayload, ChatTurn, PlanResponse } from "./lib/dispatch-types";
 
-type Mode = "single" | "fleet";
+// Leaflet only on the client — keep it out of the initial bundle.
+const DispatchMap = lazy(() =>
+  import("./components/dispatch/DispatchMap").then((m) => ({ default: m.DispatchMap })),
+);
+
+const DEFAULT_DEPOT = { city: "Cluj-Napoca", lat: 46.7712, lon: 23.6236 };
 
 export function App() {
-  const trucksQ = useQuery({ queryKey: ["trucks"], queryFn: fetchTrucks });
-  const loadsQ = useQuery({ queryKey: ["loads"], queryFn: fetchLoads });
+  const [turns, setTurns] = useState<ChatTurn[]>([]);
+  const [busy, setBusy] = useState(false);
+  const [activePlan, setActivePlan] = useState<PlanResponse | null>(null);
+  const [activeRank, setActiveRank] = useState<number>(1);
+  const [mockLLM, setMockLLM] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [mode, setMode] = useState<Mode>("single");
+  // Restore from localStorage on first mount.
+  useEffect(() => {
+    const stored = loadHistory();
+    setTurns(stored);
+    for (let i = stored.length - 1; i >= 0; i--) {
+      const p = stored[i].payload;
+      if (p && p.kind === "plan") {
+        setActivePlan(p.plan);
+        setActiveRank(p.activeRank ?? 1);
+        break;
+      }
+    }
+  }, []);
 
-  // Single-truck state
-  const [selectedTruckId, setSelectedTruckId] = useState<number | null>(null);
-  const [matchState, setMatchState] = useState<MatchState | null>(null);
-  const [useMockLlm, setUseMockLlm] = useState(true);
+  // Persist on every change.
+  useEffect(() => {
+    saveHistory(turns);
+  }, [turns]);
 
-  const matchM = useMutation({
-    mutationFn: ({ id, mock }: { id: number; mock: boolean }) =>
-      runMatch(id, mock),
-    onSuccess: (data) => setMatchState(data),
-  });
+  function pushTurn(
+    role: "user" | "assistant",
+    content: string,
+    payload: ChatPayload | null = null,
+  ) {
+    const turn = makeTurn(role, content, payload);
+    setTurns((t) => [...t, turn]);
+  }
 
-  // Fleet state
-  const [fleetData, setFleetData] = useState<FleetMatchResponse | null>(null);
-  const [fleetRank, setFleetRank] = useState<number>(1);
-  const [includeBroker, setIncludeBroker] = useState(true);
+  async function handleSend(text: string) {
+    pushTurn("user", text);
+    setBusy(true);
+    setError(null);
+    try {
+      const intent = classify(text);
+      // Tiny artificial pause so single-call mock plans don't feel teleported.
+      await new Promise((r) => setTimeout(r, 200));
 
-  const fleetM = useMutation({
-    mutationFn: () =>
-      runFleetMatch({ topK: 3, includeBroker, mockLlm: true }),
-    onSuccess: (data) => {
-      setFleetData(data);
-      setFleetRank(1);
-    },
-  });
+      switch (intent.kind) {
+        case "plan": {
+          const opts: FetchPlanOptions = { ...intent.options, mockLlm: mockLLM };
+          const plan = await fetchPlan(opts);
+          const alt = plan.optimiser.alternatives[0];
+          if (!alt) {
+            pushTurn(
+              "assistant",
+              "The optimiser couldn't find a profitable plan with these constraints.",
+            );
+            break;
+          }
+          setActivePlan(plan);
+          setActiveRank(1);
+          const slaWarn = alt.unserved_customer_load_ids.length
+            ? ` ⚠ ${alt.unserved_customer_load_ids.length} customer load${alt.unserved_customer_load_ids.length > 1 ? "s" : ""} could not be served — review SLA.`
+            : "";
+          const chainNote = alt.chain_trips_count
+            ? ` ${alt.chain_trips_count} van${alt.chain_trips_count > 1 ? "s are" : " is"} doing a chain backhaul — both legs paid, low empty km.`
+            : "";
+          const skipNote = intent.options.skip_cargo?.length
+            ? ` (Skipping ${intent.options.skip_cargo.join(", ")} loads is a UX-only filter for now — backend wiring is on the way.)`
+            : "";
+          const horizonNote = intent.options.horizon_days
+            ? ` (For now I planned today only — multi-day horizon will fan out across ${intent.options.horizon_days} days once the backend supports it.)`
+            : "";
+          const summary = `Planned ${alt.plans.length - alt.idle_count} of ${alt.plans.length} vans for ${intent.humanLabel}. Total profit €${alt.total_fleet_margin_eur.toLocaleString()}, ${Math.round(alt.deadhead_ratio * 100)}% deadhead, ${alt.customer_loads_served}/${alt.customer_loads_available} customer loads served.${chainNote}${slaWarn}${skipNote}${horizonNote}`;
+          pushTurn("assistant", summary, {
+            kind: "plan",
+            plan,
+            options: intent.options,
+            activeRank: 1,
+          });
+          break;
+        }
+        case "alternative": {
+          if (!activePlan) {
+            pushTurn(
+              "assistant",
+              "I don't have an active plan yet. Try 'Plan today's routes' first.",
+            );
+            break;
+          }
+          const alt = activePlan.optimiser.alternatives.find(
+            (a) => a.rank === intent.rank,
+          );
+          if (!alt) {
+            pushTurn(
+              "assistant",
+              `Plan ${intent.rank} doesn't exist — there are only ${activePlan.optimiser.alternatives.length} alternatives.`,
+            );
+            break;
+          }
+          setActiveRank(intent.rank);
+          pushTurn(
+            "assistant",
+            `Switched to Plan ${intent.rank}: profit €${alt.total_fleet_margin_eur.toLocaleString()}, ${Math.round(alt.deadhead_ratio * 100)}% deadhead.`,
+            { kind: "plan", plan: activePlan, options: {}, activeRank: intent.rank },
+          );
+          break;
+        }
+        case "idle_explain": {
+          const reasons = explainIdleHeuristic(intent.van, activePlan);
+          pushTurn("assistant", `Here's why ${intent.van} is idle:`, {
+            kind: "idle_explain",
+            van_plate: intent.van,
+            reasons,
+          });
+          break;
+        }
+        case "compliance": {
+          const c = complianceSnapshot();
+          pushTurn(
+            "assistant",
+            `If we ignored compliance, we'd save dispatch time but risk €${c.saved_eur.toLocaleString()} in fines this week. Here's the breakdown:`,
+            { kind: "compliance", saved_eur: c.saved_eur, violations: c.violations },
+          );
+          break;
+        }
+        case "clarify": {
+          pushTurn("assistant", intent.question, {
+            kind: "clarify",
+            suggestions: intent.suggestions,
+          });
+          break;
+        }
+        case "smalltalk": {
+          pushTurn("assistant", intent.reply);
+          break;
+        }
+      }
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      setError(msg);
+      pushTurn("assistant", `Backend error: ${msg}`);
+    } finally {
+      setBusy(false);
+    }
+  }
 
-  const onSelectTruck = (id: number) => {
-    if (mode !== "single") return;
-    setSelectedTruckId(id);
-    setMatchState(null);
-    matchM.mutate({ id, mock: useMockLlm });
-  };
+  function handleClear() {
+    clearStoredHistory();
+    setTurns([]);
+    setActivePlan(null);
+  }
 
-  const trucks = trucksQ.data?.features ?? [];
-  const loads = loadsQ.data?.features ?? [];
-  const chosenLoadId = matchState?.decision?.chosen_load_id ?? null;
-  const fleetPlan =
-    mode === "fleet" && fleetData
-      ? fleetData.optimiser.alternatives.find((p) => p.rank === fleetRank) ?? null
-      : null;
+  const activeAlt =
+    activePlan?.optimiser.alternatives.find((a) => a.rank === activeRank) ??
+    activePlan?.optimiser.alternatives[0] ??
+    null;
+
+  const depot = activePlan?.depot ?? DEFAULT_DEPOT;
 
   return (
-    <div className="flex h-screen w-screen flex-col">
-      <header className="flex items-center justify-between border-b border-slate-700 bg-slate-900/95 px-4 py-2">
+    <div className="flex h-screen flex-col bg-background text-foreground">
+      {/* Header */}
+      <header className="flex shrink-0 items-center justify-between border-b border-border bg-card px-4 py-2.5">
         <div className="flex items-center gap-3">
-          <span className="text-xl">🚚</span>
+          <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground">
+            <Truck size={18} />
+          </div>
           <div>
-            <div className="text-sm font-semibold text-slate-100">
-              Agentic Cold Backhaul Optimizer
-            </div>
-            <div className="text-xs text-slate-400">
-              Romania · Sentry → Analyst → Strategist · LangGraph + Chroma RAG
-              + OR-Tools
-            </div>
+            <h1 className="text-base font-semibold tracking-tight">
+              Cluj Reefer Logistics
+            </h1>
+            <p className="text-xs text-muted-foreground">
+              Cluj-Napoca depot
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-300">
-          <ModeTabs mode={mode} onChange={setMode} />
-          <span>
-            {trucks.length} trucks · {loads.length} loads
-          </span>
-          {mode === "single" && (
-            <label className="flex items-center gap-1">
-              <input
-                type="checkbox"
-                checked={useMockLlm}
-                onChange={(e) => setUseMockLlm(e.target.checked)}
-                className="accent-cyan-400"
-              />
-              mock LLM
-            </label>
-          )}
-          {mode === "fleet" && (
-            <>
-              <label className="flex items-center gap-1">
-                <input
-                  type="checkbox"
-                  checked={includeBroker}
-                  onChange={(e) => setIncludeBroker(e.target.checked)}
-                  className="accent-cyan-400"
-                />
-                include broker
-              </label>
-              <button
-                className="rounded border border-cyan-700 bg-cyan-900/40 px-2 py-1 text-cyan-100 hover:bg-cyan-800/60 disabled:opacity-50"
-                disabled={fleetM.isPending}
-                onClick={() => fleetM.mutate()}
-              >
-                {fleetM.isPending ? "Optimising…" : "Run fleet match"}
-              </button>
-            </>
-          )}
-        </div>
+        {/* Mock-LLM toggle as a subtle pill — only the dispatcher who
+            cares will notice. Settings gear removed for now. */}
+        <label className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground select-none hover:border-primary/40">
+          <input
+            type="checkbox"
+            checked={mockLLM}
+            onChange={(e) => setMockLLM(e.target.checked)}
+            className="h-3.5 w-3.5 accent-primary"
+          />
+          Use mock data (faster)
+        </label>
       </header>
 
-      <main className="grid flex-1 grid-cols-12 overflow-hidden">
-        <section className="col-span-7 relative">
-          {trucksQ.isError && (
-            <BackendBanner message={(trucksQ.error as Error).message} />
+      {/* Body */}
+      <div className="flex min-h-0 flex-1 flex-col md:flex-row">
+        {/* Map */}
+        <div className="relative h-1/2 min-h-0 flex-1 md:h-auto md:w-[60%]">
+          <Suspense
+            fallback={
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
+                Loading map…
+              </div>
+            }
+          >
+            <DispatchMap
+              fleet={activePlan?.fleet ?? []}
+              loads={activePlan?.available_loads ?? []}
+              plan={activeAlt}
+              depot={depot}
+            />
+          </Suspense>
+          {error && (
+            <div className="absolute left-1/2 top-3 z-[1000] -translate-x-1/2 rounded-md border border-destructive bg-card px-3 py-2 text-xs text-destructive shadow-lg">
+              <div className="font-semibold">Backend error</div>
+              <div className="text-foreground/80">{error}</div>
+            </div>
           )}
-          <Map
-            trucks={trucks}
-            loads={loads}
-            selectedTruckId={selectedTruckId}
-            chosenLoadId={chosenLoadId}
-            onSelectTruck={onSelectTruck}
-            fleetPlan={fleetPlan}
+        </div>
+
+        {/* Right panel — chat only. The chat's own plan card carries
+            the per-van details, so we no longer need a second panel. */}
+        <aside className="flex h-1/2 min-h-0 flex-col border-l border-border bg-card md:h-auto md:w-[40%]">
+          <ChatPanel
+            turns={turns}
+            busy={busy}
+            onSend={handleSend}
+            onClear={handleClear}
+            onSelectAlt={(r) => setActiveRank(r)}
+            activePlan={activePlan}
           />
-          <Legend />
-        </section>
-        <aside className="col-span-5 overflow-y-auto border-l border-slate-700 bg-slate-900">
-          {mode === "single" ? (
-            <ReasoningFeed
-              state={matchState}
-              loading={matchM.isPending}
-              error={matchM.isError ? (matchM.error as Error).message : null}
-            />
-          ) : (
-            <FleetView
-              data={fleetData}
-              loading={fleetM.isPending}
-              error={fleetM.isError ? (fleetM.error as Error).message : null}
-              selectedRank={fleetRank}
-              onSelectRank={setFleetRank}
-            />
-          )}
         </aside>
-      </main>
-    </div>
-  );
-}
-
-function ModeTabs({
-  mode,
-  onChange,
-}: {
-  mode: Mode;
-  onChange: (m: Mode) => void;
-}) {
-  return (
-    <div className="flex overflow-hidden rounded border border-slate-700">
-      {(["single", "fleet"] as Mode[]).map((m) => (
-        <button
-          key={m}
-          onClick={() => onChange(m)}
-          className={
-            "px-2 py-1 text-xs " +
-            (mode === m
-              ? "bg-cyan-900/60 text-cyan-100"
-              : "bg-slate-800 text-slate-400 hover:text-slate-200")
-          }
-        >
-          {m === "single" ? "Single truck" : "Fleet"}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function BackendBanner({ message }: { message: string }) {
-  return (
-    <div className="absolute left-1/2 top-3 z-[1000] -translate-x-1/2 rounded-md border border-red-700 bg-red-950/90 px-3 py-2 text-xs text-red-200 shadow-lg">
-      <div className="font-semibold">Backend unreachable</div>
-      <div>{message}</div>
-      <div className="mt-1 text-red-300/80">
-        Run <code>uvicorn app.main:app --reload</code> from <code>/backend</code>.
       </div>
     </div>
-  );
-}
-
-function Legend() {
-  return (
-    <div className="absolute bottom-3 left-3 z-[400] space-y-1 rounded-md border border-slate-700 bg-slate-900/85 px-3 py-2 text-[11px] text-slate-300 shadow-lg">
-      <div className="font-semibold text-slate-100">Legend</div>
-      <div className="flex items-center gap-2">
-        <Dot color="#22c55e" /> empty
-        <Dot color="#eab308" className="ml-2" /> loaded
-        <Dot color="#3b82f6" className="ml-2" /> returning
-      </div>
-      <div className="flex items-center gap-2">
-        <Square color="#dc2626" /> pharma
-        <Square color="#84cc16" className="ml-2" /> dairy/produce
-        <Square color="#0891b2" className="ml-2" /> frozen
-        <Square color="#991b1b" className="ml-2" /> raw meat
-      </div>
-      <div className="flex items-center gap-2">
-        <Square color="#ea580c" /> chemicals
-        <Square color="#6b7280" className="ml-2" /> ambient
-      </div>
-    </div>
-  );
-}
-
-function Dot({ color, className = "" }: { color: string; className?: string }) {
-  return (
-    <span
-      className={"inline-block h-3 w-3 rounded-full border border-white " + className}
-      style={{ background: color }}
-    />
-  );
-}
-
-function Square({
-  color,
-  className = "",
-}: {
-  color: string;
-  className?: string;
-}) {
-  return (
-    <span
-      className={"inline-block h-3 w-3 rounded-sm border border-white " + className}
-      style={{ background: color }}
-    />
   );
 }

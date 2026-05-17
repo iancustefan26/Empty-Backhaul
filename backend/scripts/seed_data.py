@@ -45,78 +45,124 @@ def _pt(city_name: str) -> WKTElement:
 
 
 # ---------------------------------------------------------------------------
-# 10 trucks ending deliveries in CJ / TM / IS / CT / SB, returning to B / OR.
+# 10 vans of a single Cluj-Napoca-based refrigerated transport company.
+# Every van starts and must end the day back at the Cluj-Napoca depot.
+# Capabilities, last_cargo, wash certs are deliberately varied so the
+# compliance + multi-leg-chain optimiser has interesting decisions to make.
 # ---------------------------------------------------------------------------
+DEPOT_CITY = "Cluj-Napoca"
+CARRIER = "Cluj Reefer Logistics"
+
+
 def truck_fixtures() -> list[dict[str, Any]]:
     return [
-        # --- Cluj-Napoca → Bucuresti --------------------------------------
+        # --- Two pharma 2-8°C vans (the company's most premium asset) -----
         dict(
-            plate_number="B-101-CBO", carrier_name="Carpatica Logistics",
-            current_city="Cluj-Napoca", home_base_city="Bucuresti",
+            plate_number="CJ-101-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="pharma_2_8", last_cargo="pharma",
+            has_pharma_logger=True, remaining_driving_hours=9.0, status="empty",
+        ),
+        dict(
+            plate_number="CJ-102-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="pharma_2_8", last_cargo="pharma",
+            has_pharma_logger=True, remaining_driving_hours=9.0, status="empty",
+        ),
+        # --- Three chilled vans (dairy, produce, raw meat split) ----------
+        dict(
+            plate_number="CJ-201-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
             temp_capability="chilled", last_cargo="dairy",
-            has_pharma_logger=False, remaining_driving_hours=8.0, status="empty",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
         dict(
-            plate_number="B-202-CBO", carrier_name="Pharma Express RO",
-            current_city="Cluj-Napoca", home_base_city="Bucuresti",
-            temp_capability="pharma_2_8", last_cargo="pharma",
-            has_pharma_logger=True, remaining_driving_hours=7.5, status="empty",
-        ),
-        # --- Timisoara → Oradea -------------------------------------------
-        dict(
-            plate_number="OR-303-CBO", carrier_name="Banat Frig",
-            current_city="Timisoara", home_base_city="Oradea",
-            temp_capability="frozen", last_cargo="frozen",
-            has_pharma_logger=False, remaining_driving_hours=6.0, status="empty",
-        ),
-        dict(
-            plate_number="OR-404-CBO", carrier_name="Multitemp Vest",
-            current_city="Timisoara", home_base_city="Oradea",
-            temp_capability="multi_temp", last_cargo="raw_meat",
-            has_pharma_logger=False, remaining_driving_hours=5.5, status="empty",
-        ),
-        # --- Iasi → Bucuresti ---------------------------------------------
-        dict(
-            plate_number="B-505-CBO", carrier_name="Moldova Cold Chain",
-            current_city="Iasi", home_base_city="Bucuresti",
+            plate_number="CJ-202-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
             temp_capability="chilled", last_cargo="produce",
-            has_pharma_logger=False, remaining_driving_hours=7.0, status="empty",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
         dict(
-            plate_number="B-606-CBO", carrier_name="Pharma Express RO",
-            current_city="Iasi", home_base_city="Bucuresti",
-            temp_capability="pharma_2_8", last_cargo="pharma",
-            has_pharma_logger=True, remaining_driving_hours=4.5, status="loaded",
+            # last_cargo=raw_meat WITHOUT wash cert -> Analyst will reject
+            # non-meat food-grade loads on this van today.
+            plate_number="CJ-203-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="chilled", last_cargo="raw_meat",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
-        # --- Constanta → Bucuresti ----------------------------------------
+        # --- Two multi-temp vans (most flexible, most expensive to run) ---
         dict(
-            plate_number="B-707-CBO", carrier_name="Pontica Frigo",
-            current_city="Constanta", home_base_city="Bucuresti",
-            temp_capability="frozen", last_cargo="frozen",
-            has_pharma_logger=False, remaining_driving_hours=8.5, status="empty",
+            # raw_meat with valid ANSVSA wash → dairy/produce unblocked.
+            plate_number="CJ-301-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="multi_temp", last_cargo="raw_meat",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
         dict(
-            plate_number="B-808-CBO", carrier_name="Pontica Frigo",
-            current_city="Constanta", home_base_city="Bucuresti",
+            plate_number="CJ-302-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
             temp_capability="multi_temp", last_cargo="clean",
             has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
-        # --- Sibiu → Bucuresti / Oradea -----------------------------------
+        # --- Two frozen vans (long routes to / from Bucharest, ports) -----
         dict(
-            # last_cargo=raw_meat WITHOUT wash cert -> Analyst should reject
-            # any non-meat food-grade load until sanitisation is performed.
-            plate_number="B-909-CBO", carrier_name="Transilvania Reefer",
-            current_city="Sibiu", home_base_city="Bucuresti",
-            temp_capability="chilled", last_cargo="raw_meat",
-            has_pharma_logger=False, remaining_driving_hours=6.5, status="empty",
+            plate_number="CJ-401-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="frozen", last_cargo="frozen",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
         dict(
-            plate_number="OR-010-CBO", carrier_name="Crisana Logistic",  # noqa: E501
-            # status was 'returning' originally; flipped to 'empty' so the
-            # chemicals-quarantine HACCP path is reachable in evals/demos.
-            current_city="Sibiu", home_base_city="Oradea",
+            plate_number="CJ-402-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="frozen", last_cargo="frozen",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
+        ),
+        # --- One ambient/chemicals van (intentionally compliance-blocked) ---
+        dict(
+            # last_cargo=chemicals + ambient-only cap → HACCP locks out all
+            # food-grade work today, leaving only chemicals→chemicals.
+            plate_number="CJ-901-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
             temp_capability="ambient", last_cargo="chemicals",
-            has_pharma_logger=False, remaining_driving_hours=4.0, status="empty",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
+        ),
+        # --- Fleet expansion: 5 additional vans -------------------------
+        # The carrier grows; thesis-grade dataset wants fleet at the upper
+        # end of the user's "10-15 vans" target. Profiles deliberately
+        # varied so the optimiser still has interesting decisions to make
+        # (extra pharma capacity, extra chilled with no recent meat history,
+        # extra multi_temp / frozen, plus a "clean" ambient van that can
+        # actually take food-grade ambient_dry loads — the existing CJ-901
+        # is locked out by chemicals quarantine).
+        dict(
+            plate_number="CJ-103-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="pharma_2_8", last_cargo="pharma",
+            has_pharma_logger=True, remaining_driving_hours=9.0, status="empty",
+        ),
+        dict(
+            plate_number="CJ-204-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="chilled", last_cargo="clean",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
+        ),
+        dict(
+            plate_number="CJ-303-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="multi_temp", last_cargo="dairy",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
+        ),
+        dict(
+            plate_number="CJ-403-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="frozen", last_cargo="clean",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
+        ),
+        dict(
+            plate_number="CJ-902-CRL", carrier_name=CARRIER,
+            current_city=DEPOT_CITY, home_base_city=DEPOT_CITY,
+            temp_capability="ambient", last_cargo="clean",
+            has_pharma_logger=False, remaining_driving_hours=9.0, status="empty",
         ),
     ]
 
@@ -492,6 +538,250 @@ def broker_load_fixtures() -> list[dict[str, Any]]:
             pickup_city="Cluj-Napoca", delivery_city="Brasov",
             window=window(4, 4), weight_kg=1800, price_eur=820,
         ),
+        # ---- Expansion pack B16-B40 ----
+        # 25 more broker loads to give the bigger fleet (15 vans) more
+        # matching surface. Heavier emphasis on Cluj-region routes
+        # (≤ ~250 km radius) so the depot model has profitable round
+        # trips, plus a few cross-country pairs to stress the chain
+        # pre-filter and the EU 561/2006 hours-feasibility gate.
+        # Prices scaled by route distance and cargo type so the
+        # optimiser still has a clear margin ranking.
+        # B16. Pharma Cluj -> Sibiu (short premium backhaul)
+        dict(
+            shipper_name="Spot Freight #B-016",
+            cargo_type="pharma", cargo_description="Reactivi laborator",
+            temp_min_celsius=2.0, temp_max_celsius=8.0,
+            requires_pharma_logger=True,
+            forbidden_prior_cargo="chemicals,raw_meat,raw_poultry",
+            pickup_city="Cluj-Napoca", delivery_city="Sibiu",
+            window=window(3, 5), weight_kg=2200, price_eur=620,
+        ),
+        # B17. Dairy Sibiu -> Cluj (perfect Cluj backhaul)
+        dict(
+            shipper_name="Spot Freight #B-017",
+            cargo_type="dairy", cargo_description="Iaurt artizanal",
+            temp_min_celsius=2.0, temp_max_celsius=7.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Sibiu", delivery_city="Cluj-Napoca",
+            window=window(6, 8), weight_kg=4500, price_eur=380,
+        ),
+        # B18. Produce Oradea -> Cluj (short return)
+        dict(
+            shipper_name="Spot Freight #B-018",
+            cargo_type="produce", cargo_description="Mere ardelenesti",
+            temp_min_celsius=4.0, temp_max_celsius=10.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Oradea", delivery_city="Cluj-Napoca",
+            window=window(5, 8), weight_kg=6000, price_eur=320,
+        ),
+        # B19. Frozen veg Cluj -> Sibiu (chain seed for frozen vans)
+        dict(
+            shipper_name="Spot Freight #B-019",
+            cargo_type="frozen_vegetables", cargo_description="Mazare congelata",
+            temp_min_celsius=-25.0, temp_max_celsius=-18.0,
+            requires_pharma_logger=False, forbidden_prior_cargo=None,
+            pickup_city="Cluj-Napoca", delivery_city="Sibiu",
+            window=window(4, 6), weight_kg=8500, price_eur=440,
+        ),
+        # B20. Frozen veg Sibiu -> Cluj (return chain)
+        dict(
+            shipper_name="Spot Freight #B-020",
+            cargo_type="frozen_vegetables", cargo_description="Spanac IQF",
+            temp_min_celsius=-25.0, temp_max_celsius=-18.0,
+            requires_pharma_logger=False, forbidden_prior_cargo=None,
+            pickup_city="Sibiu", delivery_city="Cluj-Napoca",
+            window=window(7, 6), weight_kg=7800, price_eur=410,
+        ),
+        # B21. Raw meat Cluj -> Brasov
+        dict(
+            shipper_name="Spot Freight #B-021",
+            cargo_type="raw_meat", cargo_description="Carcase porc spot",
+            temp_min_celsius=0.0, temp_max_celsius=4.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Cluj-Napoca", delivery_city="Brasov",
+            window=window(5, 6), weight_kg=10000, price_eur=520,
+        ),
+        # B22. Ambient_dry Cluj -> Oradea (gives ambient van profitable trip)
+        dict(
+            shipper_name="Spot Freight #B-022",
+            cargo_type="ambient_dry", cargo_description="Carton retail",
+            temp_min_celsius=5.0, temp_max_celsius=25.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Cluj-Napoca", delivery_city="Oradea",
+            window=window(4, 10), weight_kg=12000, price_eur=380,
+        ),
+        # B23. Ambient_dry Oradea -> Cluj (chain home for ambient)
+        dict(
+            shipper_name="Spot Freight #B-023",
+            cargo_type="ambient_dry", cargo_description="Apa minerala palet",
+            temp_min_celsius=5.0, temp_max_celsius=25.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Oradea", delivery_city="Cluj-Napoca",
+            window=window(8, 8), weight_kg=14000, price_eur=350,
+        ),
+        # B24. Dairy Cluj -> Sibiu (short chilled run)
+        dict(
+            shipper_name="Spot Freight #B-024",
+            cargo_type="dairy", cargo_description="Smantana fermentata",
+            temp_min_celsius=2.0, temp_max_celsius=7.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Cluj-Napoca", delivery_city="Sibiu",
+            window=window(5, 6), weight_kg=5500, price_eur=410,
+        ),
+        # B25. Produce Brasov -> Cluj (return)
+        dict(
+            shipper_name="Spot Freight #B-025",
+            cargo_type="produce", cargo_description="Cartofi sortati",
+            temp_min_celsius=4.0, temp_max_celsius=12.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Brasov", delivery_city="Cluj-Napoca",
+            window=window(7, 8), weight_kg=8500, price_eur=460,
+        ),
+        # B26. Pharma Brasov -> Cluj (premium chain leg back)
+        dict(
+            shipper_name="Spot Freight #B-026",
+            cargo_type="pharma", cargo_description="Insulina rece",
+            temp_min_celsius=2.0, temp_max_celsius=8.0,
+            requires_pharma_logger=True,
+            forbidden_prior_cargo="chemicals,raw_meat,raw_poultry",
+            pickup_city="Brasov", delivery_city="Cluj-Napoca",
+            window=window(5, 5), weight_kg=2400, price_eur=920,
+        ),
+        # B27. Frozen fish Constanta -> Cluj (long-haul; tests hours feasibility)
+        dict(
+            shipper_name="Spot Freight #B-027",
+            cargo_type="frozen_fish", cargo_description="Pescuit oceanic",
+            temp_min_celsius=-22.0, temp_max_celsius=-18.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Constanta", delivery_city="Cluj-Napoca",
+            window=window(3, 12), weight_kg=10500, price_eur=1080,
+        ),
+        # B28. Raw poultry Cluj -> Sibiu
+        dict(
+            shipper_name="Spot Freight #B-028",
+            cargo_type="raw_poultry", cargo_description="Pui dezosat",
+            temp_min_celsius=0.0, temp_max_celsius=4.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Cluj-Napoca", delivery_city="Sibiu",
+            window=window(4, 5), weight_kg=6000, price_eur=350,
+        ),
+        # B29. Dairy Cluj -> Pitesti (medium chilled run)
+        dict(
+            shipper_name="Spot Freight #B-029",
+            cargo_type="dairy", cargo_description="Branzeturi maturate",
+            temp_min_celsius=2.0, temp_max_celsius=7.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Cluj-Napoca", delivery_city="Pitesti",
+            window=window(5, 8), weight_kg=7500, price_eur=540,
+        ),
+        # B30. Produce Pitesti -> Cluj (chain return)
+        dict(
+            shipper_name="Spot Freight #B-030",
+            cargo_type="produce", cargo_description="Legume mixte",
+            temp_min_celsius=4.0, temp_max_celsius=10.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Pitesti", delivery_city="Cluj-Napoca",
+            window=window(8, 8), weight_kg=8000, price_eur=520,
+        ),
+        # B31. Frozen veg Bucuresti -> Cluj (long-haul backhaul)
+        dict(
+            shipper_name="Spot Freight #B-031",
+            cargo_type="frozen_vegetables", cargo_description="IQF mixt",
+            temp_min_celsius=-25.0, temp_max_celsius=-18.0,
+            requires_pharma_logger=False, forbidden_prior_cargo=None,
+            pickup_city="Bucuresti", delivery_city="Cluj-Napoca",
+            window=window(4, 10), weight_kg=14000, price_eur=780,
+        ),
+        # B32. Ambient_dry Cluj -> Brasov
+        dict(
+            shipper_name="Spot Freight #B-032",
+            cargo_type="ambient_dry", cargo_description="Mobilier flat-pack",
+            temp_min_celsius=5.0, temp_max_celsius=25.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Cluj-Napoca", delivery_city="Brasov",
+            window=window(5, 9), weight_kg=11000, price_eur=420,
+        ),
+        # B33. Raw meat Sibiu -> Cluj (chain back for chilled meat van)
+        dict(
+            shipper_name="Spot Freight #B-033",
+            cargo_type="raw_meat", cargo_description="Carcase vita",
+            temp_min_celsius=0.0, temp_max_celsius=4.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Sibiu", delivery_city="Cluj-Napoca",
+            window=window(8, 6), weight_kg=9000, price_eur=440,
+        ),
+        # B34. Chemicals Cluj -> Oradea (industrial spot, only for chemicals vans)
+        dict(
+            shipper_name="Spot Freight #B-034",
+            cargo_type="chemicals", cargo_description="Detergent industrial",
+            temp_min_celsius=5.0, temp_max_celsius=30.0,
+            requires_pharma_logger=False, forbidden_prior_cargo=None,
+            pickup_city="Cluj-Napoca", delivery_city="Oradea",
+            window=window(6, 10), weight_kg=12000, price_eur=380,
+        ),
+        # B35. Frozen fish Galati -> Cluj (very long, hours-infeasible test)
+        dict(
+            shipper_name="Spot Freight #B-035",
+            cargo_type="frozen_fish", cargo_description="Macrou congelat",
+            temp_min_celsius=-22.0, temp_max_celsius=-18.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Galati", delivery_city="Cluj-Napoca",
+            window=window(2, 14), weight_kg=11000, price_eur=1180,
+        ),
+        # B36. Pharma Sibiu -> Cluj (short premium return)
+        dict(
+            shipper_name="Spot Freight #B-036",
+            cargo_type="pharma", cargo_description="Vaccin urgent",
+            temp_min_celsius=2.0, temp_max_celsius=8.0,
+            requires_pharma_logger=True,
+            forbidden_prior_cargo="chemicals,raw_meat,raw_poultry",
+            pickup_city="Sibiu", delivery_city="Cluj-Napoca",
+            window=window(6, 5), weight_kg=2000, price_eur=560,
+        ),
+        # B37. Dairy Brasov -> Sibiu (transversal route, not Cluj)
+        dict(
+            shipper_name="Spot Freight #B-037",
+            cargo_type="dairy", cargo_description="Lapte fresh",
+            temp_min_celsius=2.0, temp_max_celsius=7.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Brasov", delivery_city="Sibiu",
+            window=window(6, 8), weight_kg=6500, price_eur=320,
+        ),
+        # B38. Frozen veg Cluj -> Brasov
+        dict(
+            shipper_name="Spot Freight #B-038",
+            cargo_type="frozen_vegetables", cargo_description="Fasole congelata",
+            temp_min_celsius=-25.0, temp_max_celsius=-18.0,
+            requires_pharma_logger=False, forbidden_prior_cargo=None,
+            pickup_city="Cluj-Napoca", delivery_city="Brasov",
+            window=window(4, 8), weight_kg=10000, price_eur=460,
+        ),
+        # B39. Produce Constanta -> Cluj (long, chain-friendly)
+        dict(
+            shipper_name="Spot Freight #B-039",
+            cargo_type="produce", cargo_description="Citrice import",
+            temp_min_celsius=4.0, temp_max_celsius=10.0,
+            requires_pharma_logger=False,
+            forbidden_prior_cargo="raw_meat,raw_poultry,chemicals",
+            pickup_city="Constanta", delivery_city="Cluj-Napoca",
+            window=window(2, 12), weight_kg=9500, price_eur=920,
+        ),
+        # B40. Ambient_dry Sibiu -> Cluj (short, ambient van's bread-and-butter)
+        dict(
+            shipper_name="Spot Freight #B-040",
+            cargo_type="ambient_dry", cargo_description="Recyclables baled",
+            temp_min_celsius=5.0, temp_max_celsius=25.0,
+            requires_pharma_logger=False, forbidden_prior_cargo="chemicals",
+            pickup_city="Sibiu", delivery_city="Cluj-Napoca",
+            window=window(7, 8), weight_kg=13500, price_eur=290,
+        ),
     ]
 
 
@@ -503,27 +793,30 @@ def wash_cert_fixtures() -> list[dict[str, Any]]:
         # Truck #4 (Timisoara, last_cargo=raw_meat) was officially sanitised
         # in Arad yesterday -> Analyst can clear it for dairy / produce loads.
         dict(
-            plate_number="OR-404-CBO",
-            certificate_number=f"ANSVSA-TM-{NOW:%Y-%m-%d}-0142",
+            # CJ-301 was officially sanitised at the Cluj depot wash bay
+            # last evening → Analyst can clear it for dairy/produce loads
+            # via the ANSVSA wash override.
+            plate_number="CJ-301-CRL",
+            certificate_number=f"ANSVSA-CJ-{NOW:%Y-%m-%d}-0142",
             issued_at=NOW - timedelta(hours=18),
             valid_until=NOW + timedelta(days=30),  # stays valid across re-runs
             wash_type="ansvsa_official",
             prior_cargo="raw_meat",
-            issuing_facility="Statie spalare Arad — autorizatie ANSVSA TM-014",
-            location_city="Arad",
+            issuing_facility="Cluj Depot Wash Bay — autorizatie ANSVSA CJ-007",
+            location_city="Cluj-Napoca",
         ),
-        # Truck #10 (Sibiu, last_cargo=chemicals) had a deep wash on the way
-        # back to Oradea, but ambient-only so its food-grade reuse is still
-        # off-limits per HACCP — kept as a partial / flavour cert for realism.
+        # CJ-901 (ambient van, last_cargo=chemicals) had a deep wash on the
+        # return run yesterday but ambient-only so its food-grade reuse is
+        # still off-limits per HACCP — kept as a partial / flavour cert.
         dict(
-            plate_number="OR-010-CBO",
-            certificate_number=f"WASH-VEST-{NOW:%Y-%m-%d}-0007",
+            plate_number="CJ-901-CRL",
+            certificate_number=f"WASH-CJ-{NOW:%Y-%m-%d}-0007",
             issued_at=NOW - timedelta(hours=10),
             valid_until=NOW + timedelta(days=30),
             wash_type="deep",
             prior_cargo="chemicals",
-            issuing_facility="Crisana Wash Station Oradea",
-            location_city="Oradea",
+            issuing_facility="Cluj Depot Wash Bay",
+            location_city="Cluj-Napoca",
         ),
     ]
 
@@ -535,16 +828,16 @@ def _validate(trucks: list[dict], loads: list[dict], washes: list[dict]) -> None
     plates = {t["plate_number"] for t in trucks}
     if len(plates) != len(trucks):
         raise ValueError("Duplicate truck plates in fixtures")
-    if len(trucks) != 10:
-        raise ValueError(f"Expected 10 trucks, got {len(trucks)}")
+    if len(trucks) != 15:
+        raise ValueError(f"Expected 15 trucks, got {len(trucks)}")
     customer_count = sum(1 for ld in loads if ld.get("source", "customer") == "customer")
     broker_count = sum(1 for ld in loads if ld.get("source") == "broker")
     if customer_count != 20:
         raise ValueError(f"Expected 20 customer loads, got {customer_count}")
-    if broker_count != 15:
-        raise ValueError(f"Expected 15 broker loads, got {broker_count}")
-    if len(loads) != 35:
-        raise ValueError(f"Expected 35 loads total, got {len(loads)}")
+    if broker_count != 40:
+        raise ValueError(f"Expected 40 broker loads, got {broker_count}")
+    if len(loads) != 60:
+        raise ValueError(f"Expected 60 loads total, got {len(loads)}")
     for w in washes:
         if w["plate_number"] not in plates:
             raise ValueError(f"Wash cert references unknown truck {w['plate_number']!r}")
