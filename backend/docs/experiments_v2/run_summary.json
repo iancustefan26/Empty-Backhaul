@@ -1,92 +1,116 @@
 {
-  "run_completed_at": "2026-05-17T10:04:15.018620+00:00",
-  "git_sha": "b0bc849",
+  "run_started_at": "2026-05-17T15:44:12.918711+00:00",
+  "run_completed_at": "2026-05-17T15:44:55.953245+00:00",
+  "git_sha": "0371fcc",
+  "mode": "mock",
   "experiments_run": [
     "A1",
     "S2",
     "T1",
-    "T2"
+    "T2",
+    "X1"
   ],
   "all_passed": true,
-  "totals_cumulative": {
-    "calls": 870,
-    "cache_hits": 221,
-    "input_tokens": 2828908,
-    "output_tokens": 230829,
-    "cost_usd": 1.4257,
-    "cost_eur": 1.3117,
-    "latency_ms": 1645918,
+  "totals": {
+    "calls": 0,
+    "cache_hits": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "cost_eur": 0.0,
+    "latency_ms": 0,
     "errors": 0
   },
-  "notes": [
-    "A1 ran under live Gemini 2.5 Flash; per-experiment costs in cost_meter blocks.",
-    "S2/T1/T2 are deterministic regardless of LLM provider \u2014 published numbers are from mock-mode runs to keep the repro fast. The live-Gemini cost meter for those three would be ~0 \u20ac additional (cache hits only) once the A1 sweep primes the (truck, load) prompt cache.",
-    "V4 ablation: 39 of 146 cases hit the Gemini daily-quota guard; those rows were retroactively patched with deterministic hard-rules verdicts \u2014 exactly what the new provider-failure fallback in scripts/run_ablation.py would now do automatically."
-  ],
   "per_experiment": [
     {
       "experiment_id": "A1",
-      "json_path": "docs/experiments_v2/exp_a1.json",
-      "mode": "gemini",
-      "model": "gemini-2.5-flash",
-      "cost_meter": {
-        "calls": 226,
-        "cache_hits": 175,
-        "input_tokens": 575293,
-        "output_tokens": 49327,
-        "cost_usd": 0.2959,
-        "cost_eur": 0.2722,
-        "latency_ms": 365915,
-        "errors": 0
-      }
+      "module": "scripts.exp_a1_extended_ablation",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 2683,
+      "started_at": "2026-05-17T15:44:12.932856+00:00",
+      "cost_delta": {
+        "calls": 0,
+        "cache_hits": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "cost_eur": 0.0
+      },
+      "stdout_tail": "  ----------------------------------------------------------------------------------------------\n    V0     100.00%  [0.974, 1.000]   1.000   1.000   1.000      0      0   0.000       0\n\n  Injection resistance (lower is better \u2014 passes/5):\n    V0: 5/5\n\n  Per-category accuracy (V4 \u2014 full pipeline, if present):\n    chemicals_quarantine      1.000  (10/10)\n    clean_path                1.000  (38/38)\n    forbidden_prior_cargo     1.000  (19/19)\n    injection                 1.000  (5/5)\n    multi_blocker             1.000  (14/14)\n    pharma_logger             1.000  (13/13)\n    temperature               1.000  (30/30)\n    wash_override             1.000  (17/17)",
+      "stderr_tail": "[exp_a1] wrote backend/docs/experiments_v2/exp_a1.json"
     },
     {
       "experiment_id": "S2",
-      "json_path": "docs/experiments_v2/exp_s2.json",
-      "mode": "mock",
-      "model": null,
-      "cost_meter": {
+      "module": "scripts.exp_s2_hours_filter",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 2694,
+      "started_at": "2026-05-17T15:44:15.618780+00:00",
+      "cost_delta": {
         "calls": 0,
         "cache_hits": 0,
         "input_tokens": 0,
         "output_tokens": 0,
         "cost_usd": 0.0,
-        "cost_eur": 0.0,
-        "latency_ms": 0,
-        "errors": 0
-      }
+        "cost_eur": 0.0
+      },
+      "stdout_tail": "  Fleet 25 vans \u00d7 Loads 100 = 2,500 pairs\n  Profitable pairs:               2,000\n  Blocked by 9 h cap:             350  (17.5 % of profitable)\n  Total blocked margin:           \u20ac121,420\n  Avg blocked margin / pair:      \u20ac346.91\n  Conservative annual fine cap:   \u20ac3,125,000\n\n  By source:\n    customer   100 blocked /  500 profitable ( 20.0 %)  \u20ac58,249 margin lost\n    broker     250 blocked / 1500 profitable ( 16.7 %)  \u20ac63,171 margin lost\n\n  Top-3 biggest margin losses (full top-10 in JSON):\n    CJ-101-CRL      Iasi->Bucuresti                       \u20ac1446.61 / 11.8 h\n    CJ-102-CRL      Iasi->Bucuresti                       \u20ac1446.61 / 11.8 h\n    CJ-201-CRL      Iasi->Bucuresti                       \u20ac1446.61 / 11.8 h",
+      "stderr_tail": "[exp_s2] wrote backend/docs/experiments_v2/exp_s2.json"
     },
     {
       "experiment_id": "T1",
-      "json_path": "docs/experiments_v2/exp_t1.json",
-      "mode": "mock",
-      "model": null,
-      "cost_meter": {
+      "module": "scripts.exp_t1_cpsat_vs_greedy",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 3028,
+      "started_at": "2026-05-17T15:44:18.315348+00:00",
+      "cost_delta": {
         "calls": 0,
         "cache_hits": 0,
         "input_tokens": 0,
         "output_tokens": 0,
         "cost_usd": 0.0,
-        "cost_eur": 0.0,
-        "latency_ms": 0,
-        "errors": 0
-      }
+        "cost_eur": 0.0
+      },
+      "stdout_tail": "\n  SCARCE regime (top-N highest-margin loads):\n    fleet  pool    greedy \u20ac     cpsat \u20ac   lift %  g vans  c vans  conf  cpsat ms\n    --------------------------------------------------------------------------------\n        5    10        3534        3534     +0.0       3       3     2         3\n       10    10        3534        3534     +0.0       3       3     2         2\n       15    10        4789        4789     +0.0       4       4     3         2\n       25    10        6083        6083     +0.0       6       6     5         3\n\n  Pareto curve at fleet=15 (abundant pool):\n    t\u2264  0.1s  margin \u20ac    8592  runtime    27 ms  status OPTIMAL\n    t\u2264  0.5s  margin \u20ac    8592  runtime    26 ms  status OPTIMAL\n    t\u2264  2.0s  margin \u20ac    8592  runtime    25 ms  status OPTIMAL\n    t\u2264  5.0s  margin \u20ac    8592  runtime    26 ms  status OPTIMAL\n    t\u2264 30.0s  margin \u20ac    8592  runtime    25 ms  status OPTIMAL",
+      "stderr_tail": "[exp_t1] wrote backend/docs/experiments_v2/exp_t1.json"
     },
     {
       "experiment_id": "T2",
-      "json_path": "docs/experiments_v2/exp_t2.json",
-      "mode": "mock",
-      "model": null,
-      "cost_meter": {
+      "module": "scripts.exp_t2_chains_value",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 6466,
+      "started_at": "2026-05-17T15:44:21.346922+00:00",
+      "cost_delta": {
         "calls": 0,
         "cache_hits": 0,
         "input_tokens": 0,
         "output_tokens": 0,
         "cost_usd": 0.0,
-        "cost_eur": 0.0,
-        "latency_ms": 0,
-        "errors": 0
-      }
+        "cost_eur": 0.0
+      },
+      "stdout_tail": "         customer served  3/25            5/25          \n           broker served  21/75            40/75          \n\n  Chains formed (showing first 5 of 22):\n    CJ-101-CRL      Cluj-Napoca \u2192 Cluj-Napoca \u2192 Brasov \u2192 Brasov \u2192 Cluj-Napoca \u2192 Cluj-Napoca    479 km  fill 1.00  \u20ac   932\n    CJ-102-CRL      Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca    280 km  fill 1.00  \u20ac  1022\n    CJ-201-CRL      Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca    280 km  fill 1.00  \u20ac   432\n    CJ-202-CRL      Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca    280 km  fill 1.00  \u20ac   612\n    CJ-203-CRL      Cluj-Napoca \u2192 Cluj-Napoca \u2192 Sibiu \u2192 Sibiu \u2192 Cluj-Napoca \u2192 Cluj-Napoca    280 km  fill 1.00  \u20ac   572\n\n  Sensitivity matrix (margin delta %  /  deadhead delta pp):\n                broker=25     broker=50     broker=75\n    fleet=10      +114% / -38.9    +156% / -45.4    +158% / -45.1   \n    fleet=15       +82% / -35.9    +159% / -47.0    +162% / -46.9   \n    fleet=25       +78% / -35.9    +112% / -45.5    +140% / -44.8   ",
+      "stderr_tail": "[exp_t2] wrote backend/docs/experiments_v2/exp_t2.json"
+    },
+    {
+      "experiment_id": "X1",
+      "module": "scripts.exp_x1_lilim_validation",
+      "passed": true,
+      "exit_code": 0,
+      "elapsed_ms": 28135,
+      "started_at": "2026-05-17T15:44:27.816253+00:00",
+      "cost_delta": {
+        "calls": 0,
+        "cache_hits": 0,
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "cost_usd": 0.0,
+        "cost_eur": 0.0
+      },
+      "stdout_tail": "\n==============================================================================================================\n  X1 \u2014 Li & Lim PDPTW external benchmark  (Strategist agent)\n==============================================================================================================\n  5 instances \u00b7 data source: zhu-he/pdptw-data (mirror of SINTEF)\n\n  instance pairs vans    SINGLES    ms  cov%       CHAINS    ms  cov%  chains  +lift%\n  ------------------------------------------------------------------------------------------------------\n  lc101       53   25  \u20ac     22     8   7.5    \u20ac    139   419  30.2       8  +533.8\n  lr101       53   25  \u20ac    502    20  45.3    \u20ac   1211  5574  75.5      20  +141.4\n  lrc101      53   25  \u20ac    790    16  37.7    \u20ac   1377  3228  52.8      14   +74.2\n  lc201       51   25  \u20ac   1355    27  49.0    \u20ac   2375  8275  82.4      21   +75.3\n  lr201       51   25  \u20ac   1102    30  49.0    \u20ac   2141  9402  92.2      23   +94.2\n",
+      "stderr_tail": "[exp_x1] lc101 (LC101 \u2014 clustered, narrow time windows)\u2026\n[exp_x1] lr101 (LR101 \u2014 random, narrow time windows)\u2026\n[exp_x1] lrc101 (LRC101 \u2014 mixed clustered/random, narrow windows)\u2026\n[exp_x1] lc201 (LC201 \u2014 clustered, wide time windows)\u2026\n[exp_x1] lr201 (LR201 \u2014 random, wide time windows)\u2026\n[exp_x1] wrote backend/docs/experiments_v2/exp_x1.json"
     }
   ]
 }

@@ -43,7 +43,7 @@
           "customer_loads_served": 4,
           "customer_loads_available": 25,
           "conflict_count": 2,
-          "runtime_ms": 1
+          "runtime_ms": 2
         },
         "cpsat": {
           "total_margin_eur": 4357.17,
@@ -58,7 +58,7 @@
           "customer_loads_served": 5,
           "customer_loads_available": 25,
           "optimiser_status": "OPTIMAL",
-          "runtime_ms": 38
+          "runtime_ms": 41
         },
         "lift_pct": 0.8,
         "idle_delta": 0,
@@ -97,7 +97,7 @@
           "customer_loads_served": 6,
           "customer_loads_available": 25,
           "optimiser_status": "OPTIMAL",
-          "runtime_ms": 20
+          "runtime_ms": 19
         },
         "lift_pct": 0.5,
         "idle_delta": 0,
@@ -136,7 +136,7 @@
           "customer_loads_served": 8,
           "customer_loads_available": 25,
           "optimiser_status": "OPTIMAL",
-          "runtime_ms": 28
+          "runtime_ms": 27
         },
         "lift_pct": 1.4,
         "idle_delta": 0,
@@ -175,7 +175,7 @@
           "customer_loads_served": 10,
           "customer_loads_available": 25,
           "optimiser_status": "OPTIMAL",
-          "runtime_ms": 47
+          "runtime_ms": 44
         },
         "lift_pct": 0.0,
         "idle_delta": 0,
@@ -255,7 +255,7 @@
           "customer_loads_served": 3,
           "customer_loads_available": 4,
           "optimiser_status": "OPTIMAL",
-          "runtime_ms": 3
+          "runtime_ms": 2
         },
         "lift_pct": 0.0,
         "idle_delta": 0,
@@ -294,7 +294,7 @@
           "customer_loads_served": 4,
           "customer_loads_available": 4,
           "optimiser_status": "OPTIMAL",
-          "runtime_ms": 3
+          "runtime_ms": 2
         },
         "lift_pct": 0.0,
         "idle_delta": 0,
@@ -344,38 +344,38 @@
       {
         "time_limit_s": 0.1,
         "margin_eur": 8592.49,
-        "runtime_ms": 28,
+        "runtime_ms": 27,
         "status": "OPTIMAL"
       },
       {
         "time_limit_s": 0.5,
         "margin_eur": 8592.49,
-        "runtime_ms": 28,
+        "runtime_ms": 26,
         "status": "OPTIMAL"
       },
       {
         "time_limit_s": 2.0,
         "margin_eur": 8592.49,
-        "runtime_ms": 27,
+        "runtime_ms": 25,
         "status": "OPTIMAL"
       },
       {
         "time_limit_s": 5.0,
         "margin_eur": 8592.49,
-        "runtime_ms": 27,
+        "runtime_ms": 26,
         "status": "OPTIMAL"
       },
       {
         "time_limit_s": 30.0,
         "margin_eur": 8592.49,
-        "runtime_ms": 26,
+        "runtime_ms": 25,
         "status": "OPTIMAL"
       }
     ]
   },
   "provenance": {
-    "completed_at": "2026-05-17T10:03:44.153232+00:00",
-    "git_sha": "b0bc849",
+    "completed_at": "2026-05-17T15:44:21.125270+00:00",
+    "git_sha": "0371fcc",
     "mode": "mock",
     "model": null,
     "seed_fleet_size": 25,

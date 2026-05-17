@@ -176,8 +176,8 @@
     ]
   },
   "provenance": {
-    "completed_at": "2026-05-17T10:03:41.095028+00:00",
-    "git_sha": "b0bc849",
+    "completed_at": "2026-05-17T15:44:18.080433+00:00",
+    "git_sha": "0371fcc",
     "mode": "mock",
     "model": null,
     "seed_fleet_size": 25,

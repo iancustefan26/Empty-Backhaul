@@ -35,3 +35,8 @@ backend/.llm_cache/
 .idea/
 .vscode/
 *.swp
+
+# Experiments v2: external dataset cache + ephemeral logs
+backend/.external_data/
+backend/.llm_cache/cost_log.jsonl
+backend/.geo_cache/

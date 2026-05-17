@@ -47,22 +47,43 @@ def hydrate(
     include_broker: bool = True,
     fleet_size: int = 25,
     use_mock_llm: bool = True,
+    vans: list[dict] | None = None,
+    loads: list[dict] | None = None,
 ) -> dict:
     """Single Sentry + Analyst-fleet pass. Returns a dict with `vans`,
     `loads`, `compliance`, `sentry_log`, `analyst_log`.
 
     Pass `use_mock_llm=False` to enrich verdicts with live Gemini (with
     the cache + sanity-layer in front).
+
+    Pass `vans=` and `loads=` to BYPASS the Sentry/Supabase path and run
+    the Analyst directly on in-memory fixtures. This is what the
+    external-dataset experiments (X1 Li & Lim) use — they synthesise
+    TruckSnapshot / LoadSnapshot dicts from a benchmark file and feed
+    them straight in. The DB is never touched in that path.
     """
-    sentry = sentry_fleet(include_broker=include_broker, fleet_size=fleet_size)
-    if "error" in sentry:
-        sys.exit(f"Sentry error: {sentry['error']}")
-    vans = sentry["fleet"]
-    loads = sentry["available_loads"]
+    if vans is not None and loads is not None:
+        # Injected-fixture path (used by Li & Lim and other external loaders).
+        sentry_log = {
+            "fleet_size": len(vans),
+            "available_load_count": len(loads),
+            "customer_loads": sum(1 for l in loads if l.get("source") == "customer"),
+            "broker_loads": sum(1 for l in loads if l.get("source") == "broker"),
+            "include_broker": include_broker,
+            "monitored_at": datetime.now(timezone.utc).isoformat(),
+            "source": "injected",
+        }
+    else:
+        sentry = sentry_fleet(include_broker=include_broker, fleet_size=fleet_size)
+        if "error" in sentry:
+            sys.exit(f"Sentry error: {sentry['error']}")
+        vans = sentry["fleet"]
+        loads = sentry["available_loads"]
+        sentry_log = sentry["sentry_log"]
     compliance, analyst_log = analyst_fleet(vans, loads, use_mock_llm=use_mock_llm)
     return {
         "vans": vans, "loads": loads, "compliance": compliance,
-        "sentry_log": sentry["sentry_log"], "analyst_log": analyst_log,
+        "sentry_log": sentry_log, "analyst_log": analyst_log,
     }
 
 

@@ -16,6 +16,10 @@ T1  t1_margin_by_fleet.png         CP-SAT vs greedy margin by fleet size
 T2  t2_headline_bars.png           chains-on vs chains-off (margin / deadhead)
     t2_sensitivity_heatmap.png     fleet × broker-density margin lift %
     t2_chain_fillfactor.png        per-chain fill-factor vs margin
+X1  x1_coverage_by_instance.png    load coverage % per Li & Lim instance,
+                                   singles vs chains
+    x1_margin_lift.png             chain margin lift % per instance
+    x1_runtime_by_instance.png     solver wall-clock per instance
 """
 from __future__ import annotations
 
@@ -323,6 +327,81 @@ def chart_t2(plt) -> None:
         _save(plt, fig, "t2_chain_fillfactor.png")
 
 
+# ---------------------------------------------------------------------------
+# X1 — Li & Lim PDPTW external benchmark
+# ---------------------------------------------------------------------------
+
+def chart_x1(plt) -> None:
+    path = EXP_DIR / "exp_x1.json"
+    if not path.exists():
+        print(f"  [skip] {path.name} not found — run exp_x1 first", file=sys.stderr)
+        return
+    d = json.loads(path.read_text())
+    rows = d["results"]["per_instance"]
+    names = [r["instance"].upper() for r in rows]
+
+    # 1. Load coverage: singles vs chains, per instance
+    fig, ax = plt.subplots(figsize=(8.5, 4.4))
+    x = range(len(names))
+    width = 0.36
+    sing_cov = [r["singles_only"].get("coverage_pct", 0.0) for r in rows]
+    chain_cov = [r["chains_on"].get("coverage_pct", 0.0) for r in rows]
+    bars_s = ax.bar([i - width / 2 for i in x], sing_cov, width=width,
+                    color=COLOURS["off"], label="Singles only",
+                    edgecolor="#0f172a", linewidth=0.4)
+    bars_c = ax.bar([i + width / 2 for i in x], chain_cov, width=width,
+                    color=COLOURS["on"], label="Chains enabled",
+                    edgecolor="#0f172a", linewidth=0.4)
+    for b, v in list(zip(bars_s, sing_cov)) + list(zip(bars_c, chain_cov)):
+        ax.text(b.get_x() + b.get_width() / 2, b.get_height() + 1.5,
+                f"{v:.0f}%", ha="center", fontsize=9)
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(names)
+    ax.set_ylabel("Loads served / loads available (%)")
+    ax.set_ylim(0, 105)
+    ax.set_title("X1 — Load coverage on Li & Lim PDPTW 100-node instances\n"
+                 "(higher = more pickup-delivery pairs served by our Strategist)")
+    ax.legend(loc="upper left", frameon=False)
+    _save(plt, fig, "x1_coverage_by_instance.png")
+
+    # 2. Chain margin-lift per instance
+    fig, ax = plt.subplots(figsize=(8.5, 4.2))
+    lifts = [r["chain_margin_lift_pct"] or 0 for r in rows]
+    bars = ax.bar(names, lifts, color=COLOURS["on"],
+                  edgecolor="#0f172a", linewidth=0.4)
+    for b, v in zip(bars, lifts):
+        ax.text(b.get_x() + b.get_width() / 2, b.get_height() + max(lifts) * 0.02,
+                f"+{v:.0f} %", ha="center", fontsize=10, fontweight="bold")
+    ax.set_ylabel("Chain margin lift over singles-only (%)")
+    ax.set_title("X1 — Margin lift from enabling backhaul chains\n"
+                 "(every Li & Lim instance benefits; LC101 lifts most because "
+                 "tight time windows make singles starve)")
+    ax.axhline(y=0, color="#0f172a", linewidth=0.6)
+    _save(plt, fig, "x1_margin_lift.png")
+
+    # 3. Solver runtime per instance, singles vs chains
+    fig, ax = plt.subplots(figsize=(8.5, 4.2))
+    sing_ms = [r["singles_only"]["runtime_ms"] for r in rows]
+    chain_ms = [r["chains_on"]["runtime_ms"] for r in rows]
+    bars_s = ax.bar([i - width / 2 for i in x], sing_ms, width=width,
+                    color=COLOURS["off"], label="Singles only",
+                    edgecolor="#0f172a", linewidth=0.4)
+    bars_c = ax.bar([i + width / 2 for i in x], chain_ms, width=width,
+                    color=COLOURS["on"], label="Chains enabled",
+                    edgecolor="#0f172a", linewidth=0.4)
+    for b, v in list(zip(bars_s, sing_ms)) + list(zip(bars_c, chain_ms)):
+        ax.text(b.get_x() + b.get_width() / 2, b.get_height() + max(chain_ms) * 0.02,
+                f"{v} ms", ha="center", fontsize=8)
+    ax.set_xticks(list(x))
+    ax.set_xticklabels(names)
+    ax.set_ylabel("CP-SAT wall-clock (ms, log scale)")
+    ax.set_yscale("log")
+    ax.set_title("X1 — Solver runtime per instance (log scale)\n"
+                 "All singles solves < 100 ms; chains scale with model size")
+    ax.legend(loc="upper left", frameon=False)
+    _save(plt, fig, "x1_runtime_by_instance.png")
+
+
 def main() -> None:
     plt = _setup_mpl()
     FIG_DIR.mkdir(parents=True, exist_ok=True)
@@ -331,6 +410,7 @@ def main() -> None:
     chart_a1(plt)
     chart_t1(plt)
     chart_t2(plt)
+    chart_x1(plt)
     print("[v2-charts] done.", file=sys.stderr)
 
 
