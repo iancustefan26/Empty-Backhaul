@@ -123,11 +123,28 @@ export interface PlanOptions {
   optimize_for?: "profit" | "sla";
 }
 
+export interface StatsPayload {
+  kind: "stats";
+  total_km: number;
+  loaded_km: number;
+  empty_km: number;
+  empty_pct: number;
+  fuel_litres: number;
+  fuel_cost_eur: number;
+  total_cost_eur: number;
+  revenue_eur: number;
+  margin_eur: number;
+  diesel_price_eur: number;
+  vans_dispatched: number;
+  vans_total: number;
+}
+
 export type ChatPayload =
   | { kind: "plan"; plan: PlanResponse; options: PlanOptions; activeRank?: number }
   | { kind: "idle_explain"; van_plate: string; reasons: string[] }
   | { kind: "compliance"; saved_eur: number; violations: { rule: string; fine_eur: number }[] }
   | { kind: "clarify"; suggestions: string[] }
+  | StatsPayload
   | { kind: "text" };
 
 export interface ChatTurn {

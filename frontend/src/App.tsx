@@ -21,7 +21,9 @@ import {
   saveHistory,
 } from "./lib/chat-store";
 import { classify } from "./lib/nl-router";
+import { computeStats, DIESEL_EUR_PER_LITRE } from "./lib/stats";
 import type { ChatPayload, ChatTurn, PlanResponse } from "./lib/dispatch-types";
+import { VanDetailCard } from "./components/dispatch/VanDetailCard";
 
 // Leaflet only on the client — keep it out of the initial bundle.
 const DispatchMap = lazy(() =>
@@ -37,6 +39,7 @@ export function App() {
   const [activeRank, setActiveRank] = useState<number>(1);
   const [mockLLM, setMockLLM] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedVanId, setSelectedVanId] = useState<number | null>(null);
 
   // Restore from localStorage on first mount.
   useEffect(() => {
@@ -89,19 +92,24 @@ export function App() {
           }
           setActivePlan(plan);
           setActiveRank(1);
+          setSelectedVanId(null);
+          const alts = plan.optimiser.alternatives;
+          const profits = alts
+            .map((a) => `€${Math.round(a.total_fleet_margin_eur).toLocaleString()}`)
+            .join(" · ");
           const slaWarn = alt.unserved_customer_load_ids.length
-            ? ` ⚠ ${alt.unserved_customer_load_ids.length} customer load${alt.unserved_customer_load_ids.length > 1 ? "s" : ""} could not be served — review SLA.`
-            : "";
-          const chainNote = alt.chain_trips_count
-            ? ` ${alt.chain_trips_count} van${alt.chain_trips_count > 1 ? "s are" : " is"} doing a chain backhaul — both legs paid, low empty km.`
+            ? ` ⚠ ${alt.unserved_customer_load_ids.length} customer load${alt.unserved_customer_load_ids.length > 1 ? "s" : ""} couldn't be served — review the SLA.`
             : "";
           const skipNote = intent.options.skip_cargo?.length
-            ? ` (Skipping ${intent.options.skip_cargo.join(", ")} loads is a UX-only filter for now — backend wiring is on the way.)`
+            ? ` (Skipping ${intent.options.skip_cargo.join(", ")} is a UX filter — backend wiring on the way.)`
             : "";
           const horizonNote = intent.options.horizon_days
-            ? ` (For now I planned today only — multi-day horizon will fan out across ${intent.options.horizon_days} days once the backend supports it.)`
+            ? ` (For now I planned today only — multi-day will fan out across ${intent.options.horizon_days} days once the backend supports it.)`
             : "";
-          const summary = `Planned ${alt.plans.length - alt.idle_count} of ${alt.plans.length} vans for ${intent.humanLabel}. Total profit €${alt.total_fleet_margin_eur.toLocaleString()}, ${Math.round(alt.deadhead_ratio * 100)}% deadhead, ${alt.customer_loads_served}/${alt.customer_loads_available} customer loads served.${chainNote}${slaWarn}${skipNote}${horizonNote}`;
+          const summary =
+            alts.length > 1
+              ? `Here is your plan for ${intent.humanLabel}. I prepared ${alts.length} options with different profits — ${profits}. Option 1 is the best by margin. Click any route on the map to see the shipper, cargo and compliance documents.${slaWarn}${skipNote}${horizonNote}`
+              : `Here is your plan for ${intent.humanLabel} — €${Math.round(alt.total_fleet_margin_eur).toLocaleString()} total profit. Click any route on the map to see the shipper, cargo and compliance documents.${slaWarn}${skipNote}${horizonNote}`;
           pushTurn("assistant", summary, {
             kind: "plan",
             plan,
@@ -154,6 +162,25 @@ export function App() {
           );
           break;
         }
+        case "stats": {
+          if (!activePlan) {
+            pushTurn(
+              "assistant",
+              "I don't have an active plan yet. Try 'Plan today's routes' first, then I can break down the costs.",
+            );
+            break;
+          }
+          const altForStats =
+            activePlan.optimiser.alternatives.find((a) => a.rank === activeRank) ??
+            activePlan.optimiser.alternatives[0];
+          const s = computeStats(altForStats);
+          pushTurn(
+            "assistant",
+            `Today's run is ${Math.round(s.total_km).toLocaleString()} km in total, of which ${Math.round(s.empty_km).toLocaleString()} km are empty (${s.empty_pct.toFixed(0)}%). At today's diesel price of €${DIESEL_EUR_PER_LITRE.toFixed(2)}/L, fuel alone is €${Math.round(s.fuel_cost_eur).toLocaleString()} — the full operating cost is €${Math.round(s.total_cost_eur).toLocaleString()}, leaving €${Math.round(s.margin_eur).toLocaleString()} margin.`,
+            { kind: "stats", ...s },
+          );
+          break;
+        }
         case "clarify": {
           pushTurn("assistant", intent.question, {
             kind: "clarify",
@@ -179,6 +206,7 @@ export function App() {
     clearStoredHistory();
     setTurns([]);
     setActivePlan(null);
+    setSelectedVanId(null);
   }
 
   const activeAlt =
@@ -234,8 +262,19 @@ export function App() {
               loads={activePlan?.available_loads ?? []}
               plan={activeAlt}
               depot={depot}
+              selectedVanId={selectedVanId}
+              onSelectVan={setSelectedVanId}
             />
           </Suspense>
+          {selectedVanId != null && activePlan && (
+            <VanDetailCard
+              vanId={selectedVanId}
+              plan={activeAlt}
+              fleet={activePlan.fleet}
+              loads={activePlan.available_loads}
+              onClose={() => setSelectedVanId(null)}
+            />
+          )}
           {error && (
             <div className="absolute left-1/2 top-3 z-[1000] -translate-x-1/2 rounded-md border border-destructive bg-card px-3 py-2 text-xs text-destructive shadow-lg">
               <div className="font-semibold">Backend error</div>

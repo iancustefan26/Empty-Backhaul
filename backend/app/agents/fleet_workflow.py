@@ -37,7 +37,7 @@ from app.agents.state import ComplianceVerdict, LoadSnapshot, TruckSnapshot
 from app.core.database import SessionLocal
 from app.rag.ingest import query_corpus, query_rules
 
-MAX_FLEET_SIZE = 15
+MAX_FLEET_SIZE = 25
 
 
 _FLEET_TRUCKS_SQL = text("""
