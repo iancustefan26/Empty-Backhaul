@@ -53,20 +53,48 @@ Capability spread of the 10 new vans (CJ-501..CJ-510):
 3 multi_temp, 2 pharma+logger, 2 chilled+raw_meat+wash, 1 frozen,
 1 frozen+raw_meat+wash-expiring-in-3-days, 1 ambient+chemicals.
 
-## Gemini hardening (Phase 2)
+## LLM provider hardening (Phase 2)
 
-`app/agents/llm_provider.py::GeminiProvider` was hardened before any
-live experiment ran:
+`app/agents/llm_provider.py` exposes two production-grade providers
+that share one retry / RPM throttle / cost-meter machinery:
+
+| Provider | Routing | Defaults | Use case |
+|---|---|---|---|
+| **`VertexAIProvider`** (preferred) | Google Cloud Vertex AI Express Mode (`vertexai=True`, API key) | 60 RPM, 10 000 RPD | Interactive demo + experiments. GCP billing / free-trial credit. |
+| `GeminiProvider` | Google AI Studio (`generativelanguage.googleapis.com`) | 9 RPM, 225 RPD | Free-tier development. |
+
+The factory `get_provider()` picks Vertex automatically when
+`VERTEX_AI_API_KEY` is set, or when `GEMINI_API_KEY` is set with an
+`AQ.*`-prefixed value (a Vertex Express Mode key the user pasted into
+the wrong env slot — common ergonomic mistake).
+
+Shared hardening (both providers):
 
 | Hardening | Default | Override |
 |---|---|---|
 | Exponential-backoff retry on 429 / 5xx / `ResourceExhausted` | 4 attempts, base 4 s, cap 60 s, ±25 % jitter | `GEMINI_RETRY_*` env vars |
-| Soft RPM throttle (sleeps until next slot) | 9 RPM (1 below free-tier ceiling) | `GEMINI_RPM_CAP` |
-| Daily-quota guard (rolling 24 h) | 225 calls (10 % below 250 RPD) | `GEMINI_DAILY_CAP` |
+| Soft RPM throttle (sleeps until next slot) | 60 RPM (Vertex) · 9 RPM (AI Studio) | `VERTEX_RPM_CAP` · `GEMINI_RPM_CAP` |
+| Daily-quota guard (rolling 24 h) | 10 000 (Vertex) · 225 (AI Studio) | `VERTEX_DAILY_CAP` · `GEMINI_DAILY_CAP` |
 | Per-call cost log (JSONL) | `backend/.llm_cache/cost_log.jsonl` | — |
 | Cache hits short-circuit and still log | — | inherent |
 
-Unit-tested in `tests/test_llm_provider_retry.py` (4 tests, ~30 ms).
+**Measured throughput uplift (May 2026 burst test, 5 fresh API calls
+with cache disabled):**
+
+| Provider | Wall clock | Effective RPM | vs prior |
+|---|---:|---:|---:|
+| AI Studio (9 RPM cap) | ~33 s | 9 | baseline |
+| Vertex AI Express Mode (60 RPM cap) | 4.88 s | 61 | **~7× faster** |
+
+What this means for the dispatcher console: a fresh "Plan today's
+routes" request that requires ~750 cold LLM calls (compliance
+verdicts for a 25×100 grid where ~30 % pass hard rules) now
+completes in **~12 min on Vertex** instead of **~84 min on AI
+Studio**. With warm cache, both providers respond in seconds.
+
+Unit-tested in `tests/test_llm_provider_retry.py` (9 tests covering
+both providers + factory routing + back-compat for `AQ.*`-prefixed
+`GEMINI_API_KEY`).
 
 ---
 

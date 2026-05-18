@@ -25,7 +25,15 @@ class Settings(BaseSettings):
 
     anthropic_api_key: str = Field(default="", validation_alias="ANTHROPIC_API_KEY")
     gemini_api_key: str = Field(default="", validation_alias="GEMINI_API_KEY")
-    llm_provider: Literal["auto", "gemini", "anthropic", "mock"] = Field(
+    vertex_ai_api_key: str = Field(
+        default="", validation_alias="VERTEX_AI_API_KEY",
+        description=(
+            "Vertex AI Express Mode API key (starts with 'AQ.'). When set, "
+            "preferred over GEMINI_API_KEY because Vertex offers higher "
+            "rate limits and billing through GCP credit."
+        ),
+    )
+    llm_provider: Literal["auto", "vertex", "gemini", "anthropic", "mock"] = Field(
         default="auto", validation_alias="LLM_PROVIDER"
     )
     llm_cache_enabled: bool = Field(default=True, validation_alias="LLM_CACHE")

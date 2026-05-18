@@ -55,9 +55,11 @@ from app.agents import llm_cache
 from app.core.config import get_settings
 
 GEMINI_MODEL_ENV = "GEMINI_MODEL"
+VERTEX_MODEL_ENV = "VERTEX_MODEL"
 ANTHROPIC_MODEL_ENV = "ANTHROPIC_MODEL"
 
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_VERTEX_MODEL = "gemini-2.5-flash"   # same model, different routing
 DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5"
 
 # Output budget per Analyst call. The verdict JSON is ~300-600 tokens of
@@ -71,12 +73,18 @@ MAX_OUTPUT_TOKENS = 2048
 # Hardening (v2): rate-limit, retry/backoff, cost log, daily-quota guard
 # ---------------------------------------------------------------------------
 
-# Free tier is 10 RPM; default to 9 so a slow clock or burst can't push us
-# over. Tunable via env so paid-tier users can lift it without code change.
+# Free AI-Studio tier is 10 RPM, 250 RPD; default to 9 / 225 so a slow
+# clock or burst can't push us over. Tunable via env so paid-tier users
+# can lift it without code change.
+#
+# Vertex AI Express Mode (tier 1, Gemini 2.5 Flash) is ~500 RPM with NO
+# documented daily cap — we default Vertex to 60 RPM / 10 000 RPD so an
+# interactive plan request finishes in seconds, not hours, while still
+# keeping plenty of headroom. Override with VERTEX_RPM_CAP / VERTEX_DAILY_CAP.
 DEFAULT_RPM_CAP = int(os.environ.get("GEMINI_RPM_CAP", "9"))
-# 250 RPD on the free tier. We keep a 10 % safety margin (225) so a half-day
-# resume doesn't trip the wall.
 DEFAULT_DAILY_CAP = int(os.environ.get("GEMINI_DAILY_CAP", "225"))
+DEFAULT_VERTEX_RPM_CAP = int(os.environ.get("VERTEX_RPM_CAP", "60"))
+DEFAULT_VERTEX_DAILY_CAP = int(os.environ.get("VERTEX_DAILY_CAP", "10000"))
 # Retry policy on 429 / 5xx / ResourceExhausted.
 RETRY_MAX_ATTEMPTS = int(os.environ.get("GEMINI_RETRY_ATTEMPTS", "4"))
 RETRY_BASE_DELAY_S = float(os.environ.get("GEMINI_RETRY_BASE_DELAY_S", "4.0"))
@@ -176,20 +184,43 @@ class LLMProvider(Protocol):
 # ---------------------------------------------------------------------------
 
 class GeminiProvider:
+    """Google AI Studio (a.k.a. generativelanguage.googleapis.com) provider.
+
+    Tier defaults: 9 RPM, 225 RPD (free tier — 1 below the 10 RPM / 250
+    RPD documented ceiling).  Override via GEMINI_RPM_CAP / GEMINI_DAILY_CAP.
+    """
     name = "gemini"
+    default_rpm = DEFAULT_RPM_CAP
+    default_daily = DEFAULT_DAILY_CAP
+    rpm_env_var = "GEMINI_RPM_CAP"
+    daily_env_var = "GEMINI_DAILY_CAP"
+    model_env_var = GEMINI_MODEL_ENV
+    default_model = DEFAULT_GEMINI_MODEL
 
     def __init__(self, api_key: str, model: str | None = None) -> None:
         if not api_key:
-            raise ValueError("GeminiProvider requires a non-empty API key")
+            raise ValueError(f"{type(self).__name__} requires a non-empty API key")
         self._api_key = api_key
+        self.model = model or os.environ.get(self.model_env_var, self.default_model)
 
-        import os
-        self.model = model or os.environ.get(GEMINI_MODEL_ENV, DEFAULT_GEMINI_MODEL)
+    # ---- subclasses override one of these two methods ----
+
+    def _make_client(self):
+        """Build the google.genai client. Subclasses override for Vertex."""
+        from google import genai  # type: ignore[import-not-found]
+        return genai.Client(api_key=self._api_key)
+
+    def _rpm_cap(self) -> int:
+        return int(os.environ.get(self.rpm_env_var, self.default_rpm))
+
+    def _daily_cap(self) -> int:
+        return int(os.environ.get(self.daily_env_var, self.default_daily))
+
+    # ---- shared retry / throttle / cost-meter loop ----
 
     def evaluate(self, system: str, user: str) -> tuple[str, bool]:
         cached = llm_cache.get_cached(self.name, self.model, system, user)
         if cached is not None:
-            # Cost log: cache hits are free but we still want to count them.
             _record_cost({
                 "ts": datetime.now(timezone.utc).isoformat(),
                 "provider": self.name, "model": self.model,
@@ -198,11 +229,9 @@ class GeminiProvider:
             })
             return cached, True
 
-        # Lazy import so mock-only / anthropic-only runs don't need the SDK.
-        from google import genai  # type: ignore[import-not-found]
         from google.genai import types  # type: ignore[import-not-found]
 
-        client = genai.Client(api_key=self._api_key)
+        client = self._make_client()
         thinking_config = None
         if self.model.startswith("gemini-2.5"):
             try:
@@ -218,8 +247,8 @@ class GeminiProvider:
             thinking_config=thinking_config,
         )
 
-        rpm_cap = DEFAULT_RPM_CAP
-        daily_cap = DEFAULT_DAILY_CAP
+        rpm_cap = self._rpm_cap()
+        daily_cap = self._daily_cap()
 
         last_exc: BaseException | None = None
         for attempt in range(1, RETRY_MAX_ATTEMPTS + 1):
@@ -263,7 +292,41 @@ class GeminiProvider:
                 time.sleep(_retry_sleep(attempt))
 
         # Defensive — loop above either returns or raises.
-        raise RuntimeError(f"GeminiProvider.evaluate exhausted retries: {last_exc!r}")
+        raise RuntimeError(f"{type(self).__name__}.evaluate exhausted retries: {last_exc!r}")
+
+
+# ---------------------------------------------------------------------------
+# Vertex AI (Express Mode — same SDK, different routing)
+# ---------------------------------------------------------------------------
+
+class VertexAIProvider(GeminiProvider):
+    """Google Cloud Vertex AI provider using Express Mode (API key, no
+    service-account JSON, no project/location config required).
+
+    Same `google-genai` SDK as `GeminiProvider`; only the client is built
+    with `vertexai=True` so requests go through Vertex's serving stack
+    instead of AI Studio. Result: same model (`gemini-2.5-flash`), same
+    pricing per token, but with **dramatically higher rate limits** — 500
+    RPM and no daily cap on Express Mode tier 1. We default the throttle
+    to 60 RPM (1 call/sec) so an interactive plan request that needed
+    750 fresh LLM calls finishes in ~13 minutes instead of ~84 minutes.
+
+    Charges count against the GCP project's billing / free trial credit.
+
+    Activated when VERTEX_AI_API_KEY (or, for back-compat, an AQ.*-prefixed
+    GEMINI_API_KEY) is present. See `get_provider()`.
+    """
+    name = "vertex"
+    default_rpm = DEFAULT_VERTEX_RPM_CAP
+    default_daily = DEFAULT_VERTEX_DAILY_CAP
+    rpm_env_var = "VERTEX_RPM_CAP"
+    daily_env_var = "VERTEX_DAILY_CAP"
+    model_env_var = VERTEX_MODEL_ENV
+    default_model = DEFAULT_VERTEX_MODEL
+
+    def _make_client(self):
+        from google import genai  # type: ignore[import-not-found]
+        return genai.Client(vertexai=True, api_key=self._api_key)
 
 
 # ---------------------------------------------------------------------------
@@ -325,12 +388,25 @@ class MockProvider:
 def get_provider(force: str | None = None) -> LLMProvider:
     """Pick a provider based on `LLM_PROVIDER` and which API keys are set.
 
-    `force` overrides the env (used by tests). Values: `gemini`, `anthropic`,
-    `mock`, `auto`.
+    `force` overrides the env (used by tests). Values: `vertex`, `gemini`,
+    `anthropic`, `mock`, `auto`.
+
+    Resolution order under `auto`:
+      1. Vertex AI (if VERTEX_AI_API_KEY is set) — preferred because it's
+         faster (60+ RPM vs 9 RPM on AI Studio) and uses GCP billing /
+         free-trial credit
+      2. AI Studio Gemini (if GEMINI_API_KEY is set and looks like an
+         AI Studio key — starts with "AIza"). If GEMINI_API_KEY is set
+         but its value looks like a Vertex key (starts with "AQ."), we
+         treat it as a Vertex key for back-compat.
+      3. Anthropic
+      4. Mock
     """
     settings = get_settings()
     choice = (force or settings.llm_provider or "auto").lower()
 
+    if choice == "vertex":
+        return VertexAIProvider(settings.vertex_ai_api_key or settings.gemini_api_key)
     if choice == "gemini":
         return GeminiProvider(settings.gemini_api_key)
     if choice == "anthropic":
@@ -340,8 +416,14 @@ def get_provider(force: str | None = None) -> LLMProvider:
     if choice != "auto":
         raise ValueError(f"unknown LLM_PROVIDER={choice!r}")
 
-    # auto: prefer Gemini (free tier), then Anthropic, then mock.
+    # auto resolution.
+    if settings.vertex_ai_api_key:
+        return VertexAIProvider(settings.vertex_ai_api_key)
     if settings.gemini_api_key:
+        # Back-compat: an AQ.*-prefixed value in GEMINI_API_KEY is actually
+        # a Vertex AI Express Mode key. Route it through Vertex.
+        if settings.gemini_api_key.startswith("AQ."):
+            return VertexAIProvider(settings.gemini_api_key)
         return GeminiProvider(settings.gemini_api_key)
     if settings.anthropic_api_key:
         return AnthropicProvider(settings.anthropic_api_key)
