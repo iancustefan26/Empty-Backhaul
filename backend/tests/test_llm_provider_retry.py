@@ -249,7 +249,8 @@ def test_vertex_provider_inherits_retry_path(monkeypatch):
 def test_factory_prefers_vertex_when_key_set(monkeypatch):
     """get_provider() with both keys set should pick Vertex."""
     from app.core.config import Settings
-    monkeypatch.setenv("VERTEX_AI_API_KEY", "AQ.test-vertex")
+    monkeypatch.setenv("GCP_PROJECT", "")          # disable ADC mode so we
+    monkeypatch.setenv("VERTEX_AI_API_KEY", "AQ.test-vertex")  # test Express
     monkeypatch.setenv("GEMINI_API_KEY", "AIza-test-gemini")
     monkeypatch.setenv("LLM_PROVIDER", "auto")
     # bust the lru_cache
@@ -259,12 +260,17 @@ def test_factory_prefers_vertex_when_key_set(monkeypatch):
     p = lp.get_provider()
     assert type(p).__name__ == "VertexAIProvider"
     assert p.model.startswith("gemini-")
+    assert p.auth_mode == "express"
 
 
 def test_factory_routes_aq_prefixed_gemini_key_to_vertex(monkeypatch):
     """Back-compat: an AQ.* value in GEMINI_API_KEY is actually a Vertex
     Express Mode key — the factory should route it through Vertex."""
-    monkeypatch.delenv("VERTEX_AI_API_KEY", raising=False)
+    # Empty-string env vars override any values in backend/.env (pydantic
+    # reads both, env wins). Without this, GCP_PROJECT from .env would
+    # cause the factory to pick ADC mode instead of Express.
+    monkeypatch.setenv("VERTEX_AI_API_KEY", "")
+    monkeypatch.setenv("GCP_PROJECT", "")
     monkeypatch.setenv("GEMINI_API_KEY", "AQ.legacy-vertex-key")
     monkeypatch.setenv("LLM_PROVIDER", "auto")
     import app.core.config as cfg
@@ -272,3 +278,76 @@ def test_factory_routes_aq_prefixed_gemini_key_to_vertex(monkeypatch):
 
     p = lp.get_provider()
     assert type(p).__name__ == "VertexAIProvider"
+    assert p.auth_mode == "express"
+
+
+# ---------------------------------------------------------------------------
+# VertexAIProvider — ADC mode (project + location, no API key)
+# ---------------------------------------------------------------------------
+
+def test_vertex_adc_mode_constructs_client_with_project_and_location(monkeypatch):
+    """ADC mode: project + location → genai.Client(vertexai=True,
+    project=..., location=...), no api_key passed."""
+    captured = {}
+
+    google_mod = types.ModuleType("google")
+    genai_mod = types.ModuleType("google.genai")
+    types_mod = types.ModuleType("google.genai.types")
+    types_mod.ThinkingConfig = lambda **k: None
+    types_mod.GenerateContentConfig = lambda **k: None
+
+    def _client_ctor(**kwargs):
+        captured.update(kwargs)
+        return _FakeClient([_FakeResponse('{"ok": true}')])
+
+    genai_mod.Client = _client_ctor
+    google_mod.genai = genai_mod
+    google_mod.genai.types = types_mod
+    monkeypatch.setitem(sys.modules, "google", google_mod)
+    monkeypatch.setitem(sys.modules, "google.genai", genai_mod)
+    monkeypatch.setitem(sys.modules, "google.genai.types", types_mod)
+
+    _patch_cache(monkeypatch)
+    _patch_cost_log(monkeypatch)
+
+    p = lp.VertexAIProvider(project="my-gcp-project", location="europe-west1")
+    assert p.auth_mode == "adc"
+    p.evaluate("sys", "user")
+
+    assert captured.get("vertexai") is True
+    assert captured.get("project") == "my-gcp-project"
+    assert captured.get("location") == "europe-west1"
+    assert "api_key" not in captured, \
+        "ADC mode must NOT pass api_key (would force Express Mode)"
+
+
+def test_vertex_provider_requires_api_key_or_project():
+    with pytest.raises(ValueError, match="api_key.*OR.*project"):
+        lp.VertexAIProvider()
+
+
+def test_factory_prefers_adc_over_api_key(monkeypatch):
+    """get_provider() with BOTH GCP_PROJECT and VERTEX_AI_API_KEY should
+    pick ADC because it has higher quotas."""
+    monkeypatch.setenv("GCP_PROJECT", "poetic-emblem-490411-p0")
+    monkeypatch.setenv("VERTEX_AI_API_KEY", "AQ.unused-because-adc-wins")
+    monkeypatch.setenv("LLM_PROVIDER", "auto")
+    import app.core.config as cfg
+    cfg.get_settings.cache_clear()
+
+    p = lp.get_provider()
+    assert type(p).__name__ == "VertexAIProvider"
+    assert p.auth_mode == "adc"
+
+
+def test_factory_falls_back_to_express_when_no_project(monkeypatch):
+    monkeypatch.setenv("GCP_PROJECT", "")          # override .env
+    monkeypatch.setenv("VERTEX_AI_API_KEY", "AQ.express-key")
+    monkeypatch.setenv("GEMINI_API_KEY", "")
+    monkeypatch.setenv("LLM_PROVIDER", "auto")
+    import app.core.config as cfg
+    cfg.get_settings.cache_clear()
+
+    p = lp.get_provider()
+    assert type(p).__name__ == "VertexAIProvider"
+    assert p.auth_mode == "express"

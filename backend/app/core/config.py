@@ -33,6 +33,21 @@ class Settings(BaseSettings):
             "rate limits and billing through GCP credit."
         ),
     )
+    gcp_project: str = Field(
+        default="", validation_alias="GCP_PROJECT",
+        description=(
+            "GCP project ID (e.g. 'poetic-emblem-490411-p0'). When set "
+            "AND application-default credentials are present (via gcloud "
+            "auth application-default login), VertexAIProvider switches "
+            "to ADC mode and hits standard-tier quotas instead of "
+            "Express Mode tier 1. Takes precedence over VERTEX_AI_API_KEY "
+            "in the `auto` resolution."
+        ),
+    )
+    gcp_location: str = Field(
+        default="us-central1", validation_alias="GCP_LOCATION",
+        description="Vertex AI region — only used in ADC mode.",
+    )
     llm_provider: Literal["auto", "vertex", "gemini", "anthropic", "mock"] = Field(
         default="auto", validation_alias="LLM_PROVIDER"
     )
