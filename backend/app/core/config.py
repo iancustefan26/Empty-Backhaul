@@ -36,6 +36,19 @@ class Settings(BaseSettings):
     llm_provider: Literal["auto", "vertex", "gemini", "anthropic", "mock"] = Field(
         default="auto", validation_alias="LLM_PROVIDER"
     )
+    vertex_rpm_cap: int | None = Field(
+        default=None, validation_alias="VERTEX_RPM_CAP",
+        description="Override the VertexAIProvider RPM throttle. None = use class default.",
+    )
+    vertex_daily_cap: int | None = Field(
+        default=None, validation_alias="VERTEX_DAILY_CAP",
+    )
+    gemini_rpm_cap: int | None = Field(
+        default=None, validation_alias="GEMINI_RPM_CAP",
+    )
+    gemini_daily_cap: int | None = Field(
+        default=None, validation_alias="GEMINI_DAILY_CAP",
+    )
     llm_cache_enabled: bool = Field(default=True, validation_alias="LLM_CACHE")
 
     chroma_persist_dir: str = Field(

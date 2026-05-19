@@ -211,10 +211,25 @@ class GeminiProvider:
         return genai.Client(api_key=self._api_key)
 
     def _rpm_cap(self) -> int:
-        return int(os.environ.get(self.rpm_env_var, self.default_rpm))
+        # Resolution order: process env > .env (via Settings) > class default.
+        env_val = os.environ.get(self.rpm_env_var)
+        if env_val is not None:
+            return int(env_val)
+        settings_attr = self.rpm_env_var.lower()
+        settings_val = getattr(get_settings(), settings_attr, None)
+        if settings_val is not None:
+            return int(settings_val)
+        return self.default_rpm
 
     def _daily_cap(self) -> int:
-        return int(os.environ.get(self.daily_env_var, self.default_daily))
+        env_val = os.environ.get(self.daily_env_var)
+        if env_val is not None:
+            return int(env_val)
+        settings_attr = self.daily_env_var.lower()
+        settings_val = getattr(get_settings(), settings_attr, None)
+        if settings_val is not None:
+            return int(settings_val)
+        return self.default_daily
 
     # ---- shared retry / throttle / cost-meter loop ----
 

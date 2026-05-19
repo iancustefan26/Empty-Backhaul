@@ -92,6 +92,45 @@ verdicts for a 25×100 grid where ~30 % pass hard rules) now
 completes in **~12 min on Vertex** instead of **~84 min on AI
 Studio**. With warm cache, both providers respond in seconds.
 
+### Pre-warming the cache for sub-second plans
+
+Even on Vertex, the first cold plan is slow because each (van, load)
+pair needs a fresh API round-trip. The `scripts/prewarm_llm_cache.py`
+script runs the analyst over the full seed grid ahead of time, with
+a configurable thread pool (default 8). The RPM throttle is
+process-global so the worker count never exceeds the configured cap;
+it only helps when Vertex's per-call latency is the bottleneck (which
+it typically is).
+
+**Measured pre-warm + replay (5-van slice, May 2026):**
+
+| Phase | Wall clock | Fresh calls | Cache hits | Spend |
+|---|---:|---:|---:|---:|
+| Cold plan (5 vans × 10 loads) | 436 s | 31 | 0 | $0.054 |
+| Pre-warm (5 vans × 100 loads, 12 workers, 240 RPM cap) | 409 s | 134 | 366 | $0.18 |
+| **Re-plan (same 10 loads, post-warm)** | **38 s** | **0** | **31** | **$0.00** |
+
+Replay is **11× faster than the cold plan** and free. The remaining
+38 s is RAG-query overhead (Chroma fires for every compliant pair
+before the LLM-cache short-circuit) — a future optimisation could
+check the LLM cache *before* building the user-message, cutting the
+replay to sub-second.
+
+**Usage:**
+
+```bash
+# Default: full 25-van × 100-load grid, 8 workers
+python -m scripts.prewarm_llm_cache
+
+# Faster, more aggressive
+VERTEX_RPM_CAP=240 python -m scripts.prewarm_llm_cache --workers 12
+```
+
+The throttle defaults are read from `os.environ` first, then from
+`.env` via `Settings.vertex_rpm_cap`, then from the class default
+(60 RPM). Setting `VERTEX_RPM_CAP=120` in `.env` is enough to make
+every subsequent run honour the bump.
+
 Unit-tested in `tests/test_llm_provider_retry.py` (9 tests covering
 both providers + factory routing + back-compat for `AQ.*`-prefixed
 `GEMINI_API_KEY`).
