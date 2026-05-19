@@ -112,9 +112,37 @@ it typically is).
 
 Replay is **11× faster than the cold plan** and free. The remaining
 38 s is RAG-query overhead (Chroma fires for every compliant pair
-before the LLM-cache short-circuit) — a future optimisation could
-check the LLM cache *before* building the user-message, cutting the
-replay to sub-second.
+before the LLM-cache short-circuit).
+
+### Verdict cache — the next 1000× speedup
+
+The 38 s RAG-overhead problem is fixed by `app/agents/verdict_cache.py`:
+a separate on-disk cache that stores the **post-sanity-layer
+ComplianceVerdict** keyed by the *semantic features* of the (truck,
+load) pair — capability, last cargo, wash certificates, cargo type,
+forbidden prior list, temperature band, logger requirement. Identity
+fields (`truck_id`, `load_id`) are deliberately excluded so the cache
+survives a re-seed and still hits on logically-equivalent pairs.
+
+When `analyst_fleet()` is called, the per-pair loop now checks the
+verdict cache FIRST. If hit, it returns the cached verdict and skips
+both RAG and the LLM call entirely. Auto-invalidation: the cache key
+includes an 8-char hash of `sanity_check.py`'s source so any change
+to the deterministic rule predicates blows the cache cleanly.
+
+**Measured impact (same 5-van × 10-load demo, post-warm replay):**
+
+| Phase | Wall clock | RAG queries | LLM calls | Verdict cache hits |
+|---|---:|---:|---:|---:|
+| Replay (LLM cache only) | 38 s | 62 | 0 | 0 |
+| **Replay (+ verdict cache)** | **<0.1 s** | **0** | **0** | **50** |
+
+Plan output stays byte-identical. The verdict cache file lives at
+`backend/.llm_cache/verdict_cache.json` and is gitignored.
+
+Unit-tested in `tests/test_verdict_cache.py` (10 tests covering
+key composition, identity-independence, auto-invalidation on rule
+change, disk round-trip, dirty-flag flushing, and clear).
 
 **Usage:**
 
