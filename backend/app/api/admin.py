@@ -475,3 +475,142 @@ def list_enums() -> dict:
         "cities": sorted(ROMANIA_CITIES.keys()),
         "load_sources": ["customer", "broker"],
     }
+
+
+# ---------------------------------------------------------------------------
+# 123cargo Frigo dataset — real-world freight imported from the user's
+# authenticated session on 123cargo.eu (see scripts/scrape_123cargo.py).
+# Endpoints below let the dispatcher console pull a subset of those real
+# loads into the workspace for testing.
+# ---------------------------------------------------------------------------
+
+from pathlib import Path as _Path
+
+_BACKEND_DIR = _Path(__file__).resolve().parents[2]
+_123CARGO_FILE = _BACKEND_DIR / "data" / "123cargo" / "frigo_loads.json"
+
+
+def _load_123cargo_dataset() -> dict:
+    if not _123CARGO_FILE.exists():
+        raise HTTPException(
+            status_code=404,
+            detail=(
+                "No 123cargo Frigo dataset found. Run "
+                "`python -m scripts.scrape_123cargo` to produce one."
+            ),
+        )
+    import json
+    return json.loads(_123CARGO_FILE.read_text(encoding="utf-8"))
+
+
+def _guess_cargo_type(row: dict) -> str:
+    """The 123cargo entry only carries the temperature-controlled flag —
+    not the exact food class. We make a heuristic guess based on weight
+    to give the analyst something sensible to reason about:
+
+      heavy (≥ 10t)   → "dairy"    (pallets of UHT, common temp-controlled freight)
+      medium (3-10t)  → "produce"  (mixed vegetables / fruit)
+      light  (< 3t)   → "pharma"   (high-value small loads — common Frigo niche)
+
+    The dispatcher can edit individual loads via the manual form if a
+    specific cargo class matters for a test scenario.
+    """
+    w = int(row.get("weight_kg") or 0)
+    if w >= 10_000:
+        return "dairy"
+    if w >= 3_000:
+        return "produce"
+    return "pharma"
+
+
+@router.get("/loads/123cargo/info", summary="How many Frigo loads are in the local dataset")
+def info_123cargo() -> dict:
+    if not _123CARGO_FILE.exists():
+        return {"available": 0, "scraped_at_utc": None, "exists": False}
+    data = _load_123cargo_dataset()
+    return {
+        "available":       data.get("frigo_count", 0),
+        "scraped_at_utc":  data.get("scraped_at_utc"),
+        "base_search_date": data.get("base_search_date"),
+        "total_scanned":   data.get("total_scanned"),
+        "total_available": data.get("total_available"),
+        "exists":          True,
+    }
+
+
+@router.post("/loads/123cargo/import", summary="Import N Frigo loads from the scraped dataset")
+def import_123cargo(count: int = Query(20, ge=1, le=500),
+                    shuffle: bool = Query(True, description="Pick a random subset instead of the first N")) -> dict:
+    _require_db()
+    data = _load_123cargo_dataset()
+    rows = list(data.get("loads", []))
+    if not rows:
+        raise HTTPException(status_code=404, detail="123cargo dataset is empty")
+
+    import random as _r
+    if shuffle:
+        _r.shuffle(rows)
+    rows = rows[:count]
+
+    from datetime import timedelta
+    base_time = datetime.now(timezone.utc).replace(
+        hour=8, minute=0, second=0, microsecond=0,
+    )
+
+    created = []
+    with SessionLocal() as s:
+        for r in rows:
+            cargo = _guess_cargo_type(r)
+            # Mirror the cargo-defaults table in random_fixtures
+            from app.services.random_fixtures import _CARGO_DEFAULTS  # type: ignore[attr-defined]
+            d = _CARGO_DEFAULTS[cargo]
+            # 123cargo gives lat/lng; we POINT() them directly (no city table lookup)
+            pickup_wkt = WKTElement(f"POINT({r['source_lng']} {r['source_lat']})", srid=4326)
+            deliv_wkt = WKTElement(f"POINT({r['destination_lng']} {r['destination_lat']})", srid=4326)
+            # Time window: pickup in 2-12h, 8h wide. We deliberately don't use
+            # the original 123cargo loading_date because most scraped rows are
+            # for "yesterday" relative to current wall-clock, which would make
+            # them all expired the moment they hit our DB.
+            offset_h = 2 + (hash(r["id"]) % 11)   # spread 2-12h
+            win_start = base_time + timedelta(hours=offset_h)
+            win_end = win_start + timedelta(hours=8)
+            load = LoadRequest(
+                shipper_name=f"123cargo {r['id']}",
+                cargo_type=cargo,
+                cargo_description=f"Real freight from 123cargo.eu — "
+                                   f"{r['raw_source']} → {r['raw_destination']}",
+                temp_min_celsius=d["temp"][0],
+                temp_max_celsius=d["temp"][1],
+                requires_pharma_logger=d["logger"],
+                forbidden_prior_cargo=d["fpc"],
+                pickup_location=pickup_wkt,
+                pickup_city=r["source_city"],
+                delivery_location=deliv_wkt,
+                delivery_city=r["destination_city"],
+                pickup_window_start=win_start,
+                pickup_window_end=win_end,
+                weight_kg=float(r["weight_kg"] or 1000),
+                # Price hygiene: 123cargo prices include many zeros (no
+                # quote shown publicly). For those rows, synthesise from
+                # distance (€2 per km, similar to other broker loads).
+                price_eur=max(
+                    float(r.get("price_eur") or 0),
+                    float(r.get("route_distance_km") or 0) * 2.0,
+                    150.0,
+                ),
+                status="available",
+                source="broker",
+            )
+            s.add(load)
+            s.flush()
+            created.append({"id": load.id, "cargo_type": load.cargo_type,
+                            "route": f"{load.pickup_city} → {load.delivery_city}",
+                            "weight_kg": load.weight_kg,
+                            "price_eur": round(load.price_eur, 0),
+                            "123cargo_id": r["id"]})
+        s.commit()
+    _invalidate_caches()
+    return {"created": len(created),
+            "source": "123cargo.eu",
+            "available_in_dataset": data.get("frigo_count", 0),
+            "loads": created}

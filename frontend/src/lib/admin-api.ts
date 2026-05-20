@@ -155,3 +155,43 @@ export const reseedCanonical = (): Promise<{ status: string; trucks: number; loa
 
 export const fetchEnums = (): Promise<AdminEnums> =>
   _json<AdminEnums>("/api/admin/enums");
+
+// ---------------------------------------------------------------------------
+// 123cargo dataset — real freight from the user's authenticated session
+// scrape (see backend/scripts/scrape_123cargo.py)
+// ---------------------------------------------------------------------------
+
+export interface Cargo123Info {
+  available: number;
+  scraped_at_utc: string | null;
+  base_search_date?: string;
+  total_scanned?: number;
+  total_available?: number;
+  exists: boolean;
+}
+
+export const info123cargo = (): Promise<Cargo123Info> =>
+  _json<Cargo123Info>("/api/admin/loads/123cargo/info");
+
+export interface Import123cargoResult {
+  created: number;
+  source: "123cargo.eu";
+  available_in_dataset: number;
+  loads: Array<{
+    id: number;
+    cargo_type: string;
+    route: string;
+    weight_kg: number;
+    price_eur: number;
+    "123cargo_id": string;
+  }>;
+}
+
+export const import123cargo = (
+  count: number,
+  shuffle = true,
+): Promise<Import123cargoResult> =>
+  _json<Import123cargoResult>(
+    `/api/admin/loads/123cargo/import?count=${count}&shuffle=${shuffle}`,
+    { method: "POST" },
+  );

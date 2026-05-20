@@ -14,7 +14,7 @@
  * next "Plan today's routes" the user types in the chat re-evaluates.
  */
 import { useEffect, useState } from "react";
-import { Loader2, Plus, Trash2, X, Dice5, RefreshCw, Database } from "lucide-react";
+import { Loader2, Plus, Trash2, X, Dice5, RefreshCw, Database, Globe } from "lucide-react";
 
 import * as admin from "../../lib/admin-api";
 import { cn } from "../../lib/utils";
@@ -39,6 +39,8 @@ export function FleetManager({ open, onClose, onDataChanged }: Props) {
   // Random counters
   const [truckRandomN, setTruckRandomN] = useState(5);
   const [loadRandomN, setLoadRandomN] = useState(10);
+  const [cargo123N, setCargo123N] = useState(20);
+  const [cargo123Info, setCargo123Info] = useState<admin.Cargo123Info | null>(null);
 
   // Manual-add form visibility
   const [addingTruck, setAddingTruck] = useState(false);
@@ -48,6 +50,8 @@ export function FleetManager({ open, onClose, onDataChanged }: Props) {
     if (!open) return;
     void refreshAll();
     if (!enums) void admin.fetchEnums().then(setEnums).catch((e) => setError(String(e)));
+    // 404 is normal (no scraped dataset yet); swallow silently
+    void admin.info123cargo().then(setCargo123Info).catch(() => setCargo123Info(null));
   }, [open]);
 
   async function refreshAll() {
@@ -107,6 +111,12 @@ export function FleetManager({ open, onClose, onDataChanged }: Props) {
   // ----- load actions -----
   const handleLoadRandom = () => withMutation(async () => {
     await admin.randomLoads(loadRandomN);
+  });
+  const handleImport123cargo = () => withMutation(async () => {
+    await admin.import123cargo(cargo123N, true);
+    // Refresh dataset info too (it doesn't change, but for safety)
+    const info = await admin.info123cargo().catch(() => null);
+    setCargo123Info(info);
   });
   const handleLoadDelete = (id: number) => withMutation(async () => {
     await admin.deleteLoad(id);
@@ -216,6 +226,10 @@ export function FleetManager({ open, onClose, onDataChanged }: Props) {
               setAddingLoad={setAddingLoad}
               loadRandomN={loadRandomN}
               setLoadRandomN={setLoadRandomN}
+              cargo123Info={cargo123Info}
+              cargo123N={cargo123N}
+              setCargo123N={setCargo123N}
+              onImport123cargo={handleImport123cargo}
               onRandom={handleLoadRandom}
               onDelete={handleLoadDelete}
               onDeleteAll={handleLoadDeleteAll}
@@ -481,38 +495,81 @@ function LoadsTab(props: {
   setAddingLoad: (b: boolean) => void;
   loadRandomN: number;
   setLoadRandomN: (n: number) => void;
+  cargo123Info: admin.Cargo123Info | null;
+  cargo123N: number;
+  setCargo123N: (n: number) => void;
+  onImport123cargo: () => void;
   onRandom: () => void;
   onDelete: (id: number) => void;
   onDeleteAll: () => void;
   onAddSubmit: (body: admin.AdminLoadIn) => void;
 }) {
+  const has123 = props.cargo123Info?.exists && (props.cargo123Info?.available ?? 0) > 0;
   return (
     <>
-      <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-2">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => props.setAddingLoad(!props.addingLoad)}
-            className="inline-flex items-center gap-1 rounded-md border border-primary px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
-          >
-            <Plus size={14} />
-            {props.addingLoad ? "Cancel" : "Add load"}
-          </button>
-          {props.loads.length > 0 && (
+      <div className="flex shrink-0 flex-col gap-2 border-b border-border px-5 py-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <button
-              onClick={props.onDeleteAll}
-              className="inline-flex items-center gap-1 rounded-md border border-destructive/30 px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
+              onClick={() => props.setAddingLoad(!props.addingLoad)}
+              className="inline-flex items-center gap-1 rounded-md border border-primary px-3 py-1.5 text-sm font-medium text-primary hover:bg-primary/10"
             >
-              <Trash2 size={12} /> Delete all
+              <Plus size={14} />
+              {props.addingLoad ? "Cancel" : "Add load"}
             </button>
-          )}
+            {props.loads.length > 0 && (
+              <button
+                onClick={props.onDeleteAll}
+                className="inline-flex items-center gap-1 rounded-md border border-destructive/30 px-2 py-1.5 text-xs text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 size={12} /> Delete all
+              </button>
+            )}
+          </div>
+          <RandomBar
+            count={props.loadRandomN}
+            setCount={props.setLoadRandomN}
+            onAdd={props.onRandom}
+            loading={props.loading}
+            label="How many random loads"
+          />
         </div>
-        <RandomBar
-          count={props.loadRandomN}
-          setCount={props.setLoadRandomN}
-          onAdd={props.onRandom}
-          loading={props.loading}
-          label="How many random loads"
-        />
+
+        {/* 123cargo dataset row */}
+        {has123 && (
+          <div className="flex items-center justify-between rounded-md border border-accent/30 bg-accent/5 px-3 py-2 text-xs">
+            <div className="flex items-center gap-2">
+              <Globe size={14} className="text-accent" />
+              <span>
+                <strong>123cargo Frigo dataset</strong> · {props.cargo123Info!.available} real loads scraped
+                {props.cargo123Info?.scraped_at_utc && (
+                  <span className="text-muted-foreground">
+                    {" "}({new Date(props.cargo123Info.scraped_at_utc).toLocaleString()})
+                  </span>
+                )}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-muted-foreground">Import:</span>
+              <input
+                type="number"
+                min={1}
+                max={Math.min(500, props.cargo123Info?.available ?? 500)}
+                value={props.cargo123N}
+                onChange={(e) => props.setCargo123N(Math.max(1, Math.min(500, parseInt(e.target.value) || 1)))}
+                className="w-16 rounded-md border border-border bg-card px-2 py-1 text-sm tabular-nums"
+              />
+              <button
+                onClick={props.onImport123cargo}
+                disabled={props.loading}
+                className="inline-flex items-center gap-1 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+              >
+                {props.loading ? <Loader2 size={14} className="animate-spin" /> : <Globe size={14} />}
+                Load from 123cargo
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {props.addingLoad && props.enums && (

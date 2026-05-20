@@ -40,3 +40,6 @@ backend/.llm_cache/
 backend/.external_data/
 backend/.llm_cache/cost_log.jsonl
 backend/.geo_cache/
+
+# 123cargo scrape — user session cookies + scraped Frigo dataset
+backend/data/123cargo/
