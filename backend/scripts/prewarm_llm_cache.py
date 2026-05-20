@@ -38,23 +38,31 @@ if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
 from app.agents.analyst import (  # noqa: E402
-    _SYSTEM_PROMPT, _build_query, _build_user_message, _parse_verdict,
+    _SYSTEM_PROMPT, _build_query, _build_user_message,
+    _evaluate_mock, _parse_verdict,
 )
 from app.agents.fleet_workflow import sentry_fleet  # noqa: E402
 from app.agents.llm_provider import get_provider, MockProvider  # noqa: E402
 from app.agents.sanity_check import apply_sanity_layer, hard_rules_verdict  # noqa: E402
+from app.agents import verdict_cache  # noqa: E402
 from app.rag.ingest import query_corpus, query_rules  # noqa: E402
 from scripts._exp_common import cost_meter_summary  # noqa: E402
 
 
 def _warm_one_pair(provider, truck, load) -> dict:
-    """Evaluate a single (truck, load) pair through the full Analyst path.
-    Returns a small status dict (no verdicts kept in memory — the cache
-    is the artefact)."""
+    """Evaluate a single (truck, load) pair through the full Analyst path
+    AND populate the verdict cache so a future analyst_fleet skips both
+    RAG and the LLM round-trip entirely.
+
+    Returns a small status dict (verdict itself is in the cache, not
+    returned)."""
     hard = hard_rules_verdict(truck, load)
     if not hard["is_compliant"]:
-        # Hard rules block this pair → analyst_fleet would skip the LLM
-        # for it anyway. Nothing to warm.
+        # Hard rules block this pair → mock the verdict and cache it so
+        # the analyst's fast-path picks it up next time (skipping even
+        # the hard-rules recomputation).
+        v = _evaluate_mock(truck, load)
+        verdict_cache.put_verdict(truck, load, v)
         return {"truck_id": truck["id"], "load_id": load["id"],
                 "pre_blocked": True, "cached": False, "fresh": False}
 
@@ -64,11 +72,14 @@ def _warm_one_pair(provider, truck, load) -> dict:
     user_msg = _build_user_message(truck, load, rules, excerpts)
     try:
         raw, was_cached = provider.evaluate(_SYSTEM_PROMPT, user_msg)
-        # Parse + sanity to mirror production path exactly (so a future
-        # production call returns the identical cached response).
+        # Parse + sanity to mirror production path exactly, then PERSIST
+        # the post-sanity verdict to the verdict cache so future plans
+        # skip the LLM call entirely (LLM cache hit alone still pays RAG
+        # cost; verdict cache hit pays nothing).
         try:
             llm_v = _parse_verdict(raw, load["id"], excerpts)
-            apply_sanity_layer(llm_v, hard, truck, load)
+            corrected, _overrides = apply_sanity_layer(llm_v, hard, truck, load)
+            verdict_cache.put_verdict(truck, load, corrected)
         except Exception:
             pass  # parse errors don't invalidate the cache row
         return {"truck_id": truck["id"], "load_id": load["id"],
@@ -151,8 +162,10 @@ def main() -> int:
 
     wall = time.perf_counter() - t0
     cost = cost_meter_summary(since=started)
+    verdict_size = verdict_cache.flush_to_disk()
     print(file=sys.stderr)
     print(f"[prewarm] DONE in {wall:.0f}s", file=sys.stderr)
+    print(f"  verdict cache size:     {verdict_size} entries", file=sys.stderr)
     print(f"  pre-blocked (no LLM):   {pre_blocked}", file=sys.stderr)
     print(f"  cache-hit (was warm):   {cached}", file=sys.stderr)
     print(f"  newly cached (fresh):   {fresh}", file=sys.stderr)
