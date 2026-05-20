@@ -1,0 +1,169 @@
+{
+  "experiment_id": "R1",
+  "title": "Small carrier baseline: 7-van Cluj fleet on real Frigo market",
+  "hypothesis": "A 7-van Cluj reefer SMB earns \u2265 \u20ac1 000 fleet margin on the 89 real 123cargo Frigo loads, dispatches \u2265 3 vans, and chains lift margin \u2265 20 % vs chains-off.",
+  "inputs": {
+    "n_vans": 7,
+    "depot": "Cluj-Napoca",
+    "n_loads": 90,
+    "dataset_scraped_at": "2026-05-20T09:03:34.806802+00:00",
+    "dataset_size": 89
+  },
+  "results": {
+    "headline_chains_on": {
+      "total_margin_eur": 708.15,
+      "vans_dispatched": 4,
+      "vans_idle": 3,
+      "loads_served": 7,
+      "chains_formed": 3,
+      "singles_formed": 1,
+      "deadhead_pct": 45.41,
+      "fleet_utilization_pct": 57.1,
+      "total_loaded_km": 886.2,
+      "total_empty_km": 737.1
+    },
+    "comparison_chains_off": {
+      "total_margin_eur": 294.3,
+      "vans_dispatched": 5,
+      "vans_idle": 2,
+      "loads_served": 5,
+      "chains_formed": 0,
+      "singles_formed": 5,
+      "deadhead_pct": 53.52,
+      "fleet_utilization_pct": 71.4,
+      "total_loaded_km": 803.7,
+      "total_empty_km": 925.3
+    },
+    "deltas": {
+      "margin_delta_eur": 413.85,
+      "margin_delta_pct": 140.62,
+      "deadhead_delta_pp": -8.11,
+      "vans_dispatched_delta": -1
+    }
+  },
+  "details": {
+    "per_van_breakdown_chains_on": [
+      {
+        "plate": "VAN-001-CLU",
+        "kind": "CHAIN",
+        "route": "Cluj-Napoca \u2192 Oradea \u2192 Campia Turzii \u2192 Cluj-Napoca",
+        "margin_eur": 377.78,
+        "loaded_km": 352.2,
+        "empty_km": 41.0,
+        "drive_hours": 6.05
+      },
+      {
+        "plate": "VAN-002-CLU",
+        "kind": "CHAIN",
+        "route": "Cluj-Napoca \u2192 Turda \u2192 Medias \u2192 Turda \u2192 Satu Mare \u2192 Cluj-Napoca",
+        "margin_eur": 163.62,
+        "loaded_km": 261.4,
+        "empty_km": 261.4,
+        "drive_hours": 8.04
+      },
+      {
+        "plate": "VAN-003-CLU",
+        "kind": "IDLE",
+        "route": "\u2014",
+        "margin_eur": 0.0,
+        "loaded_km": 0.0,
+        "empty_km": 0.0
+      },
+      {
+        "plate": "VAN-004-CLU",
+        "kind": "SINGLE",
+        "route": "Cluj-Napoca \u2192 Baia Mare \u2192 Oradea \u2192 Cluj-Napoca",
+        "margin_eur": 5.93,
+        "loaded_km": 170.5,
+        "empty_km": 281.3,
+        "drive_hours": 6.95
+      },
+      {
+        "plate": "VAN-005-CLU",
+        "kind": "IDLE",
+        "route": "\u2014",
+        "margin_eur": 0.0,
+        "loaded_km": 0.0,
+        "empty_km": 0.0
+      },
+      {
+        "plate": "VAN-006-CLU",
+        "kind": "CHAIN",
+        "route": "Cluj-Napoca \u2192 Bistrita \u2192 Breaza \u2192 Reghin \u2192 Cluj-Napoca",
+        "margin_eur": 160.82,
+        "loaded_km": 102.1,
+        "empty_km": 153.4,
+        "drive_hours": 3.93
+      },
+      {
+        "plate": "VAN-007-CLU",
+        "kind": "IDLE",
+        "route": "\u2014",
+        "margin_eur": 0.0,
+        "loaded_km": 0.0,
+        "empty_km": 0.0
+      }
+    ],
+    "top_5_profitable_loads_chains_on": [
+      {
+        "123cargo_id": "BM-181753191",
+        "route": "Turda \u2192 Satu Mare",
+        "cargo_type": "dairy",
+        "weight_t": 20.0,
+        "price_eur": 434.0,
+        "distance_km": 217
+      },
+      {
+        "123cargo_id": "BM-181739243",
+        "route": "Oradea \u2192 Campia Turzii",
+        "cargo_type": "dairy",
+        "weight_t": 18.0,
+        "price_eur": 394.0,
+        "distance_km": 197
+      },
+      {
+        "123cargo_id": "BM-181619193",
+        "route": "Baia Mare \u2192 Oradea",
+        "cargo_type": "produce",
+        "weight_t": 7.0,
+        "price_eur": 390.0,
+        "distance_km": 195
+      },
+      {
+        "123cargo_id": "BM-181803599",
+        "route": "Cluj-Napoca \u2192 Oradea",
+        "cargo_type": "produce",
+        "weight_t": 3.2,
+        "price_eur": 318.0,
+        "distance_km": 159
+      },
+      {
+        "123cargo_id": "BM-181432667",
+        "route": "Cluj-Napoca \u2192 Bistrita",
+        "cargo_type": "pharma",
+        "weight_t": 0.5,
+        "price_eur": 228.0,
+        "distance_km": 114
+      }
+    ],
+    "analyst": {
+      "pairs": 630,
+      "pre_blocked": 212,
+      "compliant": 418
+    },
+    "wall_time_seconds": 0.15
+  },
+  "provenance": {
+    "completed_at": "2026-05-20T10:59:32.988922+00:00",
+    "git_sha": "0a6035b",
+    "dataset": "123cargo.eu Frigo snapshot",
+    "dataset_scraped_at": "2026-05-20T09:03:34.806802+00:00",
+    "dataset_size": 89,
+    "depot_priority": [
+      "Bucuresti",
+      "Timisoara",
+      "Arad",
+      "Ploiesti"
+    ]
+  }
+}

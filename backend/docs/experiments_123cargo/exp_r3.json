@@ -1,0 +1,189 @@
+{
+  "experiment_id": "R3",
+  "title": "Fleet growth: single-depot scaling vs multi-depot expansion",
+  "hypothesis": "Single-depot growth diminishes; equal-fleet multi-depot configs earn more margin AND serve more loads than single-depot at the same total fleet size.",
+  "inputs": {
+    "configurations": [
+      "single-cluj-3",
+      "single-cluj-7",
+      "single-cluj-14",
+      "single-cluj-25",
+      "dual-cluj-buc-14",
+      "triple-cbt-21",
+      "triple-cbc-21"
+    ],
+    "n_loads": 90,
+    "baseline_config": "single-cluj-7",
+    "dataset_scraped_at": "2026-05-20T09:03:34.806802+00:00"
+  },
+  "results": {
+    "per_config": [
+      {
+        "total_margin_eur": 547.33,
+        "vans_dispatched": 3,
+        "loads_served": 5,
+        "deadhead_pct": 42.67,
+        "fleet_utilization_pct": 100.0,
+        "chains_formed": 2,
+        "singles_formed": 1,
+        "margin_per_van": 182.44,
+        "label": "single-cluj-3",
+        "n_vans": 3,
+        "n_depots": 1,
+        "depots": [
+          "Cluj-Napoca"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 82,
+        "margin_lift_vs_baseline_eur": -160.82
+      },
+      {
+        "total_margin_eur": 708.15,
+        "vans_dispatched": 4,
+        "loads_served": 7,
+        "deadhead_pct": 45.41,
+        "fleet_utilization_pct": 57.1,
+        "chains_formed": 3,
+        "singles_formed": 1,
+        "margin_per_van": 101.16,
+        "label": "single-cluj-7",
+        "n_vans": 7,
+        "n_depots": 1,
+        "depots": [
+          "Cluj-Napoca"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 138,
+        "margin_lift_vs_baseline_eur": 0.0
+      },
+      {
+        "total_margin_eur": 724.63,
+        "vans_dispatched": 4,
+        "loads_served": 7,
+        "deadhead_pct": 44.74,
+        "fleet_utilization_pct": 28.6,
+        "chains_formed": 3,
+        "singles_formed": 1,
+        "margin_per_van": 51.76,
+        "label": "single-cluj-14",
+        "n_vans": 14,
+        "n_depots": 1,
+        "depots": [
+          "Cluj-Napoca"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 277,
+        "margin_lift_vs_baseline_eur": 16.48
+      },
+      {
+        "total_margin_eur": 724.63,
+        "vans_dispatched": 4,
+        "loads_served": 7,
+        "deadhead_pct": 44.74,
+        "fleet_utilization_pct": 16.0,
+        "chains_formed": 3,
+        "singles_formed": 1,
+        "margin_per_van": 28.99,
+        "label": "single-cluj-25",
+        "n_vans": 25,
+        "n_depots": 1,
+        "depots": [
+          "Cluj-Napoca"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 518,
+        "margin_lift_vs_baseline_eur": 16.48
+      },
+      {
+        "total_margin_eur": 2469.3,
+        "vans_dispatched": 9,
+        "loads_served": 17,
+        "deadhead_pct": 40.27,
+        "fleet_utilization_pct": 64.3,
+        "chains_formed": 8,
+        "singles_formed": 1,
+        "margin_per_van": 176.38,
+        "label": "dual-cluj-buc-14",
+        "n_vans": 14,
+        "n_depots": 2,
+        "depots": [
+          "Cluj-Napoca",
+          "Bucuresti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 289,
+        "margin_lift_vs_baseline_eur": 1761.15
+      },
+      {
+        "total_margin_eur": 2538.19,
+        "vans_dispatched": 10,
+        "loads_served": 19,
+        "deadhead_pct": 41.34,
+        "fleet_utilization_pct": 47.6,
+        "chains_formed": 9,
+        "singles_formed": 1,
+        "margin_per_van": 120.87,
+        "label": "triple-cbt-21",
+        "n_vans": 21,
+        "n_depots": 3,
+        "depots": [
+          "Cluj-Napoca",
+          "Bucuresti",
+          "Timisoara"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 413,
+        "margin_lift_vs_baseline_eur": 1830.04
+      },
+      {
+        "total_margin_eur": 2753.72,
+        "vans_dispatched": 13,
+        "loads_served": 22,
+        "deadhead_pct": 43.33,
+        "fleet_utilization_pct": 61.9,
+        "chains_formed": 9,
+        "singles_formed": 4,
+        "margin_per_van": 131.13,
+        "label": "triple-cbc-21",
+        "n_vans": 21,
+        "n_depots": 3,
+        "depots": [
+          "Cluj-Napoca",
+          "Bucuresti",
+          "Constanta"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 423,
+        "margin_lift_vs_baseline_eur": 2045.57
+      }
+    ],
+    "diminishing_returns_knee_single_cluj": {
+      "from_size": 3,
+      "to_size": 7,
+      "per_van_eur": 40.2
+    },
+    "multi_vs_single_at_fleet_14": {
+      "single_margin": 724.63,
+      "dual_margin": 2469.3,
+      "margin_lift_eur": 1744.67,
+      "margin_lift_pct": 240.77,
+      "loads_served_delta": 10
+    }
+  },
+  "details": {
+    "wall_time_seconds": 2.19
+  },
+  "provenance": {
+    "completed_at": "2026-05-20T10:59:38.006442+00:00",
+    "git_sha": "0a6035b",
+    "dataset": "123cargo.eu Frigo snapshot",
+    "dataset_scraped_at": "2026-05-20T09:03:34.806802+00:00",
+    "dataset_size": 89,
+    "depot_priority": [
+      "Bucuresti",
+      "Timisoara",
+      "Arad",
+      "Ploiesti"
+    ]
+  }
+}

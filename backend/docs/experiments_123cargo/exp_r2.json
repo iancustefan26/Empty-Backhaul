@@ -1,0 +1,207 @@
+{
+  "experiment_id": "R2",
+  "title": "Depot location sensitivity \u2014 where to base the 7-van fleet?",
+  "hypothesis": "Real freight market is Bucure\u015fti-centric (22/89 loads vs 3/89 in Cluj); at least one alternative depot earns \u2265 2\u00d7 Cluj, and best-vs-worst depots differ by \u2265 50 %.",
+  "inputs": {
+    "n_vans": 7,
+    "candidate_depots": [
+      "Cluj-Napoca",
+      "Bucuresti",
+      "Timisoara",
+      "Iasi",
+      "Constanta"
+    ],
+    "n_loads": 90,
+    "dataset_scraped_at": "2026-05-20T09:03:34.806802+00:00"
+  },
+  "results": {
+    "per_depot": [
+      {
+        "total_margin_eur": 708.15,
+        "vans_dispatched": 4,
+        "loads_served": 7,
+        "chains_formed": 3,
+        "singles_formed": 1,
+        "deadhead_pct": 45.41,
+        "fleet_utilization_pct": 57.1,
+        "total_km": 1623.3,
+        "avg_drive_hours_per_van": 6.24,
+        "depot": "Cluj-Napoca",
+        "solver_status": "OPTIMAL",
+        "top_3_routes": [
+          {
+            "van_plate": "VAN-001-CLU",
+            "route": "Cluj-Napoca \u2192 Oradea \u2192 Campia Turzii \u2192 Cluj-Napoca",
+            "margin_eur": 377.78,
+            "123cargo_ids": [
+              "BM-181803599",
+              "BM-181739243"
+            ]
+          },
+          {
+            "van_plate": "VAN-002-CLU",
+            "route": "Cluj-Napoca \u2192 Turda \u2192 Medias \u2192 Turda \u2192 Satu Mare \u2192 Cluj-Napoca",
+            "margin_eur": 163.62,
+            "123cargo_ids": [
+              "BM-181753071",
+              "BM-181753191"
+            ]
+          },
+          {
+            "van_plate": "VAN-006-CLU",
+            "route": "Cluj-Napoca \u2192 Bistrita \u2192 Breaza \u2192 Reghin \u2192 Cluj-Napoca",
+            "margin_eur": 160.82,
+            "123cargo_ids": [
+              "BM-181432667",
+              "BM-181824078"
+            ]
+          }
+        ]
+      },
+      {
+        "total_margin_eur": 1761.15,
+        "vans_dispatched": 5,
+        "loads_served": 10,
+        "chains_formed": 5,
+        "singles_formed": 0,
+        "deadhead_pct": 37.02,
+        "fleet_utilization_pct": 71.4,
+        "total_km": 2561.1,
+        "avg_drive_hours_per_van": 7.88,
+        "depot": "Bucuresti",
+        "solver_status": "OPTIMAL",
+        "top_3_routes": [
+          {
+            "van_plate": "VAN-003-BUC",
+            "route": "Bucuresti \u2192 Filiasi \u2192 Slatina \u2192 Otopeni \u2192 Bucuresti",
+            "margin_eur": 490.55,
+            "123cargo_ids": [
+              "BM-181827805",
+              "BM-181843842"
+            ]
+          },
+          {
+            "van_plate": "VAN-004-BUC",
+            "route": "Bucuresti \u2192 Brasov \u2192 Targu Secuiesc \u2192 Bucuresti",
+            "margin_eur": 457.09,
+            "123cargo_ids": [
+              "BM-181821959",
+              "BM-181830786"
+            ]
+          },
+          {
+            "van_plate": "VAN-002-BUC",
+            "route": "Bucuresti \u2192 Bechet \u2192 Ion Luca Caragiale \u2192 Racari \u2192 Fundeni \u2192 Bucuresti",
+            "margin_eur": 301.31,
+            "123cargo_ids": [
+              "BM-181528489",
+              "BM-181772959"
+            ]
+          }
+        ]
+      },
+      {
+        "total_margin_eur": 68.89,
+        "vans_dispatched": 1,
+        "loads_served": 2,
+        "chains_formed": 1,
+        "singles_formed": 0,
+        "deadhead_pct": 50.26,
+        "fleet_utilization_pct": 14.3,
+        "total_km": 497.8,
+        "avg_drive_hours_per_van": 7.66,
+        "depot": "Timisoara",
+        "solver_status": "OPTIMAL",
+        "top_3_routes": [
+          {
+            "van_plate": "VAN-006-TIM",
+            "route": "Timisoara \u2192 Arad \u2192 Timisoara \u2192 Oradea \u2192 Timisoara",
+            "margin_eur": 68.89,
+            "123cargo_ids": [
+              "BM-181837998",
+              "BM-181841210"
+            ]
+          }
+        ]
+      },
+      {
+        "total_margin_eur": 0.0,
+        "vans_dispatched": 0,
+        "loads_served": 0,
+        "chains_formed": 0,
+        "singles_formed": 0,
+        "deadhead_pct": 0.0,
+        "fleet_utilization_pct": 0.0,
+        "total_km": 0.0,
+        "avg_drive_hours_per_van": 0.0,
+        "depot": "Iasi",
+        "solver_status": "ALL_IDLE",
+        "top_3_routes": []
+      },
+      {
+        "total_margin_eur": 434.42,
+        "vans_dispatched": 4,
+        "loads_served": 6,
+        "chains_formed": 2,
+        "singles_formed": 2,
+        "deadhead_pct": 49.84,
+        "fleet_utilization_pct": 57.1,
+        "total_km": 1966.5,
+        "avg_drive_hours_per_van": 7.56,
+        "depot": "Constanta",
+        "solver_status": "OPTIMAL",
+        "top_3_routes": [
+          {
+            "van_plate": "VAN-001-CON",
+            "route": "Constanta \u2192 Bucuresti \u2192 Constanta",
+            "margin_eur": 175.25,
+            "123cargo_ids": [
+              "BM-181713652",
+              "BM-181839972"
+            ]
+          },
+          {
+            "van_plate": "VAN-006-CON",
+            "route": "Constanta \u2192 Urziceni \u2192 Otopeni \u2192 Bucuresti \u2192 Constanta",
+            "margin_eur": 146.79,
+            "123cargo_ids": [
+              "BM-181832531",
+              "BM-181839214"
+            ]
+          },
+          {
+            "van_plate": "VAN-003-CON",
+            "route": "Constanta \u2192 Costi \u2192 Ovidiu \u2192 Constanta",
+            "margin_eur": 70.86,
+            "123cargo_ids": [
+              "BM-181712236"
+            ]
+          }
+        ]
+      }
+    ],
+    "winners": {
+      "by_margin": "Bucuresti",
+      "by_loads_served": "Bucuresti",
+      "by_utilization": "Bucuresti",
+      "by_low_deadhead": "Bucuresti"
+    },
+    "best_vs_worst_ratio": 25.56
+  },
+  "details": {
+    "wall_time_seconds": 0.72
+  },
+  "provenance": {
+    "completed_at": "2026-05-20T10:59:34.777739+00:00",
+    "git_sha": "0a6035b",
+    "dataset": "123cargo.eu Frigo snapshot",
+    "dataset_scraped_at": "2026-05-20T09:03:34.806802+00:00",
+    "dataset_size": 89,
+    "depot_priority": [
+      "Bucuresti",
+      "Timisoara",
+      "Arad",
+      "Ploiesti"
+    ]
+  }
+}

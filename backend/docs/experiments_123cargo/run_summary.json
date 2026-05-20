@@ -1,0 +1,54 @@
+{
+  "run_started_at": "2026-05-20T10:59:31.940202+00:00",
+  "run_completed_at": "2026-05-20T10:59:49.478576+00:00",
+  "git_sha": "0a6035b",
+  "experiments_run": [
+    "R1",
+    "R2",
+    "R3",
+    "R4"
+  ],
+  "all_passed": true,
+  "per_experiment": [
+    {
+      "experiment_id": "R1",
+      "module": "scripts.exp_r1_small_carrier",
+      "passed": true,
+      "exit_code": 0,
+      "wall_ms": 1249,
+      "started_at": "2026-05-20T10:59:31.950705+00:00",
+      "stdout_tail": "  Per-van breakdown (chains-on plan):\n    VAN-001-CLU     CHAIN   Cluj-Napoca \u2192 Oradea \u2192 Campia Turzii \u2192 Cluj-N  \u20ac  378\n    VAN-002-CLU     CHAIN   Cluj-Napoca \u2192 Turda \u2192 Medias \u2192 Turda \u2192 Satu M  \u20ac  164\n    VAN-003-CLU     IDLE    \u2014                                              \u20ac    0\n    VAN-004-CLU     SINGLE  Cluj-Napoca \u2192 Baia Mare \u2192 Oradea \u2192 Cluj-Napoc  \u20ac    6\n    VAN-005-CLU     IDLE    \u2014                                              \u20ac    0\n    VAN-006-CLU     CHAIN   Cluj-Napoca \u2192 Bistrita \u2192 Breaza \u2192 Reghin \u2192 Cl  \u20ac  161\n    VAN-007-CLU     IDLE    \u2014                                              \u20ac    0\n\n  Top 5 profitable loads served:\n    BM-181753191      Turda \u2192 Satu Mare                    dairy      20.0t  \u20ac  434\n    BM-181739243      Oradea \u2192 Campia Turzii               dairy      18.0t  \u20ac  394\n    BM-181619193      Baia Mare \u2192 Oradea                   produce     7.0t  \u20ac  390\n    BM-181803599      Cluj-Napoca \u2192 Oradea                 produce     3.2t  \u20ac  318\n    BM-181432667      Cluj-Napoca \u2192 Bistrita               pharma      0.5t  \u20ac  228",
+      "stderr_tail": "[r1] fleet=7  loads=90\n[r1] compliance: 418 compliant / 630 pairs\n[r1] wrote backend/docs/experiments_123cargo/exp_r1.json"
+    },
+    {
+      "experiment_id": "R2",
+      "module": "scripts.exp_r2_depot_location",
+      "passed": true,
+      "exit_code": 0,
+      "wall_ms": 1800,
+      "started_at": "2026-05-20T10:59:33.200616+00:00",
+      "stdout_tail": "\n  depot             margin \u20ac   vans  loads  deadhead %   avg h\n  ------------------------------------------------------------\n  Cluj-Napoca            708      4      7        45.4     6.2\n  Bucuresti             1761      5     10        37.0     7.9\n  Timisoara               69      1      2        50.3     7.7\n  Iasi                     0      0      0         0.0     0.0\n  Constanta              434      4      6        49.8     7.6\n\n  Winners by metric:\n    Highest margin:        Bucuresti\n    Most loads served:     Bucuresti\n    Best utilization:      Bucuresti\n    Lowest deadhead:       Bucuresti\n  Best vs worst margin ratio: 25.56\u00d7",
+      "stderr_tail": "[r2] Cluj-Napoca   margin \u20ac  708  dispatched 4/7  loads 7  deadhead 45.4%\n[r2] Bucuresti     margin \u20ac 1761  dispatched 5/7  loads 10  deadhead 37.0%\n[r2] Timisoara     margin \u20ac   69  dispatched 1/7  loads 2  deadhead 50.3%\n[r2] Iasi          margin \u20ac    0  dispatched 0/7  loads 0  deadhead 0.0%\n[r2] Constanta     margin \u20ac  434  dispatched 4/7  loads 6  deadhead 49.8%\n[r2] wrote backend/docs/experiments_123cargo/exp_r2.json"
+    },
+    {
+      "experiment_id": "R3",
+      "module": "scripts.exp_r3_fleet_scaling",
+      "passed": true,
+      "exit_code": 0,
+      "wall_ms": 3213,
+      "started_at": "2026-05-20T10:59:35.001166+00:00",
+      "stdout_tail": "  R3 \u2014 Fleet scaling on 90 real Frigo loads\n==========================================================================================\n\n  config                   vans   depots    margin \u20ac    \u20ac/van   loads   deadh%\n  --------------------------------------------------------------------------\n  single-cluj-3               3        1         547      182       5     42.7\n  single-cluj-7               7        1         708      101       7     45.4\n  single-cluj-14             14        1         725       52       7     44.7\n  single-cluj-25             25        1         725       29       7     44.7\n  dual-cluj-buc-14           14        2        2469      176      17     40.3\n  triple-cbt-21              21        3        2538      121      19     41.3\n  triple-cbc-21              21        3        2754      131      22     43.3\n\n  Diminishing returns knee (single-Cluj curve): adding van #4-7 earns \u20ac40/van (below \u20ac100/van threshold)\n  At fleet=14: dual (Cluj+Bucure\u015fti) earns \u20ac2469 vs single Cluj \u20ac725 \u2014 +240.8% lift, +10 more loads served",
+      "stderr_tail": "[r3] single-cluj-3           margin \u20ac  547  dispatched  3/3   deadhead 42.7%\n[r3] single-cluj-7           margin \u20ac  708  dispatched  4/7   deadhead 45.4%\n[r3] single-cluj-14          margin \u20ac  725  dispatched  4/14  deadhead 44.7%\n[r3] single-cluj-25          margin \u20ac  725  dispatched  4/25  deadhead 44.7%\n[r3] dual-cluj-buc-14        margin \u20ac 2469  dispatched  9/14  deadhead 40.3%\n[r3] triple-cbt-21           margin \u20ac 2538  dispatched 10/21  deadhead 41.3%\n[r3] triple-cbc-21           margin \u20ac 2754  dispatched 13/21  deadhead 43.3%\n[r3] wrote backend/docs/experiments_123cargo/exp_r3.json"
+    },
+    {
+      "experiment_id": "R4",
+      "module": "scripts.exp_r4_profit_surface",
+      "passed": true,
+      "exit_code": 0,
+      "wall_ms": 11264,
+      "started_at": "2026-05-20T10:59:38.214532+00:00",
+      "stdout_tail": "  n_depots \u2502      3      5      7     10     14     18     25     35\n  \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n         1 \u2502    433    306    252    189    144    112     85     61\n         2 \u2502    332    199    145    137    131    107     78     59\n         3 \u2502    180    199    145    137    117    102     77     59\n         4 \u2502    180    166    121    146    121    108     84     61\n\n  Optimum (highest total margin):  25 vans across 1 depots (Bucuresti) \u2192 \u20ac2130\n  Best ROI (highest \u20ac/van):         3 vans across 1 depots (Bucuresti) \u2192 \u20ac433/van\n\n  Diminishing-returns knees (threshold: \u20ac100/van):\n    n_depots=1: knee at fleet 7-10 (\u20ac43/van for marginal hires)\n    n_depots=2: knee at fleet 3-5 (\u20ac0/van for marginal hires)\n    n_depots=3: knee at fleet 5-7 (\u20ac11/van for marginal hires)\n    n_depots=4: knee at fleet 5-7 (\u20ac10/van for marginal hires)",
+      "stderr_tail": "[r4] cell n_depots=3 n_vans= 7  margin \u20ac 1017  \u20ac/van  145  served  6\n[r4] cell n_depots=3 n_vans=10  margin \u20ac 1370  \u20ac/van  137  served  8\n[r4] cell n_depots=3 n_vans=14  margin \u20ac 1641  \u20ac/van  117  served 10\n[r4] cell n_depots=3 n_vans=18  margin \u20ac 1831  \u20ac/van  102  served 12\n[r4] cell n_depots=3 n_vans=25  margin \u20ac 1933  \u20ac/van   77  served 14\n[r4] cell n_depots=3 n_vans=35  margin \u20ac 2081  \u20ac/van   59  served 16\n[r4] cell n_depots=4 n_vans= 3  margin \u20ac  539  \u20ac/van  180  served  3\n[r4] cell n_depots=4 n_vans= 5  margin \u20ac  829  \u20ac/van  166  served  5\n[r4] cell n_depots=4 n_vans= 7  margin \u20ac  850  \u20ac/van  121  served  6\n[r4] cell n_depots=4 n_vans=10  margin \u20ac 1465  \u20ac/van  146  served 10\n[r4] cell n_depots=4 n_vans=14  margin \u20ac 1698  \u20ac/van  121  served 12\n[r4] cell n_depots=4 n_vans=18  margin \u20ac 1936  \u20ac/van  108  served 14\n[r4] cell n_depots=4 n_vans=25  margin \u20ac 2090  \u20ac/van   84  served 16\n[r4] cell n_depots=4 n_vans=35  margin \u20ac 2118  \u20ac/van   61  served 17\n[r4] wrote backend/docs/experiments_123cargo/exp_r4.json"
+    }
+  ]
+}
