@@ -10,12 +10,18 @@ from app.core.config import get_settings
 settings = get_settings()
 
 app = FastAPI(
-    title="Agentic Cold Backhaul Optimizer",
+    title="Optimizer Agentic de Backhaul Frigorific",
     description=(
-        "Multi-agent system that matches empty returning reefers with "
-        "compliance-validated backhaul loads across Romania."
+        "Sistem multi-agent care potriveste camioanele frigorifice goale "
+        "cu incarcaturi de retur validate din punct de vedere al conformitatii "
+        "HACCP/ANSVSA/GDP pe teritoriul Romaniei."
     ),
     version="0.4.0",
+    swagger_ui_parameters={
+        "docExpansion": "list",
+        "defaultModelsExpandDepth": -1,
+        "tryItOutEnabled": True,
+    },
 )
 
 # CORS for the React/Vite dashboard (Phase 5).
@@ -36,15 +42,15 @@ app.include_router(loads_router, prefix="/api")
 app.include_router(admin_router, prefix="/api")
 
 
-@app.get("/health", tags=["meta"])
+@app.get("/health", tags=["Meta"], summary="Verificare stare server")
 def health() -> dict[str, str]:
     return {"status": "ok", "env": settings.app_env}
 
 
-@app.get("/", tags=["meta"])
+@app.get("/", tags=["Meta"], summary="Informatii despre API")
 def root() -> dict[str, str]:
     return {
-        "name": "agentic-cold-backhaul-optimizer",
-        "phase": "4 — FastAPI endpoints + mock documents",
+        "name": "optimizer-agentic-backhaul-frigorific",
+        "phase": "4 — Endpoint-uri FastAPI + documente mock",
         "docs": "/docs",
     }

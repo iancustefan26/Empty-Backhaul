@@ -14,7 +14,7 @@ from app.agents.workflow import run_match_workflow
 from app.core.database import SessionLocal
 from app.documents import build_cmr_document, build_sanitization_document
 
-router = APIRouter(tags=["match"])
+router = APIRouter(tags=["Potrivire & Planificare"])
 
 
 def _resolve_truck_id(truck_id: int | None, plate: str | None) -> int:
@@ -57,29 +57,29 @@ def _attach_documents(state: dict[str, Any]) -> dict[str, Any]:
 # otherwise FastAPI parses `fleet` as a truck_id path param and 422s.
 @router.post(
     "/match/fleet",
-    summary="Multi-truck assignment — top-K alternative plans for the whole fleet",
+    summary="Asignare multi-camion — top-K planuri alternative pentru intreaga flota",
 )
 def match_fleet_endpoint(
-    top_k: int = Query(3, ge=1, le=5, description="Number of alternative plans (max 5)."),
+    top_k: int = Query(3, ge=1, le=5, description="Numar de planuri alternative (max 5)."),
     include_broker: bool = Query(
-        True, description="Include spot-market broker loads in the load pool."
+        True, description="Include incarcaturile de pe bursa spot (broker)."
     ),
     mock_llm: bool = Query(
         True,
         description=(
-            "Skip Gemini for the per-pair Analyst step (default true to keep fleet "
-            "matching fast and free). Set false to enrich verdicts with cited excerpts."
+            "Sari peste Gemini la pasul de Analyst (implicit true pentru viteza). "
+            "Seteaza false pentru a obtine verdicte cu citate din surse legale."
         ),
     ),
     fleet_size: int = Query(
         MAX_FLEET_SIZE, ge=1, le=MAX_FLEET_SIZE,
-        description=f"Cap the fleet at N empty trucks (default {MAX_FLEET_SIZE}).",
+        description=f"Limiteaza flota la N camioane goale (implicit {MAX_FLEET_SIZE}).",
     ),
 ) -> dict:
-    """Run Sentry-fleet → Analyst-fleet → multi-truck CP-SAT and return the
-    top-K alternative assignment plans. Each plan includes the per-truck
-    breakdown and a fleet-level statistics block (total margin, deadhead
-    ratio, customer/broker mix, fleet utilisation).
+    """Ruleaza Sentinela → Analist → CP-SAT multi-camion si returneaza
+    top-K planuri de asignare alternative. Fiecare plan include defalcarea
+    per camion si un bloc de statistici la nivel de flota (marja totala,
+    raport deadhead, mix client/broker, grad de utilizare).
     """
     result = run_fleet_match(
         top_k=top_k,
@@ -107,20 +107,20 @@ def match_fleet_endpoint(
 # NOTE: declared before /match/{truck_id} to avoid path-param collision.
 @router.post(
     "/route/plan",
-    summary="Daily route plan for the depot fleet (with multi-leg chains)",
+    summary="Plan zilnic de rute pentru flota de depou (cu lanturi multi-leg)",
 )
 def route_plan_endpoint(
     top_k: int = Query(3, ge=1, le=5),
-    include_broker: bool = Query(True, description="Include spot-market broker loads."),
-    enable_chains: bool = Query(True, description="Allow 2-leg backhaul chains."),
-    mock_llm: bool = Query(True, description="Skip Gemini for compliance reasoning."),
+    include_broker: bool = Query(True, description="Include incarcaturile de pe bursa spot."),
+    enable_chains: bool = Query(True, description="Permite lanturi de 2 incarcaturi (backhaul chain)."),
+    mock_llm: bool = Query(True, description="Sari peste Gemini la analiza de conformitate."),
     fleet_size: int = Query(MAX_FLEET_SIZE, ge=1, le=MAX_FLEET_SIZE),
 ) -> dict:
-    """End-to-end fleet route plan for a depot-based carrier.
+    """Plan complet de rute zilnice pentru un transportator cu depou.
 
-    Each van's day is scheduled as IDLE / SINGLE round-trip / CHAIN
-    (two loads). Returns the top-K alternative plans + the per-van
-    breakdown + fleet-level KPIs.
+    Ziua fiecarei dube este planificata ca IDLE / SINGLE (tur-retur) / CHAIN
+    (doua incarcaturi). Returneaza top-K planuri alternative + defalcarea
+    per duba + KPI-uri la nivel de flota.
     """
     sentry_out = sentry_fleet(include_broker=include_broker, fleet_size=fleet_size)
     if "error" in sentry_out:
@@ -152,13 +152,13 @@ def route_plan_endpoint(
 
 @router.post(
     "/match/{truck_id}",
-    summary="Run the Sentry/Analyst/Strategist pipeline for a truck",
+    summary="Ruleaza pipeline-ul Sentinela/Analist/Strategist pentru un camion",
 )
 def match_by_id(
     truck_id: int,
     mock_llm: bool = Query(
         False,
-        description="Use the deterministic mock Analyst (skips Anthropic API).",
+        description="Foloseste Analistul deterministic mock (fara apel Gemini).",
     ),
 ) -> dict:
     state = run_match_workflow(truck_id, use_mock_llm=mock_llm)
@@ -169,10 +169,10 @@ def match_by_id(
 
 @router.post(
     "/match",
-    summary="Run the agentic match by truck plate (alternative to /match/{id})",
+    summary="Potrivire agentica dupa numar de inmatriculare (alternativa la /match/{id})",
 )
 def match_by_plate(
-    plate: str = Query(..., description="Truck plate number, e.g. B-202-CBO"),
+    plate: str = Query(..., description="Numar de inmatriculare, ex. B-202-CBO"),
     mock_llm: bool = Query(False),
 ) -> dict:
     truck_id = _resolve_truck_id(None, plate)

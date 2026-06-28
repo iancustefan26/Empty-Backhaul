@@ -12,7 +12,7 @@ from sqlalchemy import text
 
 from app.core.database import SessionLocal
 
-router = APIRouter(tags=["loads"])
+router = APIRouter(tags=["Incarcaturi"])
 
 
 _LIVE_SQL = text("""
@@ -31,7 +31,7 @@ _LIVE_SQL = text("""
 """)
 
 
-@router.get("/loads/live", summary="GeoJSON FeatureCollection of all available loads")
+@router.get("/loads/live", summary="GeoJSON FeatureCollection cu toate incarcaturile disponibile")
 def loads_live() -> dict:
     if SessionLocal is None:
         raise HTTPException(status_code=503, detail="Database not configured")

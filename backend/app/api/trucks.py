@@ -8,7 +8,7 @@ from sqlalchemy import text
 
 from app.core.database import SessionLocal
 
-router = APIRouter(tags=["trucks"])
+router = APIRouter(tags=["Camioane"])
 
 
 _LIVE_SQL = text("""
@@ -21,7 +21,7 @@ _LIVE_SQL = text("""
 """)
 
 
-@router.get("/trucks/live", summary="GeoJSON FeatureCollection of every truck")
+@router.get("/trucks/live", summary="GeoJSON FeatureCollection cu toate camioanele")
 def trucks_live() -> dict:
     if SessionLocal is None:
         raise HTTPException(status_code=503, detail="Database not configured")

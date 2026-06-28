@@ -48,7 +48,7 @@ from app.services.random_fixtures import (
     random_load_payload, random_truck_payload,
 )
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(prefix="/admin", tags=["Administrare"])
 
 
 # ---------------------------------------------------------------------------
@@ -132,7 +132,7 @@ def _pt(city: str):
 # Truck endpoints
 # ---------------------------------------------------------------------------
 
-@router.get("/trucks", summary="List every truck")
+@router.get("/trucks", summary="Listeaza toate camioanele")
 def list_trucks() -> list[dict]:
     _require_db()
     with SessionLocal() as s:
@@ -148,7 +148,7 @@ def list_trucks() -> list[dict]:
     return [dict(r._mapping) for r in rows]
 
 
-@router.post("/trucks", summary="Create a truck", status_code=201)
+@router.post("/trucks", summary="Creeaza un camion", status_code=201)
 def create_truck(body: TruckIn) -> dict:
     _require_db()
     _validate_enum(body.temp_capability, TRUCK_CAPABILITIES, field="temp_capability")
@@ -184,7 +184,7 @@ def create_truck(body: TruckIn) -> dict:
     return out
 
 
-@router.delete("/trucks/{truck_id}", summary="Delete one truck")
+@router.delete("/trucks/{truck_id}", summary="Sterge un camion")
 def delete_truck(truck_id: int) -> dict:
     _require_db()
     with SessionLocal() as s:
@@ -200,7 +200,7 @@ def delete_truck(truck_id: int) -> dict:
     return {"deleted": truck_id}
 
 
-@router.delete("/trucks", summary="Delete ALL trucks (wipes wash certs too)")
+@router.delete("/trucks", summary="Sterge TOATE camioanele (inclusiv certificatele de spalare)")
 def delete_all_trucks() -> dict:
     _require_db()
     with SessionLocal() as s:
@@ -212,7 +212,7 @@ def delete_all_trucks() -> dict:
     return {"deleted": n}
 
 
-@router.post("/trucks/random", summary="Add N random trucks")
+@router.post("/trucks/random", summary="Adauga N camioane aleatorii")
 def create_random_trucks(count: int = Query(1, ge=1, le=50)) -> dict:
     _require_db()
     created = []
@@ -255,7 +255,7 @@ def create_random_trucks(count: int = Query(1, ge=1, le=50)) -> dict:
 # Load endpoints
 # ---------------------------------------------------------------------------
 
-@router.get("/loads", summary="List every load")
+@router.get("/loads", summary="Listeaza toate incarcaturile")
 def list_loads() -> list[dict]:
     _require_db()
     with SessionLocal() as s:
@@ -275,7 +275,7 @@ def list_loads() -> list[dict]:
     return [dict(r._mapping) for r in rows]
 
 
-@router.post("/loads", summary="Create a load", status_code=201)
+@router.post("/loads", summary="Creeaza o incarcatura", status_code=201)
 def create_load(body: LoadIn) -> dict:
     _require_db()
     _validate_enum(body.cargo_type, CARGO_TYPES, field="cargo_type")
@@ -318,7 +318,7 @@ def create_load(body: LoadIn) -> dict:
     return out
 
 
-@router.delete("/loads/{load_id}", summary="Delete one load")
+@router.delete("/loads/{load_id}", summary="Sterge o incarcatura")
 def delete_load(load_id: int) -> dict:
     _require_db()
     with SessionLocal() as s:
@@ -331,7 +331,7 @@ def delete_load(load_id: int) -> dict:
     return {"deleted": load_id}
 
 
-@router.delete("/loads", summary="Delete ALL loads")
+@router.delete("/loads", summary="Sterge TOATE incarcaturile")
 def delete_all_loads() -> dict:
     _require_db()
     with SessionLocal() as s:
@@ -342,7 +342,7 @@ def delete_all_loads() -> dict:
     return {"deleted": n}
 
 
-@router.post("/loads/random", summary="Add N random loads")
+@router.post("/loads/random", summary="Adauga N incarcaturi aleatorii")
 def create_random_loads(count: int = Query(1, ge=1, le=100)) -> dict:
     _require_db()
     created = []
@@ -382,7 +382,7 @@ def create_random_loads(count: int = Query(1, ge=1, le=100)) -> dict:
 # Workspace endpoints
 # ---------------------------------------------------------------------------
 
-@router.post("/reset", summary="Truncate trucks + loads + wash certs (empty workspace)")
+@router.post("/reset", summary="Goleste spatiul de lucru (sterge camioane + incarcaturi + certificate)")
 def reset_workspace() -> dict:
     _require_db()
     with SessionLocal() as s:
@@ -395,7 +395,7 @@ def reset_workspace() -> dict:
     return {"status": "reset", "trucks": 0, "loads": 0}
 
 
-@router.post("/seed", summary="Re-run the canonical 25-van/100-load seed")
+@router.post("/seed", summary="Reincarca seed-ul canonic (25 dube / 100 incarcaturi)")
 def reseed_canonical() -> dict:
     _require_db()
     # Lazy import — pulls in fixture data
@@ -466,7 +466,7 @@ def reseed_canonical() -> dict:
             "washes": len(washes)}
 
 
-@router.get("/enums", summary="Return all enum sets the frontend forms need")
+@router.get("/enums", summary="Returneaza toate enum-urile necesare formularelor frontend")
 def list_enums() -> dict:
     return {
         "truck_capabilities": list(TRUCK_CAPABILITIES),
@@ -491,7 +491,7 @@ def list_enums() -> dict:
 from app.services import load_123cargo as l123c
 
 
-@router.get("/loads/123cargo/info", summary="How many Frigo loads are in the local dataset")
+@router.get("/loads/123cargo/info", summary="Cate incarcaturi Frigo sunt in datasetul local 123cargo")
 def info_123cargo() -> dict:
     if not l123c.dataset_exists():
         return {"available": 0, "scraped_at_utc": None, "exists": False}
@@ -506,7 +506,7 @@ def info_123cargo() -> dict:
     }
 
 
-@router.post("/loads/123cargo/import", summary="Import N Frigo loads from the scraped dataset")
+@router.post("/loads/123cargo/import", summary="Importa N incarcaturi Frigo din datasetul scrapat de pe 123cargo.eu")
 def import_123cargo(count: int = Query(20, ge=1, le=500),
                     shuffle: bool = Query(True, description="Pick a random subset instead of the first N")) -> dict:
     _require_db()
