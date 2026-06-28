@@ -55,9 +55,11 @@ from app.agents import llm_cache
 from app.core.config import get_settings
 
 GEMINI_MODEL_ENV = "GEMINI_MODEL"
+VERTEX_MODEL_ENV = "VERTEX_MODEL"
 ANTHROPIC_MODEL_ENV = "ANTHROPIC_MODEL"
 
 DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_VERTEX_MODEL = "gemini-2.5-flash"   # same model, different routing
 DEFAULT_ANTHROPIC_MODEL = "claude-haiku-4-5"
 
 # Output budget per Analyst call. The verdict JSON is ~300-600 tokens of
@@ -71,12 +73,18 @@ MAX_OUTPUT_TOKENS = 2048
 # Hardening (v2): rate-limit, retry/backoff, cost log, daily-quota guard
 # ---------------------------------------------------------------------------
 
-# Free tier is 10 RPM; default to 9 so a slow clock or burst can't push us
-# over. Tunable via env so paid-tier users can lift it without code change.
+# Free AI-Studio tier is 10 RPM, 250 RPD; default to 9 / 225 so a slow
+# clock or burst can't push us over. Tunable via env so paid-tier users
+# can lift it without code change.
+#
+# Vertex AI Express Mode (tier 1, Gemini 2.5 Flash) is ~500 RPM with NO
+# documented daily cap — we default Vertex to 60 RPM / 10 000 RPD so an
+# interactive plan request finishes in seconds, not hours, while still
+# keeping plenty of headroom. Override with VERTEX_RPM_CAP / VERTEX_DAILY_CAP.
 DEFAULT_RPM_CAP = int(os.environ.get("GEMINI_RPM_CAP", "9"))
-# 250 RPD on the free tier. We keep a 10 % safety margin (225) so a half-day
-# resume doesn't trip the wall.
 DEFAULT_DAILY_CAP = int(os.environ.get("GEMINI_DAILY_CAP", "225"))
+DEFAULT_VERTEX_RPM_CAP = int(os.environ.get("VERTEX_RPM_CAP", "60"))
+DEFAULT_VERTEX_DAILY_CAP = int(os.environ.get("VERTEX_DAILY_CAP", "10000"))
 # Retry policy on 429 / 5xx / ResourceExhausted.
 RETRY_MAX_ATTEMPTS = int(os.environ.get("GEMINI_RETRY_ATTEMPTS", "4"))
 RETRY_BASE_DELAY_S = float(os.environ.get("GEMINI_RETRY_BASE_DELAY_S", "4.0"))
@@ -176,20 +184,58 @@ class LLMProvider(Protocol):
 # ---------------------------------------------------------------------------
 
 class GeminiProvider:
+    """Google AI Studio (a.k.a. generativelanguage.googleapis.com) provider.
+
+    Tier defaults: 9 RPM, 225 RPD (free tier — 1 below the 10 RPM / 250
+    RPD documented ceiling).  Override via GEMINI_RPM_CAP / GEMINI_DAILY_CAP.
+    """
     name = "gemini"
+    default_rpm = DEFAULT_RPM_CAP
+    default_daily = DEFAULT_DAILY_CAP
+    rpm_env_var = "GEMINI_RPM_CAP"
+    daily_env_var = "GEMINI_DAILY_CAP"
+    model_env_var = GEMINI_MODEL_ENV
+    default_model = DEFAULT_GEMINI_MODEL
 
     def __init__(self, api_key: str, model: str | None = None) -> None:
         if not api_key:
-            raise ValueError("GeminiProvider requires a non-empty API key")
+            raise ValueError(f"{type(self).__name__} requires a non-empty API key")
         self._api_key = api_key
+        self.model = model or os.environ.get(self.model_env_var, self.default_model)
 
-        import os
-        self.model = model or os.environ.get(GEMINI_MODEL_ENV, DEFAULT_GEMINI_MODEL)
+    # ---- subclasses override one of these two methods ----
+
+    def _make_client(self):
+        """Build the google.genai client. Subclasses override for Vertex."""
+        from google import genai  # type: ignore[import-not-found]
+        return genai.Client(api_key=self._api_key)
+
+    def _rpm_cap(self) -> int:
+        # Resolution order: process env > .env (via Settings) > class default.
+        env_val = os.environ.get(self.rpm_env_var)
+        if env_val is not None:
+            return int(env_val)
+        settings_attr = self.rpm_env_var.lower()
+        settings_val = getattr(get_settings(), settings_attr, None)
+        if settings_val is not None:
+            return int(settings_val)
+        return self.default_rpm
+
+    def _daily_cap(self) -> int:
+        env_val = os.environ.get(self.daily_env_var)
+        if env_val is not None:
+            return int(env_val)
+        settings_attr = self.daily_env_var.lower()
+        settings_val = getattr(get_settings(), settings_attr, None)
+        if settings_val is not None:
+            return int(settings_val)
+        return self.default_daily
+
+    # ---- shared retry / throttle / cost-meter loop ----
 
     def evaluate(self, system: str, user: str) -> tuple[str, bool]:
         cached = llm_cache.get_cached(self.name, self.model, system, user)
         if cached is not None:
-            # Cost log: cache hits are free but we still want to count them.
             _record_cost({
                 "ts": datetime.now(timezone.utc).isoformat(),
                 "provider": self.name, "model": self.model,
@@ -198,11 +244,9 @@ class GeminiProvider:
             })
             return cached, True
 
-        # Lazy import so mock-only / anthropic-only runs don't need the SDK.
-        from google import genai  # type: ignore[import-not-found]
         from google.genai import types  # type: ignore[import-not-found]
 
-        client = genai.Client(api_key=self._api_key)
+        client = self._make_client()
         thinking_config = None
         if self.model.startswith("gemini-2.5"):
             try:
@@ -218,8 +262,8 @@ class GeminiProvider:
             thinking_config=thinking_config,
         )
 
-        rpm_cap = DEFAULT_RPM_CAP
-        daily_cap = DEFAULT_DAILY_CAP
+        rpm_cap = self._rpm_cap()
+        daily_cap = self._daily_cap()
 
         last_exc: BaseException | None = None
         for attempt in range(1, RETRY_MAX_ATTEMPTS + 1):
@@ -263,7 +307,80 @@ class GeminiProvider:
                 time.sleep(_retry_sleep(attempt))
 
         # Defensive — loop above either returns or raises.
-        raise RuntimeError(f"GeminiProvider.evaluate exhausted retries: {last_exc!r}")
+        raise RuntimeError(f"{type(self).__name__}.evaluate exhausted retries: {last_exc!r}")
+
+
+# ---------------------------------------------------------------------------
+# Vertex AI (Express Mode — same SDK, different routing)
+# ---------------------------------------------------------------------------
+
+class VertexAIProvider(GeminiProvider):
+    """Google Cloud Vertex AI provider — supports two auth modes:
+
+    1. **Express Mode** — API key (starts with ``AQ.``), no project/location
+       required. Quick to set up; quotas capped at Express Mode tier 1
+       (≈ 500 RPM, ~25 k req/day). Activated by passing ``api_key=``.
+
+    2. **Application Default Credentials (ADC)** — uses the developer's
+       gcloud login (``gcloud auth application-default login``) or a
+       service-account JSON pointed at by ``GOOGLE_APPLICATION_CREDENTIALS``.
+       Requires ``project=`` and (optionally) ``location=``. Hits the
+       standard Vertex tier (≥ 2 000 RPM on Gemini 2.5 Flash, no daily
+       cap beyond what billing allows). Activated by passing ``project=``.
+
+    Same google-genai SDK in both cases; only the ``Client`` constructor
+    differs. Pricing per token is identical, but ADC mode bills against
+    the project's billing account (free trial credit applies).
+
+    Throttle defaults stay conservative (60 RPM / 10 000 RPD) so we don't
+    surprise anyone with bursts. Lift via ``VERTEX_RPM_CAP`` once you've
+    measured what your tier allows.
+    """
+    name = "vertex"
+    default_rpm = DEFAULT_VERTEX_RPM_CAP
+    default_daily = DEFAULT_VERTEX_DAILY_CAP
+    rpm_env_var = "VERTEX_RPM_CAP"
+    daily_env_var = "VERTEX_DAILY_CAP"
+    model_env_var = VERTEX_MODEL_ENV
+    default_model = DEFAULT_VERTEX_MODEL
+
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model: str | None = None,
+        *,
+        project: str | None = None,
+        location: str = "us-central1",
+    ) -> None:
+        if not api_key and not project:
+            raise ValueError(
+                "VertexAIProvider needs an api_key (Express Mode) OR a "
+                "project (ADC mode). Both are missing."
+            )
+        # We intentionally don't validate that BOTH aren't passed — if
+        # both are present, the ADC path wins because it has higher quotas.
+        self._api_key = api_key or ""
+        self._project = project
+        self._location = location
+        self.model = model or os.environ.get(self.model_env_var, self.default_model)
+
+    @property
+    def auth_mode(self) -> str:
+        """`"adc"` if using ADC (project-based), `"express"` if API key."""
+        return "adc" if self._project else "express"
+
+    def _make_client(self):
+        from google import genai  # type: ignore[import-not-found]
+        if self._project:
+            # ADC mode — SDK picks up gcloud login / service-account JSON
+            # automatically. No api_key passed; auth goes through ADC.
+            return genai.Client(
+                vertexai=True,
+                project=self._project,
+                location=self._location,
+            )
+        # Express Mode (back-compat)
+        return genai.Client(vertexai=True, api_key=self._api_key)
 
 
 # ---------------------------------------------------------------------------
@@ -323,14 +440,38 @@ class MockProvider:
 # ---------------------------------------------------------------------------
 
 def get_provider(force: str | None = None) -> LLMProvider:
-    """Pick a provider based on `LLM_PROVIDER` and which API keys are set.
+    """Pick a provider based on `LLM_PROVIDER` and which API keys / project
+    settings are present.
 
-    `force` overrides the env (used by tests). Values: `gemini`, `anthropic`,
-    `mock`, `auto`.
+    `force` overrides the env (used by tests). Values: `vertex`, `gemini`,
+    `anthropic`, `mock`, `auto`.
+
+    Resolution order under `auto`:
+      1. **Vertex AI ADC** — if GCP_PROJECT is set. Uses gcloud
+         Application Default Credentials (`gcloud auth
+         application-default login` or `GOOGLE_APPLICATION_CREDENTIALS`).
+         Standard tier quotas (~2 000 RPM Flash, no daily cap).
+      2. **Vertex AI Express Mode** — if VERTEX_AI_API_KEY (or an
+         AQ.*-prefixed GEMINI_API_KEY) is set. Tier 1 quotas
+         (~500 RPM, 25 k req/day). Faster setup; no project linkage.
+      3. **AI Studio Gemini** — if GEMINI_API_KEY is set with an AIza* prefix.
+         Free tier 9 RPM / 225 RPD.
+      4. **Anthropic Claude** — if ANTHROPIC_API_KEY is set.
+      5. **Mock** — deterministic, no LLM.
     """
     settings = get_settings()
     choice = (force or settings.llm_provider or "auto").lower()
 
+    if choice == "vertex":
+        # Forced Vertex — pick ADC if project set, else Express
+        if settings.gcp_project:
+            return VertexAIProvider(
+                project=settings.gcp_project,
+                location=settings.gcp_location,
+            )
+        return VertexAIProvider(
+            api_key=settings.vertex_ai_api_key or settings.gemini_api_key,
+        )
     if choice == "gemini":
         return GeminiProvider(settings.gemini_api_key)
     if choice == "anthropic":
@@ -340,8 +481,20 @@ def get_provider(force: str | None = None) -> LLMProvider:
     if choice != "auto":
         raise ValueError(f"unknown LLM_PROVIDER={choice!r}")
 
-    # auto: prefer Gemini (free tier), then Anthropic, then mock.
+    # auto resolution.
+    if settings.gcp_project:
+        # ADC mode wins when GCP_PROJECT is set — standard tier, no daily cap.
+        return VertexAIProvider(
+            project=settings.gcp_project,
+            location=settings.gcp_location,
+        )
+    if settings.vertex_ai_api_key:
+        return VertexAIProvider(api_key=settings.vertex_ai_api_key)
     if settings.gemini_api_key:
+        # Back-compat: an AQ.*-prefixed value in GEMINI_API_KEY is actually
+        # a Vertex AI Express Mode key. Route it through Vertex.
+        if settings.gemini_api_key.startswith("AQ."):
+            return VertexAIProvider(api_key=settings.gemini_api_key)
         return GeminiProvider(settings.gemini_api_key)
     if settings.anthropic_api_key:
         return AnthropicProvider(settings.anthropic_api_key)

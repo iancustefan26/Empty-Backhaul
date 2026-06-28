@@ -34,6 +34,7 @@ from app.agents.llm_provider import LLMProvider, MockProvider, get_provider
 from app.agents.sanity_check import apply_sanity_layer, hard_rules_verdict
 from app.agents.sentry import _row_to_load, _row_to_truck
 from app.agents.state import ComplianceVerdict, LoadSnapshot, TruckSnapshot
+from app.agents import verdict_cache
 from app.core.database import SessionLocal
 from app.rag.ingest import query_corpus, query_rules
 
@@ -169,17 +170,36 @@ def analyst_fleet(
     cache_hits = 0
     parse_errors = 0
     sanity_corrections = 0
+    verdict_cache_hits = 0
 
     for t in fleet:
         for l in loads:
+            # Fast-path 1: semantic-key verdict cache. Persists the
+            # POST-SANITY ComplianceVerdict so we can skip BOTH the RAG
+            # queries (~2 × 600 ms each) AND the LLM call. Cache survives
+            # re-seeds because the key is composed of capability + cargo
+            # features, not (truck_id, load_id).
+            if not use_mock:
+                cached = verdict_cache.get_verdict(t, l)
+                if cached is not None:
+                    compliance[(t["id"], l["id"])] = cached
+                    verdict_cache_hits += 1
+                    continue
+
             hard = hard_rules_verdict(t, l)
             if not hard["is_compliant"]:
                 # Deterministic fail-fast — skip the LLM, mock the verdict
                 # straight from the hard rules. Cheaper than a Gemini call,
                 # equally trustworthy (the LLM would have either agreed or
                 # been overridden by the sanity layer anyway).
-                compliance[(t["id"], l["id"])] = _evaluate_mock(t, l)
+                v = _evaluate_mock(t, l)
+                compliance[(t["id"], l["id"])] = v
                 pre_blocked += 1
+                # Cache the rejection too — saves the hard_rules computation
+                # next time (and there are many more rejections than passes
+                # on a typical seed).
+                if not use_mock:
+                    verdict_cache.put_verdict(t, l, v)
                 continue
 
             if use_mock:
@@ -211,6 +231,13 @@ def analyst_fleet(
                 # Fall back to the hard-rules verdict.
                 verdict = _evaluate_mock(t, l)
             compliance[(t["id"], l["id"])] = verdict
+            if not use_mock:
+                verdict_cache.put_verdict(t, l, verdict)
+
+    # Persist any new verdicts to disk (atomic write; no-op if no new
+    # additions during this run).
+    if not use_mock:
+        verdict_cache.flush_to_disk()
 
     log = {
         "mode": provider.name,
@@ -224,6 +251,7 @@ def analyst_fleet(
         "corpus_hits": corpus_hits,
         "llm_calls": llm_calls,
         "cache_hits": cache_hits,
+        "verdict_cache_hits": verdict_cache_hits,
         "parse_errors": parse_errors,
         "sanity_corrections": sanity_corrections,
         "elapsed_ms": int((time.perf_counter() - started) * 1000),

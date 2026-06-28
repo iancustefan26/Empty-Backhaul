@@ -1,0 +1,701 @@
+{
+  "experiment_id": "R4",
+  "title": "Profit response surface \u2014 full sweep over (fleet size \u00d7 depots)",
+  "hypothesis": "Profit is monotone non-decreasing in both fleet size and depot count; the best-ROI cell sits at a small fleet, not at the largest cell.",
+  "inputs": {
+    "fleet_sizes": [
+      3,
+      5,
+      7,
+      10,
+      14,
+      18,
+      25,
+      35
+    ],
+    "n_depots_range": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "depot_priority": [
+      "Bucuresti",
+      "Timisoara",
+      "Arad",
+      "Ploiesti"
+    ],
+    "n_loads": 90,
+    "n_cells": 32,
+    "knee_threshold_eur": 100,
+    "dataset_scraped_at": "2026-05-20T09:03:34.806802+00:00"
+  },
+  "results": {
+    "grid": [
+      {
+        "total_margin_eur": 1300.06,
+        "vans_dispatched": 3,
+        "loads_served": 6,
+        "deadhead_pct": 26.48,
+        "fleet_utilization_pct": 100.0,
+        "margin_per_van": 433.35,
+        "chains_formed": 3,
+        "singles_formed": 0,
+        "n_vans": 3,
+        "n_depots": 1,
+        "depots": [
+          "Bucuresti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 85
+      },
+      {
+        "total_margin_eur": 1527.67,
+        "vans_dispatched": 4,
+        "loads_served": 8,
+        "deadhead_pct": 34.4,
+        "fleet_utilization_pct": 80.0,
+        "margin_per_van": 305.53,
+        "chains_formed": 4,
+        "singles_formed": 0,
+        "n_vans": 5,
+        "n_depots": 1,
+        "depots": [
+          "Bucuresti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 111
+      },
+      {
+        "total_margin_eur": 1761.15,
+        "vans_dispatched": 5,
+        "loads_served": 10,
+        "deadhead_pct": 37.02,
+        "fleet_utilization_pct": 71.4,
+        "margin_per_van": 251.59,
+        "chains_formed": 5,
+        "singles_formed": 0,
+        "n_vans": 7,
+        "n_depots": 1,
+        "depots": [
+          "Bucuresti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 145
+      },
+      {
+        "total_margin_eur": 1890.17,
+        "vans_dispatched": 8,
+        "loads_served": 13,
+        "deadhead_pct": 41.86,
+        "fleet_utilization_pct": 80.0,
+        "margin_per_van": 189.02,
+        "chains_formed": 5,
+        "singles_formed": 3,
+        "n_vans": 10,
+        "n_depots": 1,
+        "depots": [
+          "Bucuresti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 226
+      },
+      {
+        "total_margin_eur": 2011.11,
+        "vans_dispatched": 8,
+        "loads_served": 14,
+        "deadhead_pct": 40.92,
+        "fleet_utilization_pct": 57.1,
+        "margin_per_van": 143.65,
+        "chains_formed": 6,
+        "singles_formed": 2,
+        "n_vans": 14,
+        "n_depots": 1,
+        "depots": [
+          "Bucuresti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 291
+      },
+      {
+        "total_margin_eur": 2011.11,
+        "vans_dispatched": 8,
+        "loads_served": 14,
+        "deadhead_pct": 40.92,
+        "fleet_utilization_pct": 44.4,
+        "margin_per_van": 111.73,
+        "chains_formed": 6,
+        "singles_formed": 2,
+        "n_vans": 18,
+        "n_depots": 1,
+        "depots": [
+          "Bucuresti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 479
+      },
+      {
+        "total_margin_eur": 2130.3,
+        "vans_dispatched": 9,
+        "loads_served": 15,
+        "deadhead_pct": 42.07,
+        "fleet_utilization_pct": 36.0,
+        "margin_per_van": 85.21,
+        "chains_formed": 6,
+        "singles_formed": 3,
+        "n_vans": 25,
+        "n_depots": 1,
+        "depots": [
+          "Bucuresti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 549
+      },
+      {
+        "total_margin_eur": 2130.3,
+        "vans_dispatched": 9,
+        "loads_served": 15,
+        "deadhead_pct": 42.07,
+        "fleet_utilization_pct": 25.7,
+        "margin_per_van": 60.87,
+        "chains_formed": 6,
+        "singles_formed": 3,
+        "n_vans": 35,
+        "n_depots": 1,
+        "depots": [
+          "Bucuresti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 743
+      },
+      {
+        "total_margin_eur": 995.2,
+        "vans_dispatched": 3,
+        "loads_served": 5,
+        "deadhead_pct": 21.44,
+        "fleet_utilization_pct": 100.0,
+        "margin_per_van": 331.73,
+        "chains_formed": 2,
+        "singles_formed": 1,
+        "n_vans": 3,
+        "n_depots": 2,
+        "depots": [
+          "Bucuresti",
+          "Timisoara"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 83
+      },
+      {
+        "total_margin_eur": 995.2,
+        "vans_dispatched": 3,
+        "loads_served": 5,
+        "deadhead_pct": 21.44,
+        "fleet_utilization_pct": 60.0,
+        "margin_per_van": 199.04,
+        "chains_formed": 2,
+        "singles_formed": 1,
+        "n_vans": 5,
+        "n_depots": 2,
+        "depots": [
+          "Bucuresti",
+          "Timisoara"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 108
+      },
+      {
+        "total_margin_eur": 1016.53,
+        "vans_dispatched": 3,
+        "loads_served": 6,
+        "deadhead_pct": 28.76,
+        "fleet_utilization_pct": 42.9,
+        "margin_per_van": 145.22,
+        "chains_formed": 3,
+        "singles_formed": 0,
+        "n_vans": 7,
+        "n_depots": 2,
+        "depots": [
+          "Bucuresti",
+          "Timisoara"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 139
+      },
+      {
+        "total_margin_eur": 1368.95,
+        "vans_dispatched": 4,
+        "loads_served": 8,
+        "deadhead_pct": 32.42,
+        "fleet_utilization_pct": 40.0,
+        "margin_per_van": 136.9,
+        "chains_formed": 4,
+        "singles_formed": 0,
+        "n_vans": 10,
+        "n_depots": 2,
+        "depots": [
+          "Bucuresti",
+          "Timisoara"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 222
+      },
+      {
+        "total_margin_eur": 1830.04,
+        "vans_dispatched": 6,
+        "loads_served": 12,
+        "deadhead_pct": 39.17,
+        "fleet_utilization_pct": 42.9,
+        "margin_per_van": 130.72,
+        "chains_formed": 6,
+        "singles_formed": 0,
+        "n_vans": 14,
+        "n_depots": 2,
+        "depots": [
+          "Bucuresti",
+          "Timisoara"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 280
+      },
+      {
+        "total_margin_eur": 1931.86,
+        "vans_dispatched": 8,
+        "loads_served": 14,
+        "deadhead_pct": 41.88,
+        "fleet_utilization_pct": 44.4,
+        "margin_per_van": 107.33,
+        "chains_formed": 6,
+        "singles_formed": 2,
+        "n_vans": 18,
+        "n_depots": 2,
+        "depots": [
+          "Bucuresti",
+          "Timisoara"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 385
+      },
+      {
+        "total_margin_eur": 1959.06,
+        "vans_dispatched": 9,
+        "loads_served": 15,
+        "deadhead_pct": 42.78,
+        "fleet_utilization_pct": 36.0,
+        "margin_per_van": 78.36,
+        "chains_formed": 6,
+        "singles_formed": 3,
+        "n_vans": 25,
+        "n_depots": 2,
+        "depots": [
+          "Bucuresti",
+          "Timisoara"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 526
+      },
+      {
+        "total_margin_eur": 2080.0,
+        "vans_dispatched": 9,
+        "loads_served": 16,
+        "deadhead_pct": 41.93,
+        "fleet_utilization_pct": 25.7,
+        "margin_per_van": 59.43,
+        "chains_formed": 7,
+        "singles_formed": 2,
+        "n_vans": 35,
+        "n_depots": 2,
+        "depots": [
+          "Bucuresti",
+          "Timisoara"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 708
+      },
+      {
+        "total_margin_eur": 539.06,
+        "vans_dispatched": 2,
+        "loads_served": 3,
+        "deadhead_pct": 25.47,
+        "fleet_utilization_pct": 66.7,
+        "margin_per_van": 179.69,
+        "chains_formed": 1,
+        "singles_formed": 1,
+        "n_vans": 3,
+        "n_depots": 3,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 80
+      },
+      {
+        "total_margin_eur": 996.15,
+        "vans_dispatched": 3,
+        "loads_served": 5,
+        "deadhead_pct": 21.36,
+        "fleet_utilization_pct": 60.0,
+        "margin_per_van": 199.23,
+        "chains_formed": 2,
+        "singles_formed": 1,
+        "n_vans": 5,
+        "n_depots": 3,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 107
+      },
+      {
+        "total_margin_eur": 1017.48,
+        "vans_dispatched": 3,
+        "loads_served": 6,
+        "deadhead_pct": 28.7,
+        "fleet_utilization_pct": 42.9,
+        "margin_per_van": 145.35,
+        "chains_formed": 3,
+        "singles_formed": 0,
+        "n_vans": 7,
+        "n_depots": 3,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 138
+      },
+      {
+        "total_margin_eur": 1369.9,
+        "vans_dispatched": 4,
+        "loads_served": 8,
+        "deadhead_pct": 32.38,
+        "fleet_utilization_pct": 40.0,
+        "margin_per_van": 136.99,
+        "chains_formed": 4,
+        "singles_formed": 0,
+        "n_vans": 10,
+        "n_depots": 3,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 218
+      },
+      {
+        "total_margin_eur": 1640.84,
+        "vans_dispatched": 5,
+        "loads_served": 10,
+        "deadhead_pct": 36.25,
+        "fleet_utilization_pct": 35.7,
+        "margin_per_van": 117.2,
+        "chains_formed": 5,
+        "singles_formed": 0,
+        "n_vans": 14,
+        "n_depots": 3,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 285
+      },
+      {
+        "total_margin_eur": 1830.99,
+        "vans_dispatched": 6,
+        "loads_served": 12,
+        "deadhead_pct": 39.15,
+        "fleet_utilization_pct": 33.3,
+        "margin_per_van": 101.72,
+        "chains_formed": 6,
+        "singles_formed": 0,
+        "n_vans": 18,
+        "n_depots": 3,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 385
+      },
+      {
+        "total_margin_eur": 1932.81,
+        "vans_dispatched": 8,
+        "loads_served": 14,
+        "deadhead_pct": 41.87,
+        "fleet_utilization_pct": 32.0,
+        "margin_per_van": 77.31,
+        "chains_formed": 6,
+        "singles_formed": 2,
+        "n_vans": 25,
+        "n_depots": 3,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 530
+      },
+      {
+        "total_margin_eur": 2080.95,
+        "vans_dispatched": 9,
+        "loads_served": 16,
+        "deadhead_pct": 41.91,
+        "fleet_utilization_pct": 25.7,
+        "margin_per_van": 59.46,
+        "chains_formed": 7,
+        "singles_formed": 2,
+        "n_vans": 35,
+        "n_depots": 3,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 694
+      },
+      {
+        "total_margin_eur": 539.06,
+        "vans_dispatched": 2,
+        "loads_served": 3,
+        "deadhead_pct": 25.47,
+        "fleet_utilization_pct": 66.7,
+        "margin_per_van": 179.69,
+        "chains_formed": 1,
+        "singles_formed": 1,
+        "n_vans": 3,
+        "n_depots": 4,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad",
+          "Ploiesti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 82
+      },
+      {
+        "total_margin_eur": 829.28,
+        "vans_dispatched": 3,
+        "loads_served": 5,
+        "deadhead_pct": 28.65,
+        "fleet_utilization_pct": 60.0,
+        "margin_per_van": 165.86,
+        "chains_formed": 2,
+        "singles_formed": 1,
+        "n_vans": 5,
+        "n_depots": 4,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad",
+          "Ploiesti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 109
+      },
+      {
+        "total_margin_eur": 849.66,
+        "vans_dispatched": 3,
+        "loads_served": 6,
+        "deadhead_pct": 34.15,
+        "fleet_utilization_pct": 42.9,
+        "margin_per_van": 121.38,
+        "chains_formed": 3,
+        "singles_formed": 0,
+        "n_vans": 7,
+        "n_depots": 4,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad",
+          "Ploiesti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 140
+      },
+      {
+        "total_margin_eur": 1464.67,
+        "vans_dispatched": 5,
+        "loads_served": 10,
+        "deadhead_pct": 38.79,
+        "fleet_utilization_pct": 50.0,
+        "margin_per_van": 146.47,
+        "chains_formed": 5,
+        "singles_formed": 0,
+        "n_vans": 10,
+        "n_depots": 4,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad",
+          "Ploiesti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 222
+      },
+      {
+        "total_margin_eur": 1698.15,
+        "vans_dispatched": 6,
+        "loads_served": 12,
+        "deadhead_pct": 40.26,
+        "fleet_utilization_pct": 42.9,
+        "margin_per_van": 121.3,
+        "chains_formed": 6,
+        "singles_formed": 0,
+        "n_vans": 14,
+        "n_depots": 4,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad",
+          "Ploiesti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 281
+      },
+      {
+        "total_margin_eur": 1935.77,
+        "vans_dispatched": 8,
+        "loads_served": 14,
+        "deadhead_pct": 43.1,
+        "fleet_utilization_pct": 44.4,
+        "margin_per_van": 107.54,
+        "chains_formed": 6,
+        "singles_formed": 2,
+        "n_vans": 18,
+        "n_depots": 4,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad",
+          "Ploiesti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 385
+      },
+      {
+        "total_margin_eur": 2089.87,
+        "vans_dispatched": 9,
+        "loads_served": 16,
+        "deadhead_pct": 43.63,
+        "fleet_utilization_pct": 36.0,
+        "margin_per_van": 83.59,
+        "chains_formed": 7,
+        "singles_formed": 2,
+        "n_vans": 25,
+        "n_depots": 4,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad",
+          "Ploiesti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 529
+      },
+      {
+        "total_margin_eur": 2118.02,
+        "vans_dispatched": 10,
+        "loads_served": 17,
+        "deadhead_pct": 44.26,
+        "fleet_utilization_pct": 28.6,
+        "margin_per_van": 60.51,
+        "chains_formed": 7,
+        "singles_formed": 3,
+        "n_vans": 35,
+        "n_depots": 4,
+        "depots": [
+          "Bucuresti",
+          "Timisoara",
+          "Arad",
+          "Ploiesti"
+        ],
+        "solver_status": "OPTIMAL",
+        "solve_ms": 697
+      }
+    ],
+    "optimum_cell": {
+      "total_margin_eur": 2130.3,
+      "vans_dispatched": 9,
+      "loads_served": 15,
+      "deadhead_pct": 42.07,
+      "fleet_utilization_pct": 36.0,
+      "margin_per_van": 85.21,
+      "chains_formed": 6,
+      "singles_formed": 3,
+      "n_vans": 25,
+      "n_depots": 1,
+      "depots": [
+        "Bucuresti"
+      ],
+      "solver_status": "OPTIMAL",
+      "solve_ms": 549
+    },
+    "best_roi_cell": {
+      "total_margin_eur": 1300.06,
+      "vans_dispatched": 3,
+      "loads_served": 6,
+      "deadhead_pct": 26.48,
+      "fleet_utilization_pct": 100.0,
+      "margin_per_van": 433.35,
+      "chains_formed": 3,
+      "singles_formed": 0,
+      "n_vans": 3,
+      "n_depots": 1,
+      "depots": [
+        "Bucuresti"
+      ],
+      "solver_status": "OPTIMAL",
+      "solve_ms": 85
+    },
+    "diminishing_returns_knees_per_depot_count": {
+      "1": {
+        "from_size": 7,
+        "to_size": 10,
+        "per_van_eur": 43.01
+      },
+      "2": {
+        "from_size": 3,
+        "to_size": 5,
+        "per_van_eur": 0.0
+      },
+      "3": {
+        "from_size": 5,
+        "to_size": 7,
+        "per_van_eur": 10.67
+      },
+      "4": {
+        "from_size": 5,
+        "to_size": 7,
+        "per_van_eur": 10.19
+      }
+    }
+  },
+  "details": {
+    "wall_time_seconds": 10.21
+  },
+  "provenance": {
+    "completed_at": "2026-05-20T10:59:49.246560+00:00",
+    "git_sha": "0a6035b",
+    "dataset": "123cargo.eu Frigo snapshot",
+    "dataset_scraped_at": "2026-05-20T09:03:34.806802+00:00",
+    "dataset_size": 89,
+    "depot_priority": [
+      "Bucuresti",
+      "Timisoara",
+      "Arad",
+      "Ploiesti"
+    ]
+  }
+}

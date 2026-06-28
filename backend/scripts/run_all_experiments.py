@@ -54,6 +54,8 @@ EXPERIMENTS = [
      "scripts.exp_t1_cpsat_vs_greedy"),
     ("T2", "Strategist — backhaul chains vs single trips",
      "scripts.exp_t2_chains_value"),
+    ("X1", "Strategist — Li & Lim PDPTW external benchmark",
+     "scripts.exp_x1_lilim_validation"),
 ]
 
 

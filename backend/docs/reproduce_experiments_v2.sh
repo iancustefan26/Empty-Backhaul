@@ -42,10 +42,15 @@ echo "[v2] 3. pytest sanity tests"
 "$PY" -m pytest tests/test_llm_provider_retry.py tests/test_sanity_check.py \
                 tests/test_fleet_strategist.py tests/test_route_planner.py -q
 
-echo "[v2] 4. run all four experiments  ${USE_GEMINI:-(mock mode)}"
+echo "[v2] 4. prefetch Li & Lim PDPTW benchmark instances (5 instances, ~30 KB)"
+for inst in lc101 lr101 lrc101 lc201 lr201; do
+  "$PY" -m scripts.lilim_loader "$inst" --size 100
+done
+
+echo "[v2] 5. run all five experiments  ${USE_GEMINI:-(mock mode)}"
 "$PY" -m scripts.run_all_experiments $USE_GEMINI
 
-echo "[v2] 5. render charts (PNGs)"
+echo "[v2] 6. render charts (PNGs)"
 "$PY" -m scripts.build_v2_charts
 
 echo

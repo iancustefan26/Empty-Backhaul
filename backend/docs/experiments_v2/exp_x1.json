@@ -1,0 +1,271 @@
+{
+  "experiment_id": "X1",
+  "experiment": "Strategist \u2014 Li & Lim PDPTW external benchmark",
+  "agent": "strategist",
+  "hypothesis": "On standard Li & Lim PDPTW 100-node benchmark instances (LC101 / LR101 / LRC101 + the wide-window LC201 / LR201) our CP-SAT Strategist returns a FEASIBLE plan in < 5 s, and enabling chains never reduces margin or loads-served.",
+  "inputs": {
+    "instances": [
+      {
+        "name": "lc101",
+        "size": 100,
+        "label": "LC101 \u2014 clustered, narrow time windows"
+      },
+      {
+        "name": "lr101",
+        "size": 100,
+        "label": "LR101 \u2014 random, narrow time windows"
+      },
+      {
+        "name": "lrc101",
+        "size": 100,
+        "label": "LRC101 \u2014 mixed clustered/random, narrow windows"
+      },
+      {
+        "name": "lc201",
+        "size": 100,
+        "label": "LC201 \u2014 clustered, wide time windows"
+      },
+      {
+        "name": "lr201",
+        "size": 100,
+        "label": "LR201 \u2014 random, wide time windows"
+      }
+    ],
+    "use_mock_llm": true,
+    "loader": "scripts.lilim_loader",
+    "data_source": "https://github.com/zhu-he/pdptw-data (daily mirror of the canonical SINTEF Li & Lim PDPTW benchmark)",
+    "coordinate_map": "Li & Lim Euclidean km \u2192 fake WGS84 lat/lon anchored at Cluj-Napoca (46.7712, 23.6236); 1 unit \u2248 1 km after haversine"
+  },
+  "results": {
+    "per_instance": [
+      {
+        "label": "LC101 \u2014 clustered, narrow time windows",
+        "instance": "lc101",
+        "size": 100,
+        "n_vehicles_expected": 25,
+        "vehicle_capacity": 200,
+        "pairs_available": 53,
+        "vans_synthesised": 25,
+        "loads_synthesised": 53,
+        "pre_blocked_pairs": 0,
+        "compliant_pairs": 1325,
+        "singles_only": {
+          "status": "OPTIMAL",
+          "runtime_ms": 8,
+          "loads_served": 4,
+          "loads_available": 53,
+          "coverage_pct": 7.5,
+          "total_margin_eur": 21.98,
+          "chains_formed": 0,
+          "singles_formed": 4,
+          "idle_count": 21,
+          "deadhead_pct": 77.0,
+          "candidate_singles": 100,
+          "candidate_chains": 0
+        },
+        "chains_on": {
+          "status": "OPTIMAL",
+          "runtime_ms": 419,
+          "loads_served": 16,
+          "loads_available": 53,
+          "coverage_pct": 30.2,
+          "total_margin_eur": 139.32,
+          "chains_formed": 8,
+          "singles_formed": 0,
+          "idle_count": 17,
+          "deadhead_pct": 74.19,
+          "candidate_singles": 100,
+          "candidate_chains": 2575
+        },
+        "chain_margin_lift_pct": 533.8,
+        "served_delta": 12
+      },
+      {
+        "label": "LR101 \u2014 random, narrow time windows",
+        "instance": "lr101",
+        "size": 100,
+        "n_vehicles_expected": 25,
+        "vehicle_capacity": 200,
+        "pairs_available": 53,
+        "vans_synthesised": 25,
+        "loads_synthesised": 53,
+        "pre_blocked_pairs": 0,
+        "compliant_pairs": 1325,
+        "singles_only": {
+          "status": "OPTIMAL",
+          "runtime_ms": 20,
+          "loads_served": 24,
+          "loads_available": 53,
+          "coverage_pct": 45.3,
+          "total_margin_eur": 501.72,
+          "chains_formed": 0,
+          "singles_formed": 24,
+          "idle_count": 1,
+          "deadhead_pct": 72.81,
+          "candidate_singles": 600,
+          "candidate_chains": 0
+        },
+        "chains_on": {
+          "status": "OPTIMAL",
+          "runtime_ms": 5574,
+          "loads_served": 40,
+          "loads_available": 53,
+          "coverage_pct": 75.5,
+          "total_margin_eur": 1211.36,
+          "chains_formed": 20,
+          "singles_formed": 0,
+          "idle_count": 5,
+          "deadhead_pct": 63.94,
+          "candidate_singles": 600,
+          "candidate_chains": 37350
+        },
+        "chain_margin_lift_pct": 141.4,
+        "served_delta": 16
+      },
+      {
+        "label": "LRC101 \u2014 mixed clustered/random, narrow windows",
+        "instance": "lrc101",
+        "size": 100,
+        "n_vehicles_expected": 25,
+        "vehicle_capacity": 200,
+        "pairs_available": 53,
+        "vans_synthesised": 25,
+        "loads_synthesised": 53,
+        "pre_blocked_pairs": 0,
+        "compliant_pairs": 1325,
+        "singles_only": {
+          "status": "OPTIMAL",
+          "runtime_ms": 16,
+          "loads_served": 20,
+          "loads_available": 53,
+          "coverage_pct": 37.7,
+          "total_margin_eur": 790.05,
+          "chains_formed": 0,
+          "singles_formed": 20,
+          "idle_count": 5,
+          "deadhead_pct": 69.22,
+          "candidate_singles": 500,
+          "candidate_chains": 0
+        },
+        "chains_on": {
+          "status": "OPTIMAL",
+          "runtime_ms": 3228,
+          "loads_served": 28,
+          "loads_available": 53,
+          "coverage_pct": 52.8,
+          "total_margin_eur": 1376.52,
+          "chains_formed": 14,
+          "singles_formed": 0,
+          "idle_count": 11,
+          "deadhead_pct": 59.11,
+          "candidate_singles": 500,
+          "candidate_chains": 27400
+        },
+        "chain_margin_lift_pct": 74.2,
+        "served_delta": 8
+      },
+      {
+        "label": "LC201 \u2014 clustered, wide time windows",
+        "instance": "lc201",
+        "size": 100,
+        "n_vehicles_expected": 25,
+        "vehicle_capacity": 700,
+        "pairs_available": 51,
+        "vans_synthesised": 25,
+        "loads_synthesised": 51,
+        "pre_blocked_pairs": 0,
+        "compliant_pairs": 1275,
+        "singles_only": {
+          "status": "OPTIMAL",
+          "runtime_ms": 27,
+          "loads_served": 25,
+          "loads_available": 51,
+          "coverage_pct": 49.0,
+          "total_margin_eur": 1355.2,
+          "chains_formed": 0,
+          "singles_formed": 25,
+          "idle_count": 0,
+          "deadhead_pct": 66.96,
+          "candidate_singles": 775,
+          "candidate_chains": 0
+        },
+        "chains_on": {
+          "status": "OPTIMAL",
+          "runtime_ms": 8275,
+          "loads_served": 42,
+          "loads_available": 51,
+          "coverage_pct": 82.4,
+          "total_margin_eur": 2375.33,
+          "chains_formed": 21,
+          "singles_formed": 0,
+          "idle_count": 4,
+          "deadhead_pct": 57.34,
+          "candidate_singles": 775,
+          "candidate_chains": 45350
+        },
+        "chain_margin_lift_pct": 75.3,
+        "served_delta": 17
+      },
+      {
+        "label": "LR201 \u2014 random, wide time windows",
+        "instance": "lr201",
+        "size": 100,
+        "n_vehicles_expected": 25,
+        "vehicle_capacity": 1000,
+        "pairs_available": 51,
+        "vans_synthesised": 25,
+        "loads_synthesised": 51,
+        "pre_blocked_pairs": 0,
+        "compliant_pairs": 1275,
+        "singles_only": {
+          "status": "OPTIMAL",
+          "runtime_ms": 30,
+          "loads_served": 25,
+          "loads_available": 51,
+          "coverage_pct": 49.0,
+          "total_margin_eur": 1102.37,
+          "chains_formed": 0,
+          "singles_formed": 25,
+          "idle_count": 0,
+          "deadhead_pct": 67.03,
+          "candidate_singles": 800,
+          "candidate_chains": 0
+        },
+        "chains_on": {
+          "status": "OPTIMAL",
+          "runtime_ms": 9402,
+          "loads_served": 47,
+          "loads_available": 51,
+          "coverage_pct": 92.2,
+          "total_margin_eur": 2140.84,
+          "chains_formed": 23,
+          "singles_formed": 1,
+          "idle_count": 1,
+          "deadhead_pct": 57.68,
+          "candidate_singles": 800,
+          "candidate_chains": 51500
+        },
+        "chain_margin_lift_pct": 94.2,
+        "served_delta": 22
+      }
+    ]
+  },
+  "provenance": {
+    "completed_at": "2026-05-17T15:44:55.674914+00:00",
+    "git_sha": "0371fcc",
+    "mode": "mock",
+    "model": null,
+    "seed_fleet_size": 25,
+    "seed_load_pool_size": 100
+  },
+  "cost_meter": {
+    "calls": 0,
+    "cache_hits": 0,
+    "input_tokens": 0,
+    "output_tokens": 0,
+    "cost_usd": 0.0,
+    "cost_eur": 0.0,
+    "latency_ms": 0,
+    "errors": 0
+  }
+}

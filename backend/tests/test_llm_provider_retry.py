@@ -142,8 +142,10 @@ def test_non_transient_error_raises_without_retry(monkeypatch):
 def test_daily_quota_guard_aborts(monkeypatch):
     _patch_cache(monkeypatch)
     _patch_cost_log(monkeypatch)
-    # Pre-fill the daily window so the guard trips immediately.
-    monkeypatch.setattr(lp, "DEFAULT_DAILY_CAP", 5)
+    # Pre-fill the daily window so the guard trips immediately. The cap
+    # is read via the provider's `default_daily` class attribute (or
+    # GEMINI_DAILY_CAP env override), so patch one of those.
+    monkeypatch.setattr(lp.GeminiProvider, "default_daily", 5)
     now = datetime.now(timezone.utc)
     lp._daily_call_times.extend(now - timedelta(minutes=i) for i in range(5))
 
@@ -166,3 +168,186 @@ def test_cache_hit_short_circuits(monkeypatch):
     assert cached is True
     assert fake.calls == 0
     assert rows and rows[-1]["cache_hit"] is True
+
+
+# ---------------------------------------------------------------------------
+# VertexAIProvider — reuses the same retry/RPM/cost-meter loop with a
+# different client constructor and different default throttle.
+# ---------------------------------------------------------------------------
+
+def test_vertex_provider_uses_vertexai_client(monkeypatch):
+    """VertexAIProvider must construct the genai.Client with vertexai=True."""
+    captured_kwargs = {}
+
+    google_mod = types.ModuleType("google")
+    genai_mod = types.ModuleType("google.genai")
+    types_mod = types.ModuleType("google.genai.types")
+    types_mod.ThinkingConfig = lambda **k: None
+    types_mod.GenerateContentConfig = lambda **k: None
+
+    def _client_ctor(**kwargs):
+        captured_kwargs.update(kwargs)
+        return _FakeClient([_FakeResponse('{"ok": true}')])
+
+    genai_mod.Client = _client_ctor
+    google_mod.genai = genai_mod
+    google_mod.genai.types = types_mod
+    monkeypatch.setitem(sys.modules, "google", google_mod)
+    monkeypatch.setitem(sys.modules, "google.genai", genai_mod)
+    monkeypatch.setitem(sys.modules, "google.genai.types", types_mod)
+
+    _patch_cache(monkeypatch)
+    _patch_cost_log(monkeypatch)
+
+    p = lp.VertexAIProvider(api_key="AQ.test")
+    p.evaluate("sys", "user")
+
+    assert captured_kwargs.get("vertexai") is True, (
+        "VertexAIProvider must pass vertexai=True; got " + repr(captured_kwargs)
+    )
+    assert captured_kwargs.get("api_key") == "AQ.test"
+
+
+def test_vertex_provider_uses_higher_throttle_defaults():
+    """Vertex defaults must allow much higher throughput than AI Studio."""
+    gemini = lp.GeminiProvider(api_key="AIza-test")
+    vertex = lp.VertexAIProvider(api_key="AQ.test")
+
+    assert vertex.default_rpm > gemini.default_rpm, (
+        f"Vertex RPM ({vertex.default_rpm}) should exceed Gemini RPM "
+        f"({gemini.default_rpm})"
+    )
+    assert vertex.default_daily > gemini.default_daily
+    # Sanity: Vertex throughput should be at least 6× the AI Studio default
+    # (60 vs 9 today, ratio of ~6.7) — protects us against accidental
+    # regressions if defaults drift.
+    assert vertex.default_rpm >= gemini.default_rpm * 6
+
+
+def test_vertex_provider_inherits_retry_path(monkeypatch):
+    """VertexAIProvider should retry on transient errors exactly like
+    GeminiProvider (the retry loop is inherited)."""
+    _patch_cache(monkeypatch)
+    rows = _patch_cost_log(monkeypatch)
+    monkeypatch.setattr(lp, "_retry_sleep", lambda attempt: 0)
+    fake = _install_fake_genai(
+        monkeypatch, [_Quota429(), _FakeResponse('{"ok": true}')],
+    )
+    # _install_fake_genai installed an AI Studio fake; override to make Vertex's
+    # _make_client return the same fake regardless of kwargs.
+    import google.genai as genai_mod
+    monkeypatch.setattr(genai_mod, "Client", lambda **kw: fake)
+
+    p = lp.VertexAIProvider(api_key="AQ.test")
+    text, cached = p.evaluate("sys", "user")
+
+    assert text == '{"ok": true}'
+    assert cached is False
+    assert fake.calls == 2, "vertex must retry once on transient 429"
+
+
+def test_factory_prefers_vertex_when_key_set(monkeypatch):
+    """get_provider() with both keys set should pick Vertex."""
+    from app.core.config import Settings
+    monkeypatch.setenv("GCP_PROJECT", "")          # disable ADC mode so we
+    monkeypatch.setenv("VERTEX_AI_API_KEY", "AQ.test-vertex")  # test Express
+    monkeypatch.setenv("GEMINI_API_KEY", "AIza-test-gemini")
+    monkeypatch.setenv("LLM_PROVIDER", "auto")
+    # bust the lru_cache
+    import app.core.config as cfg
+    cfg.get_settings.cache_clear()
+
+    p = lp.get_provider()
+    assert type(p).__name__ == "VertexAIProvider"
+    assert p.model.startswith("gemini-")
+    assert p.auth_mode == "express"
+
+
+def test_factory_routes_aq_prefixed_gemini_key_to_vertex(monkeypatch):
+    """Back-compat: an AQ.* value in GEMINI_API_KEY is actually a Vertex
+    Express Mode key — the factory should route it through Vertex."""
+    # Empty-string env vars override any values in backend/.env (pydantic
+    # reads both, env wins). Without this, GCP_PROJECT from .env would
+    # cause the factory to pick ADC mode instead of Express.
+    monkeypatch.setenv("VERTEX_AI_API_KEY", "")
+    monkeypatch.setenv("GCP_PROJECT", "")
+    monkeypatch.setenv("GEMINI_API_KEY", "AQ.legacy-vertex-key")
+    monkeypatch.setenv("LLM_PROVIDER", "auto")
+    import app.core.config as cfg
+    cfg.get_settings.cache_clear()
+
+    p = lp.get_provider()
+    assert type(p).__name__ == "VertexAIProvider"
+    assert p.auth_mode == "express"
+
+
+# ---------------------------------------------------------------------------
+# VertexAIProvider — ADC mode (project + location, no API key)
+# ---------------------------------------------------------------------------
+
+def test_vertex_adc_mode_constructs_client_with_project_and_location(monkeypatch):
+    """ADC mode: project + location → genai.Client(vertexai=True,
+    project=..., location=...), no api_key passed."""
+    captured = {}
+
+    google_mod = types.ModuleType("google")
+    genai_mod = types.ModuleType("google.genai")
+    types_mod = types.ModuleType("google.genai.types")
+    types_mod.ThinkingConfig = lambda **k: None
+    types_mod.GenerateContentConfig = lambda **k: None
+
+    def _client_ctor(**kwargs):
+        captured.update(kwargs)
+        return _FakeClient([_FakeResponse('{"ok": true}')])
+
+    genai_mod.Client = _client_ctor
+    google_mod.genai = genai_mod
+    google_mod.genai.types = types_mod
+    monkeypatch.setitem(sys.modules, "google", google_mod)
+    monkeypatch.setitem(sys.modules, "google.genai", genai_mod)
+    monkeypatch.setitem(sys.modules, "google.genai.types", types_mod)
+
+    _patch_cache(monkeypatch)
+    _patch_cost_log(monkeypatch)
+
+    p = lp.VertexAIProvider(project="my-gcp-project", location="europe-west1")
+    assert p.auth_mode == "adc"
+    p.evaluate("sys", "user")
+
+    assert captured.get("vertexai") is True
+    assert captured.get("project") == "my-gcp-project"
+    assert captured.get("location") == "europe-west1"
+    assert "api_key" not in captured, \
+        "ADC mode must NOT pass api_key (would force Express Mode)"
+
+
+def test_vertex_provider_requires_api_key_or_project():
+    with pytest.raises(ValueError, match="api_key.*OR.*project"):
+        lp.VertexAIProvider()
+
+
+def test_factory_prefers_adc_over_api_key(monkeypatch):
+    """get_provider() with BOTH GCP_PROJECT and VERTEX_AI_API_KEY should
+    pick ADC because it has higher quotas."""
+    monkeypatch.setenv("GCP_PROJECT", "poetic-emblem-490411-p0")
+    monkeypatch.setenv("VERTEX_AI_API_KEY", "AQ.unused-because-adc-wins")
+    monkeypatch.setenv("LLM_PROVIDER", "auto")
+    import app.core.config as cfg
+    cfg.get_settings.cache_clear()
+
+    p = lp.get_provider()
+    assert type(p).__name__ == "VertexAIProvider"
+    assert p.auth_mode == "adc"
+
+
+def test_factory_falls_back_to_express_when_no_project(monkeypatch):
+    monkeypatch.setenv("GCP_PROJECT", "")          # override .env
+    monkeypatch.setenv("VERTEX_AI_API_KEY", "AQ.express-key")
+    monkeypatch.setenv("GEMINI_API_KEY", "")
+    monkeypatch.setenv("LLM_PROVIDER", "auto")
+    import app.core.config as cfg
+    cfg.get_settings.cache_clear()
+
+    p = lp.get_provider()
+    assert type(p).__name__ == "VertexAIProvider"
+    assert p.auth_mode == "express"

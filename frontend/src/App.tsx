@@ -4,10 +4,11 @@
  * on the right. Every interaction starts with natural language; the
  * assistant replies with a short sentence + an inline summary card.
  */
-import { Truck } from "lucide-react";
+import { Settings, Truck } from "lucide-react";
 import { lazy, Suspense, useEffect, useState } from "react";
 
 import { ChatPanel } from "./components/dispatch/ChatPanel";
+import { FleetManager } from "./components/admin/FleetManager";
 import {
   complianceSnapshot,
   explainIdleHeuristic,
@@ -40,6 +41,7 @@ export function App() {
   const [mockLLM, setMockLLM] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedVanId, setSelectedVanId] = useState<number | null>(null);
+  const [fleetManagerOpen, setFleetManagerOpen] = useState(false);
 
   // Restore from localStorage on first mount.
   useEffect(() => {
@@ -233,18 +235,38 @@ export function App() {
             </p>
           </div>
         </div>
-        {/* Mock-LLM toggle as a subtle pill — only the dispatcher who
-            cares will notice. Settings gear removed for now. */}
-        <label className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground select-none hover:border-primary/40">
-          <input
-            type="checkbox"
-            checked={mockLLM}
-            onChange={(e) => setMockLLM(e.target.checked)}
-            className="h-3.5 w-3.5 accent-primary"
-          />
-          Use mock data (faster)
-        </label>
+        <div className="flex items-center gap-2">
+          {/* Manage data — opens the FleetManager modal */}
+          <button
+            onClick={() => setFleetManagerOpen(true)}
+            className="flex cursor-pointer items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground hover:border-primary/40 hover:text-foreground"
+            title="Build a custom test scenario — add trucks, loads, random instances"
+          >
+            <Settings size={13} />
+            Manage data
+          </button>
+          {/* Mock-LLM toggle as a subtle pill */}
+          <label className="flex cursor-pointer items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs text-muted-foreground select-none hover:border-primary/40">
+            <input
+              type="checkbox"
+              checked={mockLLM}
+              onChange={(e) => setMockLLM(e.target.checked)}
+              className="h-3.5 w-3.5 accent-primary"
+            />
+            Use mock data (faster)
+          </label>
+        </div>
       </header>
+
+      <FleetManager
+        open={fleetManagerOpen}
+        onClose={() => setFleetManagerOpen(false)}
+        onDataChanged={() => {
+          // Drop the active plan so the next user prompt re-fetches
+          setActivePlan(null);
+          setSelectedVanId(null);
+        }}
+      />
 
       {/* Body */}
       <div className="flex min-h-0 flex-1 flex-col md:flex-row">

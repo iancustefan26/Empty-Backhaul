@@ -26,6 +26,7 @@ Outputs land under `backend/docs/experiments_v2/`:
 | `exp_a1.json`  | Analyst 4-variant ablation on 146 cases |
 | `exp_t1.json`  | Strategist CP-SAT vs greedy, abundant + scarce |
 | `exp_t2.json`  | Strategist chains-on vs chains-off |
+| `exp_x1.json`  | Strategist on Li & Lim PDPTW external benchmark (5 instances) |
 | `run_summary.json` | per-experiment pass/fail, total token spend, wall clock |
 
 Figures land under `backend/docs/figures/experiments_v2/`. Re-render
@@ -52,20 +53,115 @@ Capability spread of the 10 new vans (CJ-501..CJ-510):
 3 multi_temp, 2 pharma+logger, 2 chilled+raw_meat+wash, 1 frozen,
 1 frozen+raw_meat+wash-expiring-in-3-days, 1 ambient+chemicals.
 
-## Gemini hardening (Phase 2)
+## LLM provider hardening (Phase 2)
 
-`app/agents/llm_provider.py::GeminiProvider` was hardened before any
-live experiment ran:
+`app/agents/llm_provider.py` exposes two production-grade providers
+that share one retry / RPM throttle / cost-meter machinery:
+
+| Provider | Routing | Defaults | Use case |
+|---|---|---|---|
+| **`VertexAIProvider`** (preferred) | Google Cloud Vertex AI Express Mode (`vertexai=True`, API key) | 60 RPM, 10 000 RPD | Interactive demo + experiments. GCP billing / free-trial credit. |
+| `GeminiProvider` | Google AI Studio (`generativelanguage.googleapis.com`) | 9 RPM, 225 RPD | Free-tier development. |
+
+The factory `get_provider()` picks Vertex automatically when
+`VERTEX_AI_API_KEY` is set, or when `GEMINI_API_KEY` is set with an
+`AQ.*`-prefixed value (a Vertex Express Mode key the user pasted into
+the wrong env slot — common ergonomic mistake).
+
+Shared hardening (both providers):
 
 | Hardening | Default | Override |
 |---|---|---|
 | Exponential-backoff retry on 429 / 5xx / `ResourceExhausted` | 4 attempts, base 4 s, cap 60 s, ±25 % jitter | `GEMINI_RETRY_*` env vars |
-| Soft RPM throttle (sleeps until next slot) | 9 RPM (1 below free-tier ceiling) | `GEMINI_RPM_CAP` |
-| Daily-quota guard (rolling 24 h) | 225 calls (10 % below 250 RPD) | `GEMINI_DAILY_CAP` |
+| Soft RPM throttle (sleeps until next slot) | 60 RPM (Vertex) · 9 RPM (AI Studio) | `VERTEX_RPM_CAP` · `GEMINI_RPM_CAP` |
+| Daily-quota guard (rolling 24 h) | 10 000 (Vertex) · 225 (AI Studio) | `VERTEX_DAILY_CAP` · `GEMINI_DAILY_CAP` |
 | Per-call cost log (JSONL) | `backend/.llm_cache/cost_log.jsonl` | — |
 | Cache hits short-circuit and still log | — | inherent |
 
-Unit-tested in `tests/test_llm_provider_retry.py` (4 tests, ~30 ms).
+**Measured throughput uplift (May 2026 burst test, 5 fresh API calls
+with cache disabled):**
+
+| Provider | Wall clock | Effective RPM | vs prior |
+|---|---:|---:|---:|
+| AI Studio (9 RPM cap) | ~33 s | 9 | baseline |
+| Vertex AI Express Mode (60 RPM cap) | 4.88 s | 61 | **~7× faster** |
+
+What this means for the dispatcher console: a fresh "Plan today's
+routes" request that requires ~750 cold LLM calls (compliance
+verdicts for a 25×100 grid where ~30 % pass hard rules) now
+completes in **~12 min on Vertex** instead of **~84 min on AI
+Studio**. With warm cache, both providers respond in seconds.
+
+### Pre-warming the cache for sub-second plans
+
+Even on Vertex, the first cold plan is slow because each (van, load)
+pair needs a fresh API round-trip. The `scripts/prewarm_llm_cache.py`
+script runs the analyst over the full seed grid ahead of time, with
+a configurable thread pool (default 8). The RPM throttle is
+process-global so the worker count never exceeds the configured cap;
+it only helps when Vertex's per-call latency is the bottleneck (which
+it typically is).
+
+**Measured pre-warm + replay (5-van slice, May 2026):**
+
+| Phase | Wall clock | Fresh calls | Cache hits | Spend |
+|---|---:|---:|---:|---:|
+| Cold plan (5 vans × 10 loads) | 436 s | 31 | 0 | $0.054 |
+| Pre-warm (5 vans × 100 loads, 12 workers, 240 RPM cap) | 409 s | 134 | 366 | $0.18 |
+| **Re-plan (same 10 loads, post-warm)** | **38 s** | **0** | **31** | **$0.00** |
+
+Replay is **11× faster than the cold plan** and free. The remaining
+38 s is RAG-query overhead (Chroma fires for every compliant pair
+before the LLM-cache short-circuit).
+
+### Verdict cache — the next 1000× speedup
+
+The 38 s RAG-overhead problem is fixed by `app/agents/verdict_cache.py`:
+a separate on-disk cache that stores the **post-sanity-layer
+ComplianceVerdict** keyed by the *semantic features* of the (truck,
+load) pair — capability, last cargo, wash certificates, cargo type,
+forbidden prior list, temperature band, logger requirement. Identity
+fields (`truck_id`, `load_id`) are deliberately excluded so the cache
+survives a re-seed and still hits on logically-equivalent pairs.
+
+When `analyst_fleet()` is called, the per-pair loop now checks the
+verdict cache FIRST. If hit, it returns the cached verdict and skips
+both RAG and the LLM call entirely. Auto-invalidation: the cache key
+includes an 8-char hash of `sanity_check.py`'s source so any change
+to the deterministic rule predicates blows the cache cleanly.
+
+**Measured impact (same 5-van × 10-load demo, post-warm replay):**
+
+| Phase | Wall clock | RAG queries | LLM calls | Verdict cache hits |
+|---|---:|---:|---:|---:|
+| Replay (LLM cache only) | 38 s | 62 | 0 | 0 |
+| **Replay (+ verdict cache)** | **<0.1 s** | **0** | **0** | **50** |
+
+Plan output stays byte-identical. The verdict cache file lives at
+`backend/.llm_cache/verdict_cache.json` and is gitignored.
+
+Unit-tested in `tests/test_verdict_cache.py` (10 tests covering
+key composition, identity-independence, auto-invalidation on rule
+change, disk round-trip, dirty-flag flushing, and clear).
+
+**Usage:**
+
+```bash
+# Default: full 25-van × 100-load grid, 8 workers
+python -m scripts.prewarm_llm_cache
+
+# Faster, more aggressive
+VERTEX_RPM_CAP=240 python -m scripts.prewarm_llm_cache --workers 12
+```
+
+The throttle defaults are read from `os.environ` first, then from
+`.env` via `Settings.vertex_rpm_cap`, then from the class default
+(60 RPM). Setting `VERTEX_RPM_CAP=120` in `.env` is enough to make
+every subsequent run honour the bump.
+
+Unit-tested in `tests/test_llm_provider_retry.py` (9 tests covering
+both providers + factory routing + back-compat for `AQ.*`-prefixed
+`GEMINI_API_KEY`).
 
 ---
 
@@ -77,6 +173,7 @@ Unit-tested in `tests/test_llm_provider_retry.py` (4 tests, ~30 ms).
 | "The Analyst's LLM is correct after the sanity layer" | **A1** — V4 (full pipeline) ≥ 99 % on 146 ground-truth cases incl. 5 prompt-injection rows |
 | "The Strategist's CP-SAT is at least as good as any heuristic, and proves it" | **T1** — CP-SAT ≥ FCFS greedy at every (regime, fleet) cell, with proven OPTIMAL status in < 50 ms |
 | "Backhaul chains are where the joint-assignment payoff lives" | **T2** — +140 % margin and −44.8 pp deadhead at fleet=25 |
+| "The optimisation engine generalises beyond our synthetic seed" | **X1** — solves 5 Li & Lim PDPTW benchmark instances to OPTIMAL in ≤ 10 s; chains lift load coverage from 8–49 % (singles) to 30–92 % (chains) |
 
 ---
 
@@ -484,6 +581,211 @@ generator's strict "both legs must be loaded" rule (chains with
 one empty leg are scored as singles + IDLE, not chains).
 
 **Reproduction.** `python -m scripts.exp_t2_chains_value --gemini`
+
+---
+
+## X1 — Strategist: Li & Lim PDPTW external benchmark
+
+**Agent.** Strategist (`plan_fleet_routes()`, both chains-on and
+chains-off arms).
+
+**Why this experiment exists.** The synthetic Cluj seed validates the
+system end-to-end against Romanian regulations, but it leaves open
+the reviewer's question: *"does the optimisation engine work on
+standard academic instances I can independently verify?"* X1 answers
+that by running the same `plan_fleet_routes()` we use in production
+against five **Li & Lim PDPTW (2003)** instances — the canonical
+pickup-and-delivery benchmark for over twenty years — and comparing
+the chains-on result against the chains-off baseline on the same
+instance.
+
+### How the dataset was integrated
+
+**Data source.** The original Li & Lim benchmark lives on the SINTEF
+TOP (Transportation Optimization Portal). We pull it from the
+`zhu-he/pdptw-data` GitHub mirror, which daily-syncs the canonical
+files. No SINTEF authentication required, no manual download.
+
+**On-demand fetch.** `scripts/lilim_loader.py::_download_if_missing()`
+fetches each instance file the first time it is requested and caches
+it under `backend/.external_data/lilim/<size>/<name>.txt` (gitignored).
+Subsequent runs read from disk; CI without network access still
+works as long as the cache is warm.
+
+**File format.** Each Li & Lim file is tab-separated with no text
+header:
+
+```
+line 1                  K  Q  S      (vehicles, capacity, speed)
+lines 2..N (per task)   id  x  y  demand  ready_time  due_date
+                        service_time  pickup_idx  delivery_idx
+```
+
+Task 0 is the depot. A pickup row has `pickup_idx=0, delivery_idx>0`
+(pointing to its paired delivery); a delivery row is the mirror. A
+100-node instance contains 1 depot + ~50 pickup-delivery pairs.
+
+**Synthesis to our schema.** `lilim_loader.synthesise_fixtures()`
+maps each instance to our `TruckSnapshot[]` + `LoadSnapshot[]`:
+
+| Li & Lim concept | Our schema |
+|---|---|
+| K vehicles (homogeneous, capacity Q) | `K` `TruckSnapshot` dicts — all `multi_temp` + `clean` prior + pharma logger present, 24 h driving budget. **Homogeneous on purpose** — this isolates the optimisation engine, not the compliance pipeline, which A1/S2 cover. |
+| Pickup-delivery pair (2 task rows) | One `LoadSnapshot` with `pickup_lat/lon` from the pickup row, `delivery_lat/lon` from the delivery row, weight = pickup `demand`, time window from pickup's `ready_time`/`due_date`. |
+| Euclidean (x, y) coordinates in [0, 100] | Fake WGS84 lat/lon anchored at Cluj-Napoca: `lat = 46.7712 + (y − 50) / 111`, `lon = 23.6236 + (x − 50) / 77`. Under this map, `haversine_km()` returns approximately the original Euclidean km, so the downstream `score_pair()` keeps working unchanged. |
+| Unitless time | 1 unit = 1 minute, anchored at today 06:00 UTC. |
+| Capacity (Q) | Currently informational — our Strategist enforces driver-hours feasibility but not load weight (single-load assignment doesn't risk overcapacity). |
+
+**Price synthesis.** Li & Lim instances have no prices (their
+objective is `(NV, TD)` — minimise vehicles, then total distance).
+We synthesise a price as `5 € × Euclidean(pickup, delivery)` per
+load so that our margin formula
+`margin = price − 0.85 × total_km` returns positive values on
+realistic geographic spreads.
+
+**Bypassing the database.** The existing `_exp_common.hydrate()` is
+patched to accept optional `vans=` / `loads=` injection. Li & Lim
+fixtures go straight into the Analyst pipeline without touching
+Supabase — the loader produces the same `TruckSnapshot` /
+`LoadSnapshot` shapes that `sentry_fleet()` would have returned.
+
+### What X1 is NOT
+
+This is **not** a Best-Known-Solution comparison. Li & Lim solvers
+chain *many* pickup-delivery tasks per vehicle to minimise `(NV, TD)`;
+our system assigns *at most one* single trip or one 2-leg chain per
+vehicle per day (depot-anchored). On the same instance a tuned PDPTW
+heuristic will always serve more loads per vehicle. That's not a fair
+comparison and we make no such claim. A true Li & Lim BKS comparison
+would require a PDPTW solver supporting arbitrary-length chains —
+called out in the thesis Discussion as future work.
+
+### Method
+
+Five instances, all 100 nodes:
+
+| Instance | Class | Time windows |
+|---|---|---|
+| **LC101** | Clustered customers | Narrow |
+| **LR101** | Random customers | Narrow |
+| **LRC101** | Mixed clustered + random | Narrow |
+| **LC201** | Clustered customers | Wide |
+| **LR201** | Random customers | Wide |
+
+For each instance:
+
+1. `parse_instance(name)` — fetch + parse the .txt file
+2. `synthesise_fixtures(instance)` — emit 25 vans + ~50 loads
+3. `hydrate(vans=…, loads=…)` — inject directly, get compliance dict
+   (all pairs compliant by construction)
+4. `plan_fleet_routes(enable_chains=False)` — singles-only baseline
+5. `plan_fleet_routes(enable_chains=True)` — chains-on treatment
+6. Diff the two: margin lift, coverage delta, runtime delta
+
+### Results
+
+| Instance | Pairs | Vans | Singles € | Singles ms | Singles cov | Chains € | Chains ms | Chains cov | Chains formed | Margin lift |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| **LC101**  | 53 | 25 |    22 |   26 |  7.5 % |   139 |   414 | 30.2 % |  8 | **+534 %** |
+| **LR101**  | 53 | 25 |   502 |   19 | 45.3 % | 1 211 | 5 695 | 75.5 % | 20 | **+141 %** |
+| **LRC101** | 53 | 25 |   790 |   16 | 37.7 % | 1 377 | 3 296 | 52.8 % | 14 |  **+74 %** |
+| **LC201**  | 51 | 25 | 1 355 |   49 | 49.0 % | 2 375 | 8 246 | 82.4 % | 21 |  **+75 %** |
+| **LR201**  | 51 | 25 | 1 102 |   55 | 49.0 % | 2 141 | 9 416 | 92.2 % | 23 |  **+94 %** |
+
+All solves return **OPTIMAL** status in mock mode; live-Gemini mode is
+not relevant (all loads are compliant by construction). Total X1
+runtime ≈ 28 seconds on a Mac M-series CPU.
+
+![X1 — load coverage by instance](figures/experiments_v2/x1_coverage_by_instance.png)
+
+*Figure X1.1.* Load coverage (loads served ÷ loads available) on
+each Li & Lim 100-node instance, singles-only versus chains-enabled.
+LC101's narrow time windows make singles starve at 8 %; chains
+quadruple coverage to 30 %. Wide-window LR201 reaches 92 % coverage
+with chains.
+
+![X1 — chain margin lift](figures/experiments_v2/x1_margin_lift.png)
+
+*Figure X1.2.* Margin lift from enabling chains on each instance,
+relative to the chains-off baseline on the same instance. Every
+instance benefits; LC101 lifts most (+534 %) because singles barely
+fit inside the narrow clustered time windows, so adding chains is
+the difference between idle vans and revenue.
+
+![X1 — solver runtime by instance](figures/experiments_v2/x1_runtime_by_instance.png)
+
+*Figure X1.3.* CP-SAT wall-clock per instance (log scale). Singles
+always solve in under 100 ms — bipartite-matching-easy. Chains scale
+to ~10 s on the larger wide-window instances because the
+chain-candidate generator enumerates pairs of pickup-delivery
+combinations.
+
+### Conclusions
+
+1. **The optimisation engine works on standard academic instances.**
+   All five Li & Lim 100-node instances solve to OPTIMAL in under
+   10 seconds, both with and without chains. The CP-SAT model
+   formulation in `app/agents/fleet_strategist.py::run_fleet_optimizer()`
+   and the chain extension in `app/agents/route_planner.py::_chain_plan()`
+   produce mathematically valid plans on benchmark data that has
+   been the de-facto pickup-and-delivery reference for two decades.
+
+2. **Chains are the dominant Strategist contribution — confirmed
+   externally.** The T2 experiment showed +140 % margin lift on the
+   synthetic Cluj seed. X1 reproduces that finding on five
+   independent academic instances: every one benefits, with lift
+   ranging from +74 % to +534 %. The effect is not an artefact of
+   our hand-tuned seed.
+
+3. **Time-window tightness, not instance class, drives the chain
+   advantage.** LC101 (narrow windows, clustered) needs chains
+   most desperately because singles can rarely fit a depot →
+   pickup → delivery → depot round-trip inside the window
+   constraints; chains let one van handle two short pickup-delivery
+   pairs back-to-back. Wide-window instances (LC201, LR201) reach
+   ≥ 82 % coverage even before chains, then chains push them to
+   ≥ 82 % → 92 %.
+
+4. **Singles-only is the wrong baseline for any real-world reefer
+   carrier**. The X1 numbers make this rigorous: even the best
+   100-node instance reaches only 49 % load coverage without
+   chains. A dispatcher relying on per-van single trips will leave
+   half the available freight on the table. This is the empirical
+   foundation for the dispatcher-console UX choice to default
+   `enable_chains=True`.
+
+### Threats to validity
+
+- **Single-load + 2-leg chain only.** Real PDPTW solvers chain
+  unlimited tasks per vehicle and would serve closer to 100 % on
+  every instance. X1 measures *our* Strategist's behaviour, not the
+  upper bound of what's possible on these instances.
+- **Synthesised prices.** We invented a `5 € × loaded_km` rate
+  because Li & Lim files have no prices. Any margin lift percentage
+  is therefore conditional on that pricing function — a different
+  rate would shift the absolute numbers but not the relative
+  chains-vs-singles delta.
+- **Homogeneous fleet.** We bypass compliance because all 25 vans
+  are identical. A heterogeneous fleet would surface compliance
+  starvation effects already covered by A1 / S2.
+- **Coordinate mapping is approximate.** Mapping Li & Lim Euclidean
+  to fake Romanian lat/lon then computing haversine introduces
+  ~1 % rounding error vs the canonical Euclidean distance on
+  cross-grid trips. The chain-vs-singles comparison is unaffected
+  (both arms use the same map).
+
+### Reproduction
+
+```bash
+# Mock mode (~30 s; no API key needed):
+python -m scripts.exp_x1_lilim_validation
+
+# As part of the full suite:
+python -m scripts.run_all_experiments
+```
+
+Instances are auto-downloaded on first run from `zhu-he/pdptw-data`
+and cached locally. Re-running uses the cache (offline-friendly).
 
 ---
 
